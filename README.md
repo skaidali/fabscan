@@ -1,7 +1,7 @@
 # PE_63
 
 
-
+* Mettre des LEDs dans le boitier qui sera en plexiglas pour indiquer l'état du lecteur (reconnu, refusé)
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
