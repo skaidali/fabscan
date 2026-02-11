@@ -32,7 +32,6 @@ def qr_exists(ID):
     return file_path.exists()
 
 
-
 if __name__ == "__main__" : 
     ID_test = generateID()
     createQR(False,ID_test)
