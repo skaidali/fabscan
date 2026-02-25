@@ -1,3 +1,80 @@
-<div id="content">
-    <h1>Utilisateurs !!</h1>
-</div>
+
+<link rel="stylesheet" href="./users.css">
+
+<main class="users-shell">
+    <section class="users-card" aria-labelledby="users-title">
+        <div class="users-header">
+            <h1 id="users-title" class="users-title">Gestion des Utilisateurs</h1>
+            <a
+                href="registration.html"
+                class="new-user-btn"
+                onclick="if(window.loadPage){event.preventDefault();const btn=window.findNavButtonByPage?window.findNavButtonByPage('./registration.html'):null;window.loadPage('./registration.html', btn);}"
+            >
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                <span>Nouvel Utilisateur</span>
+            </a>
+        </div>
+
+        <div class="users-toolbar">
+            <div class="search-wrap">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input
+                    type="search"
+                    id="users-search"
+                    class="search-input"
+                    placeholder="Rechercher par nom, prénom ou email..."
+                    name="query"
+                >
+            </div>
+
+            <select id="users-status-filter" class="filter-select" name="status_filter" aria-label="Filtrer par statut">
+                <option value="all">Tous</option>
+                <option value="etudiants">Étudiants</option>
+                <option value="personnel">Personnel</option>
+                <option value="externes">Externes</option>
+            </select>
+        </div>
+
+        <div class="table-wrap">
+            <table class="users-table" aria-label="Liste des utilisateurs">
+                <thead>
+                    <tr>
+                        <th>Prénom</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Statut</th>
+                        <th>Carte RFID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body"></tbody>
+            </table>
+        </div>
+
+        <div id="users-table-state" class="message" role="status" aria-live="polite" style="margin: 0.8rem 1.25rem 0;"></div>
+
+        <template id="users-row-template">
+            <tr>
+                <td class="user-prenom"></td>
+                <td class="user-nom"></td>
+                <td class="user-email"></td>
+                <td class="user-statut"></td>
+                <td class="user-rfid"></td>
+                <td>
+                    <div class="action-group">
+                        <button type="button" class="icon-btn action-edit" title="Éditer le profil" aria-label="Éditer"><i class="fa-solid fa-pen"></i></button>
+                        <button type="button" class="icon-btn action-resend-qr" title="Renvoyer le QR code" aria-label="Renvoyer QR"><i class="fa-solid fa-rotate"></i></button>
+                        <button type="button" class="icon-btn action-checkin" title="Pointage manuel" aria-label="Pointage manuel"><i class="fa-solid fa-check"></i></button>
+                        <button type="button" class="icon-btn action-delete" title="Supprimer l'utilisateur" aria-label="Supprimer"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+        </template>
+
+        <div class="pagination" aria-label="Pagination utilisateurs">
+            <button type="button" id="users-page-prev" class="page-btn">Précédent</button>
+            <div id="users-page-numbers" style="display:inline-flex; gap:0.35rem;"></div>
+            <button type="button" id="users-page-next" class="page-btn">Suivant</button>
+        </div>
+    </section>
+</main>

@@ -13,6 +13,7 @@ import os
 
 # Import des fonctions SQL
 import sql_request as db
+import traitementQR as qr
 
 # Configuration du serveur
 PORT_SERVEUR = 8080
@@ -39,8 +40,42 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(body.encode('utf-8'))))
         self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
         self.wfile.write(body.encode('utf-8'))
+
+    def do_OPTIONS(self):
+        """Répondre aux requêtes CORS preflight"""
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+    def parse_json_body(self):
+        """Parser le corps JSON d'une requête"""
+        content_length = int(self.headers.get('Content-Length', 0))
+        if content_length <= 0:
+            return {}
+
+        post_data = self.rfile.read(content_length)
+        if not post_data:
+            return {}
+
+        try:
+            return json.loads(post_data.decode('utf-8'))
+        except Exception:
+            self.send_response_json({"error": "Données JSON invalides"}, 400)
+            return None
+
+    def get_query_int(self, name, default, minimum=1, maximum=500):
+        """Lire un entier de query string avec bornes"""
+        try:
+            value = int(self.params.get(name, [default])[0])
+        except Exception:
+            value = default
+        return max(minimum, min(value, maximum))
 
     def do_GET(self):
         """Traiter les requêtes GET"""
@@ -48,7 +83,9 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         
         # Route API stats - statistiques générales
         if len(self.path_info) > 0 and self.path_info[0] == "api" and len(self.path_info) > 1:
-            if self.path_info[1] == "stats":
+            if self.path_info[1] == "health":
+                self.send_response_json({"success": True, "status": "ok"})
+            elif self.path_info[1] == "stats":
                 self.send_stats()
             elif self.path_info[1] == "users":
                 self.send_users()
@@ -65,14 +102,9 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         """Traiter les requêtes POST"""
         self.init_params()
-        
-        content_length = int(self.headers.get('Content-Length', 0))
-        post_data = self.rfile.read(content_length)
-        
-        try:
-            data = json.loads(post_data.decode('utf-8'))
-        except:
-            self.send_response_json({"error": "Données JSON invalides"}, 400)
+
+        data = self.parse_json_body()
+        if data is None:
             return
         
         if len(self.path_info) > 0 and self.path_info[0] == "api" and len(self.path_info) > 1:
@@ -82,10 +114,28 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.add_user(data)
             elif self.path_info[1] == "add_entry":
                 self.add_entry(data)
+            elif self.path_info[1] == "update_user":
+                self.update_user(data)
+            elif self.path_info[1] == "resend_qr":
+                self.resend_qr(data)
+            elif self.path_info[1] == "manual_checkin":
+                self.manual_checkin(data)
+            elif self.path_info[1] == "delete_user":
+                self.delete_user(data)
             else:
                 self.send_response_json({"error": "Route POST inconnue"}, 404)
         else:
             self.send_response_json({"error": "Route POST invalide"}, 404)
+
+    def do_DELETE(self):
+        """Traiter les requêtes DELETE"""
+        self.init_params()
+
+        if len(self.path_info) > 2 and self.path_info[0] == "api" and self.path_info[1] == "user":
+            self.delete_user({"user_id": self.path_info[2]})
+            return
+
+        self.send_response_json({"error": "Route DELETE invalide"}, 404)
 
     def send_stats(self):
         """Envoyer les statistiques générales"""
@@ -99,7 +149,12 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def send_users(self):
         """Envoyer la liste des utilisateurs"""
         try:
-            rows = db.get_all_users()
+            search = self.params.get('search', [''])[0]
+            statut = self.params.get('statut', ['all'])[0]
+            page = self.get_query_int('page', 1, minimum=1, maximum=100000)
+            page_size = self.get_query_int('page_size', 50, minimum=1, maximum=200)
+
+            rows, total = db.list_users(search=search, statut=statut, page=page, page_size=page_size)
             
             users = []
             for row in rows:
@@ -114,8 +169,16 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                     "formation_brodeuse": bool(row[7]),
                     "montant": row[8]
                 })
-            
-            self.send_response_json(users)
+
+            self.send_response_json({
+                "items": users,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total,
+                    "total_pages": max(1, (total + page_size - 1) // page_size)
+                }
+            })
         except Exception as e:
             print(f"Erreur users: {e}")
             self.send_response_json({"error": str(e)}, 500)
@@ -146,23 +209,10 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def send_user_by_id(self, user_id):
         """Rechercher un utilisateur par son ID"""
         try:
-            row = db.research_user_by_id(user_id)
-            
-            if row:
-                # Obtenir toutes les infos
-                status = db.check_status(user_id)
-                formations = db.check_formations(user_id)
-                
-                user = {
-                    "id": user_id,
-                    "nom": row[0],
-                    "prenom": row[1],
-                    "statut": status[2] if status else "",
-                    "formation_3d": bool(formations[0]) if formations else False,
-                    "formation_laser": bool(formations[1]) if formations else False,
-                    "formation_brodeuse": bool(formations[2]) if formations else False
-                }
-                self.send_response_json(user)
+            details = db.get_user_details(user_id)
+
+            if details:
+                self.send_response_json(details)
             else:
                 self.send_response_json({"error": "Utilisateur non trouvé"}, 404)
         except Exception as e:
@@ -215,7 +265,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 return
             
             # Utiliser la fonction SQL
-            db.add_user(user_id, nom, prenom, statut)
+            db.add_user(user_id, nom, prenom, statut, email)
             
             self.send_response_json({
                 "success": True,
@@ -244,6 +294,103 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response_json({"success": True, "message": "Entrée enregistrée"})
         except Exception as e:
             print(f"Erreur add_entry: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def delete_user(self, data):
+        """Supprimer un utilisateur et ses dépendances"""
+        try:
+            user_id = str(data.get('user_id', '')).strip()
+            if not user_id:
+                self.send_response_json({"success": False, "error": "ID utilisateur manquant"}, 400)
+                return
+
+            deleted = db.delete_user(user_id)
+            if not deleted:
+                self.send_response_json({"success": False, "error": "Utilisateur non trouvé"}, 404)
+                return
+
+            self.send_response_json({"success": True, "message": "Utilisateur supprimé"})
+        except Exception as e:
+            print(f"Erreur delete_user: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def update_user(self, data):
+        """Mettre à jour un utilisateur existant"""
+        try:
+            user_id = data.get('user_id', '').strip()
+            nom = data.get('nom', '').strip()
+            prenom = data.get('prenom', '').strip()
+            statut = data.get('statut', '').strip()
+            email = data.get('email')
+
+            if not user_id:
+                self.send_response_json({"success": False, "error": "ID utilisateur manquant"}, 400)
+                return
+
+            if not nom or not prenom or not statut:
+                self.send_response_json({"success": False, "error": "Nom, prénom et statut requis"}, 400)
+                return
+
+            user = db.research_user_by_id(user_id)
+            if not user:
+                self.send_response_json({"success": False, "error": "Utilisateur non trouvé"}, 404)
+                return
+
+            if email is not None:
+                email = str(email).strip()
+
+            db.update_user(user_id, nom, prenom, statut, email)
+            self.send_response_json({
+                "success": True,
+                "message": f"Utilisateur {prenom} {nom} mis à jour"
+            })
+        except Exception as e:
+            print(f"Erreur update_user: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def resend_qr(self, data):
+        """Générer à nouveau le QR code d'un utilisateur"""
+        try:
+            user_id = data.get('user_id', '').strip()
+            if not user_id:
+                self.send_response_json({"success": False, "error": "ID utilisateur manquant"}, 400)
+                return
+
+            user = db.research_user_by_id(user_id)
+            if not user:
+                self.send_response_json({"success": False, "error": "Utilisateur non trouvé"}, 404)
+                return
+
+            qr_id = qr.createQR(False, user_id)
+            self.send_response_json({
+                "success": True,
+                "id": qr_id,
+                "message": f"QR code régénéré pour {user[1]} {user[0]}"
+            })
+        except Exception as e:
+            print(f"Erreur resend_qr: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def manual_checkin(self, data):
+        """Créer un pointage manuel pour un utilisateur"""
+        try:
+            user_id = data.get('user_id', '').strip()
+            if not user_id:
+                self.send_response_json({"success": False, "error": "ID utilisateur manquant"}, 400)
+                return
+
+            user = db.research_user_by_id(user_id)
+            if not user:
+                self.send_response_json({"success": False, "error": "Utilisateur non trouvé"}, 404)
+                return
+
+            db.add_entry(user_id, type_projet='Pointage manuel')
+            self.send_response_json({
+                "success": True,
+                "message": f"Pointage manuel enregistré pour {user[1]} {user[0]}"
+            })
+        except Exception as e:
+            print(f"Erreur manual_checkin: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
 
 
