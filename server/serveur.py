@@ -3,12 +3,13 @@
 Serveur FabLab - Gestion des entrées et utilisateurs
 PE-63
 """
-
+from pathlib import Path 
 import http.server
 import socketserver
 from urllib.parse import urlparse, parse_qs, unquote
 import json
 import datetime as dt
+import os 
 
 # Import des fonctions SQL
 import sql_request as db
@@ -18,8 +19,8 @@ PORT_SERVEUR = 8080
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     """Classe dérivée pour traiter les requêtes entrantes du serveur"""
-
-    static_dir = 'client'
+    root = Path(__file__).resolve().parent.parent
+    static_dir = root/'client'
     
     def __init__(self, *args, **kwargs):
         """Surcharge du constructeur pour imposer 'client' comme sous répertoire racine"""
