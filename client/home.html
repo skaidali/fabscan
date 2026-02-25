@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-
+<html>
 <head>
-  <meta charset="utf-8">
-  <title>FabScan</title>
+    <meta charset="UTF-8">
+    <title>Test Home</title>
 </head>
+<body style="background-color:#222; color:white; text-align:center; margin-top:100px; font-family:Arial;">
+    <h1>✅ SERVEUR OK</h1>
+    <p>Si tu vois cette page, le dossier client est bien servi.</p>
+    <p id="time"></p>
 
-<h2>Accueil</h2>
-<p>Bienvenue sur le site.</p>
+    <script>
+        document.getElementById("time").textContent =
+            "Heure serveur test : " + new Date().toLocaleString();
+    </script>
+</body>
+</html>

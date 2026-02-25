@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-
+<html>
 <head>
   <meta charset="utf-8">
   <title>FabScan</title>
@@ -7,20 +7,26 @@
 
 <body>
 
-<h1>Mon Site</h1>
+  <h1>Mon Site</h1>
 
   <button onclick="loadPage('home.html')">Accueil</button>
-  
-  
+
+  <!-- ICI on met la zone dynamique -->
+  <div id="content" style="margin-top:20px;"></div>
+
   <script>
     function loadPage(page) {
       fetch(page)
         .then(response => response.text())
         .then(data => {
           document.getElementById('content').innerHTML = data;
+        })
+        .catch(error => {
+          console.error("Erreur :", error);
         });
     }
 
-    loadPage('home.html');
   </script>
+
 </body>
+</html>
