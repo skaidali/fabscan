@@ -1,0 +1,176 @@
+<link rel="stylesheet" href="./registration.css">
+
+<main class="registration-shell">
+    <section class="registration-card" aria-labelledby="registration-title">
+        <div class="registration-header">
+            <h2 id="registration-title" class="registration-title">Enregistrer un nouvel usager</h2>
+            <p class="registration-subtitle">Formulaire rapide et fluide pour valider une inscription en quelques secondes.</p>
+        </div>
+
+        <div class="registration-body">
+            <form id="registration-form" aria-label="Formulaire d'inscription usager">
+                <div class="field">
+                    <span class="section-label">Statut</span>
+                    <div class="pill-group" role="radiogroup" aria-label="Statut de la personne">
+                        <input type="radio" id="statut_etudiant" name="statut" value="Étudiant" required>
+                        <label class="pill" for="statut_etudiant">Étudiant</label>
+
+                        <input type="radio" id="statut_personnel" name="statut" value="Personnel">
+                        <label class="pill" for="statut_personnel">Personnel</label>
+
+                        <input type="radio" id="statut_externe" name="statut" value="Externe">
+                        <label class="pill" for="statut_externe">Externe</label>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="prenom">Prénom</label>
+                        <input
+                            type="text"
+                            id="prenom"
+                            name="prenom"
+                            required
+                            autocomplete="given-name"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="nom">Nom</label>
+                        <input
+                            type="text"
+                            id="nom"
+                            name="nom"
+                            required
+                            autocomplete="family-name"
+                        >
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="email">Adresse e-mail</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="prenom.nom@etu.ec-lyon.fr"
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="field">
+                    <span class="section-label">Motif de la visite</span>
+                    <div class="pill-group" role="radiogroup" aria-label="Motif de la visite">
+                        <input type="radio" id="motif_etudes" name="motif" value="Projet d'Études" required>
+                        <label class="pill" for="motif_etudes">Projet d'Études</label>
+
+                        <input type="radio" id="motif_perso" name="motif" value="Projet Personnel">
+                        <label class="pill" for="motif_perso">Projet Personnel</label>
+
+                        <input type="radio" id="motif_formation" name="motif" value="Visite">
+                        <label class="pill" for="motif_formation">Visite</label>
+
+                        <input type="radio" id="motif_autre" name="motif" value="Autre">
+                        <label class="pill" for="motif_autre">Autre</label>
+                    </div>
+                </div>
+
+                <div class="rfid-panel">
+                    <span class="section-label">Association carte RFID</span>
+                    <button
+                        type="button"
+                        id="rfid-associate-btn"
+                        class="rfid-action"
+                        onclick="if(this.classList.contains('is-loading')){return;} this.classList.add('is-loading'); this.innerHTML='<span class=\"mini-spinner\" aria-hidden=\"true\"></span>Associer la carte étudiante</button>
+                    <input type="hidden" id="rfid_card_id" name="rfid_card_id" value="">
+                </div>
+
+                <div class="toggle-row">
+                    <span style="font-weight: 600; color: #26344d;">Envoyer le QR code par email</span>
+                    <label class="toggle" aria-label="Envoyer le QR code par email">
+                        <input type="checkbox" id="send_qr_email" name="send_qr_email" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-btn">Enregistrer</button>
+                <div id="registration-message" class="message" role="status" aria-live="polite"></div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script>
+    (function () {
+        const form = document.getElementById('registration-form');
+        if (!form || form.dataset.emailLogicBound === '1') {
+            return;
+        }
+        form.dataset.emailLogicBound = '1';
+
+        const firstNameInput = document.getElementById('prenom');
+        const lastNameInput = document.getElementById('nom');
+        const emailInput = document.getElementById('email');
+        const statusInputs = form.querySelectorAll('input[name="statut"]');
+
+        function normalizeIdentity(value) {
+            return String(value || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[\s']/g, '-')
+                .replace(/[^a-z0-9-]/g, '')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+        }
+
+        function selectedStatus() {
+            const checked = form.querySelector('input[name="statut"]:checked');
+            return checked ? checked.value : '';
+        }
+
+        function updateEmailFromRules(forceResetManual) {
+            const status = selectedStatus();
+            const first = normalizeIdentity(firstNameInput.value);
+            const last = normalizeIdentity(lastNameInput.value);
+
+            if (status === 'Externe') {
+                emailInput.placeholder = 'exemple@domaine.com';
+                if (forceResetManual) {
+                    emailInput.dataset.manual = '0';
+                }
+                emailInput.value = '';
+                return;
+            }
+
+            emailInput.placeholder = 'prenom.nom@etu.ec-lyon.fr';
+
+            if (emailInput.dataset.manual === '1' && !forceResetManual) {
+                return;
+            }
+
+            const domain = status === 'Personnel' ? '@ec-lyon.fr' : '@etu.ec-lyon.fr';
+            emailInput.value = first && last ? `${first}.${last}${domain}` : '';
+        }
+
+        firstNameInput.addEventListener('input', function () {
+            updateEmailFromRules(false);
+        });
+
+        lastNameInput.addEventListener('input', function () {
+            updateEmailFromRules(false);
+        });
+
+        statusInputs.forEach(function (input) {
+            input.addEventListener('change', function () {
+                updateEmailFromRules(true);
+            });
+        });
+
+        emailInput.addEventListener('input', function () {
+            this.dataset.manual = this.value.trim() ? '1' : '0';
+        });
+
+        updateEmailFromRules(false);
+    })();
+</script>
