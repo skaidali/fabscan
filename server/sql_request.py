@@ -8,6 +8,9 @@ import sqlite3
 import datetime
 import csv
 import os
+import pandas as pd
+
+
 root = Path(__file__).resolve().parent.parent
 DATABASE_PATH = path / "./database/database.db"
 
@@ -38,14 +41,14 @@ def research_user_by_id_carte(id_carte):
     conn.close()
     return result
 
-def add_entry(id_utilisateur, type_projet, zone_travail, commentaire):
+def add_entry(id_utilisateur, type_projet, zone_travail, commentaire,email):
     """Ajouter une entrée"""    
     conn = get_connection()
     cursor = conn.cursor()
     date = datetime.datetime 
-    request = """INSERT INTO ENTREE (id_utilisateur, type_projet,zone_travail, commentaire,date)
+    request = """INSERT INTO ENTREE (id_utilisateur, type_projet,zone_travail, commentaire,date,email)
     VALUES (?,?,?,?) """
-    cursor.execute(request, (id_utilisateur, type_projet, zone_travail,commentaire, date))
+    cursor.execute(request, (id_utilisateur, type_projet, zone_travail,commentaire, date,email))
     conn.close()
     
 def add_user(id, nom, prenom,statut,commentaire):
@@ -69,7 +72,15 @@ def link_id_carte(id, id_carte)
     cursor.execute(request, (id_carte,id)) 
     conn.close() 
 
-    
+def to_excel()
+    conn = get_connection()
+    cursor = conn.cursor()
+    request = """
+    SELECT e.date, u.statut, u.nom, u.prenom, e.type_projet, e.zone_travail, e.commentaire
+    FROM ENTREES as e 
+    JOIN UTILISATEURS AS u ON u.id = e.id_utilisateur
+    """
+
 
 
 

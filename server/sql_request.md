@@ -9,4 +9,4 @@ Module s'occupant de la communication entre le serveur et la base de donnée à 
 -`add_user(id,nom, prenom,statut,commentaire)` ajoute un utilisateur dans la table UTILISATEUR (formations mise à FALSE). L'id de la carte n'est pas ajouté dans cette fonction. 
 -`add_entry(id_utilisateur, type_projet, zone_travail, commentaire)` ajoute une entrée dans la table ENTREE (date générée par le programme)
 -`link_id_carte` Permet de faire le lien entre la carte et le qr code. 
-
+-`to_excel` Génère un excel à partir de la base de donnée avec le même format 
