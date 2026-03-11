@@ -81,7 +81,7 @@
                         type="button"
                         id="rfid-associate-btn"
                         class="rfid-action"
-                        onclick="if(this.classList.contains('is-loading')){return;} this.classList.add('is-loading'); this.innerHTML='<span class=\"mini-spinner\" aria-hidden=\"true\"></span>Associer la carte étudiante</button>
+                    >Associer la carte étudiante</button>
                     <input type="hidden" id="rfid_card_id" name="rfid_card_id" value="">
                 </div>
 
@@ -111,6 +111,7 @@
         const firstNameInput = document.getElementById('prenom');
         const lastNameInput = document.getElementById('nom');
         const emailInput = document.getElementById('email');
+        const rfidAssociateBtn = document.getElementById('rfid-associate-btn');
         const statusInputs = form.querySelectorAll('input[name="statut"]');
 
         function normalizeIdentity(value) {
@@ -170,6 +171,16 @@
         emailInput.addEventListener('input', function () {
             this.dataset.manual = this.value.trim() ? '1' : '0';
         });
+
+        if (rfidAssociateBtn) {
+            rfidAssociateBtn.addEventListener('click', function () {
+                if (this.classList.contains('is-loading')) {
+                    return;
+                }
+                this.classList.add('is-loading');
+                this.innerHTML = '<span class="mini-spinner" aria-hidden="true"></span>Associer la carte étudiante';
+            });
+        }
 
         updateEmailFromRules(false);
     })();
