@@ -1,3 +1,417 @@
-<div id="content">
-    <h1>Réservations !!</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FabLab Admin – Reservations</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 0; }
+    header { background: #005bbb; color: white; padding: 1rem 2rem; }
+    header h1 { margin: 0; }
+    .tabs { display: flex; border-bottom: 1px solid #ccc; }
+    .tab {
+      padding: 0.8rem 1.2rem;
+      cursor: pointer;
+      border-right: 1px solid #ccc;
+      background: #f5f5f5;
+    }
+    .tab.active { background: white; border-bottom: 2px solid #005bbb; font-weight: 600; }
+    .tab-content { padding: 1rem 2rem; }
+
+    /* Calendar layout */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .calendar-day-header {
+      text-align: center;
+      font-weight: 600;
+      padding: 0.3rem 0;
+      background: #eee;
+    }
+    .calendar-cell {
+      border: 1px solid #ddd;
+      min-height: 80px;
+      padding: 2px 4px;
+      font-size: 0.8rem;
+      position: relative;
+    }
+    .calendar-cell .date-number {
+      font-weight: 600;
+    }
+    .booking-tag {
+      display: block;
+      margin-top: 2px;
+      padding: 2px 3px;
+      background: #005bbb;
+      color: #fff;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* List view */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.4rem 0.5rem;
+      text-align: left;
+    }
+    th { background: #f0f0f0; }
+    tr:nth-child(even) { background: #fafafa; }
+
+    .status {
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+    }
+    .status.pending { background: #fff4c2; color: #8a6d00; }
+    .status.confirmed { background: #d6f5d6; color: #0b6b0b; }
+    .status.cancelled { background: #ffd6d6; color: #a10000; }
+
+    .filters {
+      margin-bottom: 0.8rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters label { font-size: 0.85rem; font-weight: 600; }
+    .filters select, .filters input {
+      font-size: 0.85rem;
+      padding: 0.2rem 0.3rem;
+    }
+    .btn-small {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.5rem;
+      cursor: pointer;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+    }
+    .btn-small.primary {
+      background: #005bbb;
+      color: white;
+      border-color: #005bbb;
+    }
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal .modal-content {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .modal .modal-content label { display: block; margin: 0.5rem 0; }
+    #hours-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 160px; overflow: auto; }
+    #hours-list label { font-size: 0.85rem; background:#f5f5f5; padding:4px 6px; border-radius:4px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Réservations</h1>
+</header>
+
+<div id="calendar-view" class="tab-content">
+  <div class="calendar-header">
+    <div>
+      <button class="btn-small" id="prev-month">&lt; Prev week</button>
+      <button class="btn-small" id="next-month">Next week &gt;</button>
+      <button class="btn-small primary" id="add-reservation">+ Add reservation</button>
+    </div>
+    <h2 id="month-label"></h2>
+    <div>
+      <label for="machine-filter-cal">Machine:</label>
+      <select id="machine-filter-cal">
+        <option value="">All</option>
+        <option value="laser-cutter">Laser cutter</option>
+        <option value="3d-printer">3D printer</option>
+        <option value="cnc">CNC router</option>
+        <option value="vinyl-cutter">Vinyl cutter</option>
+        <option value="electronics-bench">Electronics bench</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="calendar-grid" id="calendar-grid">
+    <!-- Headers -->
+  </div>
 </div>
+
+<script>
+// Demo data – replace with data from your backend
+const bookings = [
+  {
+    id: 1,
+    date: '2026-03-15',
+    start: '09:00',
+    end: '11:00',
+    machine: 'laser-cutter',
+    name: 'Alice Martin',
+    email: 'alice@example.com',
+    status: 'pending'
+  },
+  {
+    id: 2,
+    date: '2026-03-16',
+    start: '14:00',
+    end: '16:00',
+    machine: '3d-printer',
+    name: 'Bob Dupont',
+    email: 'bob@example.com',
+    status: 'confirmed'
+  }
+];
+
+const machineLabels = {
+  'laser-cutter': 'Laser cutter',
+  '3d-printer': '3D printer',
+  'cnc': 'CNC router',
+  'vinyl-cutter': 'Vinyl cutter',
+  'electronics-bench': 'Electronics bench'
+};
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).style.display = 'block';
+  });
+});
+
+// Calendar
+const calendarGrid = document.getElementById('calendar-grid');
+const monthLabel = document.getElementById('month-label');
+const machineFilterCal = document.getElementById('machine-filter-cal');
+
+const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function getWeekStart(d) {
+  const date = new Date(d);
+  date.setHours(0,0,0,0);
+  const day = (date.getDay() + 6) % 7; // Monday=0
+  date.setDate(date.getDate() - day);
+  return date;
+}
+
+let current = getWeekStart(new Date());
+
+function formatShortDate(d) {
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+}
+
+function renderCalendar() {
+  calendarGrid.innerHTML = '';
+  // Headers
+  dayNames.forEach(d => {
+    const h = document.createElement('div');
+    h.className = 'calendar-day-header';
+    h.textContent = d;
+    calendarGrid.appendChild(h);
+  });
+
+  const weekStart = new Date(current);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  monthLabel.textContent = `${formatShortDate(weekStart)} – ${formatShortDate(weekEnd)} ${weekEnd.getFullYear()}`;
+
+  const selectedMachine = machineFilterCal.value;
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell';
+    const dateNum = document.createElement('div');
+    dateNum.className = 'date-number';
+    dateNum.textContent = day;
+    cell.appendChild(dateNum);
+
+    bookings
+      .filter(b => b.date === dateStr)
+      .filter(b => !selectedMachine || b.machine === selectedMachine)
+      .forEach(b => {
+        const tag = document.createElement('span');
+        tag.className = 'booking-tag';
+        tag.textContent = `${b.start} ${machineLabels[b.machine] || b.machine}`;
+        tag.style.cursor = 'pointer';
+        tag.addEventListener('click', (e) => { e.stopPropagation(); openViewModal(b); });
+        cell.appendChild(tag);
+      });
+
+    // clicking on the empty cell opens add reservation modal for that date
+    cell.addEventListener('click', () => openAddModal(dateStr));
+
+    calendarGrid.appendChild(cell);
+  }
+}
+
+document.getElementById('prev-month').onclick = () => {
+  current.setDate(current.getDate() - 7);
+  current = getWeekStart(current);
+  renderCalendar();
+};
+document.getElementById('next-month').onclick = () => {
+  current.setDate(current.getDate() + 7);
+  current = getWeekStart(current);
+  renderCalendar();
+};
+machineFilterCal.onchange = renderCalendar;
+
+// Make booking tags clickable and support adding reservations via a modal
+function openViewModal(b) {
+  const modal = document.getElementById('view-modal');
+  modal.querySelector('.vm-date').textContent = b.date;
+  modal.querySelector('.vm-time').textContent = `${b.start}–${b.end}`;
+  modal.querySelector('.vm-machine').textContent = machineLabels[b.machine] || b.machine;
+  modal.querySelector('.vm-name').textContent = b.name;
+  modal.querySelector('.vm-email').textContent = b.email || '';
+  modal.querySelector('.vm-reason').textContent = b.reason || '';
+  modal.style.display = 'block';
+}
+
+function openAddModal(prefillDate) {
+  const modal = document.getElementById('add-modal');
+  const dateInput = modal.querySelector('#add-date');
+  dateInput.value = prefillDate || new Date().toISOString().slice(0,10);
+  modal.querySelector('#add-name').value = '';
+  modal.querySelector('#add-reason').value = '';
+  modal.querySelector('#add-machine').value = '';
+  modal.querySelectorAll('#hours-list input[type=checkbox]').forEach(cb => cb.checked = false);
+  modal.style.display = 'block';
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function addReservation() {
+  const modal = document.getElementById('add-modal');
+  const date = modal.querySelector('#add-date').value;
+  const name = modal.querySelector('#add-name').value.trim();
+  const reason = modal.querySelector('#add-reason').value.trim();
+  const machine = modal.querySelector('#add-machine').value || '';
+  const hours = Array.from(modal.querySelectorAll('#hours-list input[type=checkbox]:checked')).map(i => i.value);
+  if (!date || !name || hours.length === 0) {
+    alert('Please provide a name, date and select at least one hour.');
+    return;
+  }
+  let maxId = bookings.reduce((m,b) => Math.max(m, b.id || 0), 0);
+  hours.forEach(hr => {
+    const hourNum = Number(hr.split(':')[0]);
+    const start = hr;
+    const end = String(hourNum + 1).padStart(2,'0') + ':00';
+    maxId++;
+    bookings.push({ id: maxId, date, start, end, machine, name, email:'', reason, status:'pending' });
+  });
+  closeModal('add-modal');
+  renderCalendar();
+}
+
+// Wire add button
+document.getElementById('add-reservation').onclick = () => openAddModal();
+
+// Make calendar cells open add modal when clicked (prefills date)
+// We'll attach this in renderCalendar when creating cells.
+
+// Initial render
+renderCalendar();
+renderCalendar();
+</script>
+
+<!-- View reservation modal -->
+<div id="view-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="margin:0">Reservation</h3>
+      <button class="btn-small" onclick="closeModal('view-modal')">Close</button>
+    </div>
+    <p><strong>Date:</strong> <span class="vm-date"></span></p>
+    <p><strong>Time:</strong> <span class="vm-time"></span></p>
+    <p><strong>Machine:</strong> <span class="vm-machine"></span></p>
+    <p><strong>Name:</strong> <span class="vm-name"></span></p>
+    <p><strong>Email:</strong> <span class="vm-email"></span></p>
+    <p><strong>Reason:</strong> <span class="vm-reason"></span></p>
+  </div>
+</div>
+
+<!-- Add reservation modal -->
+<div id="add-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="margin:0">Add reservation</h3>
+      <button class="btn-small" onclick="closeModal('add-modal')">Close</button>
+    </div>
+    <label>Date: <input type="date" id="add-date"></label>
+    <label>Name: <input type="text" id="add-name"></label>
+    <label>Reason: <input type="text" id="add-reason"></label>
+    <label>Machine:
+      <select id="add-machine">
+        <option value="">(none)</option>
+        <option value="laser-cutter">Laser cutter</option>
+        <option value="3d-printer">3D printer</option>
+        <option value="cnc">CNC router</option>
+        <option value="vinyl-cutter">Vinyl cutter</option>
+        <option value="electronics-bench">Electronics bench</option>
+      </select>
+    </label>
+    <div>
+      <strong>Hours (select one or more):</strong>
+      <div id="hours-list">
+        <!-- generate hourly checkboxes -->
+      </div>
+    </div>
+    <div style="margin-top:0.6rem;">
+      <button class="btn-small primary" onclick="addReservation()">Add</button>
+    </div>
+  </div>
+</div>
+  <script>
+  // populate hours checkboxes (08:00–20:00)
+  (function(){
+    const container = document.getElementById('hours-list');
+    if (!container) return;
+    for (let h = 8; h <= 20; h++) {
+      const label = document.createElement('label');
+      const hh = String(h).padStart(2,'0') + ':00';
+      label.innerHTML = `<input type="checkbox" value="${hh}"> ${hh}`;
+      container.appendChild(label);
+    }
+    // close modal when clicking on overlay
+    document.querySelectorAll('.modal').forEach(m => {
+      m.addEventListener('click', (e) => { if (e.target === m) m.style.display = 'none'; });
+    });
+  })();
+  </script>
+
+</body>
+</html>
