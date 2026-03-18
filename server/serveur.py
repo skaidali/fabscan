@@ -258,7 +258,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             nom = data.get('nom', '')
             prenom = data.get('prenom', '')
             email = data.get('email', '')
-            statut = data.get('statut', 'Etudiant')
+            statut = data.get('statut', '')
             
             if not nom or not prenom:
                 self.send_response_json({"success": False, "error": "Nom et prénom requis"}, 400)
@@ -399,7 +399,10 @@ if __name__ == "__main__":
     print("Initialisation de la base de données...")
     db.init_database()
     db.import_csv_data()
+    db.add_user(dt.datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3], "Admin", "Admin", "Administrateur", "")
     
+
+
     print(f"\nServeur démarré sur le port {PORT_SERVEUR}")
     print(f"Accédez à l'interface : http://localhost:{PORT_SERVEUR}/")
     print("Ctrl+C pour arrêter le serveur\n")
