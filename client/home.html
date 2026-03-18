@@ -1,12 +1,147 @@
-<div id="content">
-    <h1>✅ SERVEUR OK</h1>
-    <p>Si tu vois cette page, le dossier client est bien servi.</p>
-    <p id="time"></p>
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Accueil – FabLab</title>
+    <style>
+        body{font-family:system-ui,sans-serif;margin:0}
+        .wrap{max-width:1000px;margin:0 auto}
+        .card{background:#fff;padding:1rem;border-radius:8px;box-shadow:0 6px 18px rgba(20,20,40,0.06);margin-bottom:1rem}
+        h1{margin:0 0 0.5rem}
+        .muted{color:#666}
+        .actions-list{list-style:none;padding:0;margin:0}
+        .actions-list li{padding:0.5rem 0;border-bottom:1px solid #f0f0f0}
+        .time{font-size:0.9rem;color:#444}
+        .row{display:flex;gap:1rem}
+        .col{flex:1}
+        .btn{padding:0.4rem 0.6rem;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
+        .btn.primary{background:#005bbb;color:#fff;border-color:#005bbb}
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>✅ SERVEUR OK</h1>
+            <p class="muted">Si tu vois cette page, le dossier client est bien servi.</p>
+            <div class="time" id="time">—</div>
+        </div>
+
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                    <strong>Aujourd'hui — Actions</strong>
+                    <div class="muted">Arrivées, inscriptions, factures, réservations (mise à jour automatique)</div>
+                </div>
+                <div>
+                    <button class="btn" id="refresh-actions">Rafraîchir</button>
+                </div>
+            </div>
+
+            <ul id="actions" class="actions-list" style="margin-top:0.75rem">
+                <li class="muted">Chargement…</li>
+            </ul>
+        </div>
+    </div>
 
     <script>
-    document.getElementById("time").textContent =
-        "Heure serveur test : " + new Date().toLocaleString();
+        document.getElementById('time').textContent = 'Heure client : ' + new Date().toLocaleString();
+
+        const apiBase = '/api';
+
+        function isToday(d){
+            const now = new Date();
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+        }
+
+        async function fetchTodayActions(){
+            const listEl = document.getElementById('actions');
+            listEl.innerHTML = '<li class="muted">Chargement…</li>';
+            const items = [];
+
+            // 1) Arrivals (ENTREE)
+            try{
+                const r = await fetch(apiBase + '/entries?limit=1000');
+                if(r.ok){
+                    const entries = await r.json();
+                    entries.forEach(e => {
+                        const d = new Date(e.date);
+                        if(isToday(d)){
+                            items.push({time:d, type:'arrivée', text:`Arrivée: ${e.prenom} ${e.nom} — ${e.type_projet || '—'} ${e.zone_travail?('['+e.zone_travail+']'):''}`});
+                        }
+                    });
+                }
+            }catch(err){ console.error('entries', err); }
+
+            // 2) Registrations (users) — server doesn't store created_at, but add_user generates timestamp-like id (YYYYMMDD...)
+            try{
+                const r2 = await fetch(apiBase + '/users?page=1&page_size=1000');
+                if(r2.ok){
+                    const data = await r2.json();
+                    const users = data.items || [];
+                    const todayPrefix = new Date().toISOString().slice(0,10).replace(/-/g,''); // YYYYMMDD
+                    users.forEach(u => {
+                        if(u.id && String(u.id).startsWith(todayPrefix)){
+                            // derive time from id if possible: YYYYMMDDHHMMSSmmm
+                            const id = String(u.id);
+                            let timeText = '';
+                            if(id.length >= 14){
+                                const hh = id.substr(8,2), mm = id.substr(10,2), ss = id.substr(12,2);
+                                timeText = ` à ${hh}:${mm}:${ss}`;
+                            }
+                            items.push({time:new Date(), type:'inscription', text:`Inscription: ${u.prenom} ${u.nom}${timeText}`});
+                        }
+                    });
+                }
+            }catch(err){ console.error('users', err); }
+
+            // 3) Bills — attempt to fetch /api/bills (may not exist)
+            try{
+                const rb = await fetch(apiBase + '/bills?limit=100');
+                if(rb.ok){
+                    const bills = await rb.json();
+                    bills.forEach(b => {
+                        const d = new Date(b.date || b.created_at || Date.now());
+                        if(isToday(d)) items.push({time:d,type:'facture', text:`Facture: ${b.client || b.name || '—'} — ${b.amount?b.amount+'€':''}`});
+                    });
+                }
+            }catch(err){ /* ignore, bills API likely missing */ }
+
+            // 4) Reservations — try /api/reservations
+            try{
+                const rr = await fetch(apiBase + '/reservations?limit=1000');
+                if(rr.ok){
+                    const res = await rr.json();
+                    res.forEach(r => {
+                        const d = new Date(r.date || r.start || Date.now());
+                        if(isToday(d)) items.push({time:d,type:'réservation', text:`Réservation: ${r.name || r.user || '—'} — ${r.machine || r.zone || r.resource || ''}`});
+                    });
+                }
+            }catch(err){ /* ignore if not implemented */ }
+
+            // Sort by time descending
+            items.sort((a,b)=>b.time - a.time);
+
+            // Render
+            if(items.length === 0){
+                listEl.innerHTML = '<li class="muted">Aucune action enregistrée aujourd\'hui.</li>';
+                return;
+            }
+            listEl.innerHTML = '';
+            items.forEach(it => {
+                const li = document.createElement('li');
+                const t = it.time instanceof Date ? it.time.toLocaleTimeString() : new Date(it.time).toLocaleTimeString();
+                li.innerHTML = `<div><strong>[${it.type}]</strong> ${it.text}</div><div class="muted">${t}</div>`;
+                listEl.appendChild(li);
+            });
+        }
+
+        document.getElementById('refresh-actions').addEventListener('click', fetchTodayActions);
+
+        // Initial load
+        fetchTodayActions();
     </script>
-</div>
+</body>
+</html>
 
 

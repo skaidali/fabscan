@@ -1,3 +1,197 @@
-<div id="content">
-    <h1>Scan !!</h1>
-</div>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Scan – FabLab</title>
+    <style>
+        body{font-family:system-ui, sans-serif;margin:0}
+        .container{max-width:900px;margin:0 auto;background:#fff;padding:1rem;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+        h1{margin:0 0 0.75rem}
+        .scan-area{display:flex;gap:1rem;align-items:flex-start}
+        .scan-box{flex:1;padding:0.75rem;border:1px dashed #ddd;border-radius:6px;background:#f9f9f9}
+        .label{font-weight:600;margin-bottom:0.4rem}
+        .field{margin-bottom:0.5rem}
+        .big{font-size:1.1rem}
+        .btn{display:inline-block;padding:0.4rem 0.6rem;border-radius:4px;border:1px solid #ccc;background:#fff;cursor:pointer}
+        .btn.primary{background:#005bbb;color:#fff;border-color:#005bbb}
+        form{margin-top:0.75rem}
+        input[type=text], input[type=date], select, textarea{width:100%;padding:0.4rem;border:1px solid #ddd;border-radius:4px}
+        textarea{min-height:80px}
+        .row{display:flex;gap:0.75rem}
+        .col{flex:1}
+        .note{font-size:0.85rem;color:#666}
+        .success{color:green;font-weight:600}
+        .muted{color:#666}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scan (RFID / QR)</h1>
+
+        <div class="scan-area">
+            <div class="scan-box">
+                <div class="label">Résultat du scan</div>
+                <div id="scanned-info">
+                    <div class="field"><span class="muted">Pas encore de scan détecté</span></div>
+                </div>
+
+                <div style="margin-top:0.6rem">
+                    <button class="btn" id="simulate-qr">Scan code QR</button>
+                    <button class="btn" id="simulate-rfid">Scan carte RFID</button>
+                </div>
+
+                <div style="margin-top:0.6rem">
+                    <div class="label">Input manuel</div>
+                    <input id="manual-input" type="text" placeholder="Coller série de numéros ici et appuyer sur entrée">                </div>
+            </div>
+
+            <div style="width:380px">
+                <div class="scan-box">
+                    <div class="label">Formulaire d'arrivée</div>
+                    <form id="arrival-form">
+                        <div class="field">
+                            <label class="label">Nom</label>
+                            <input type="text" id="member-name" placeholder="Nom scanné, ou entrée manuelle">
+                        </div>
+                        <div class="field">
+                            <label class="label">Identifiant</label>
+                            <input type="text" id="member-id" placeholder="ID scanné">
+                        </div>
+                        <div class="field">
+                            <label class="label">Raison de la venue</label>
+                            <select id="reason">
+                                <option value="">-- sélectionner --</option>
+                                <option value="work">Personnel</option>
+                                <option value="class">Projet d'Études</option>
+                                <option value="visit">Visite</option>
+                                <option value="other">Autre</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Zone de travail</label>
+                            <select id="zone">
+                                <option value="">-- sélectionner --</option>
+                                <option value="2d">Espace 2D</option>
+                                <option value="3d">Espace 3D</option>
+                                <option value="electronics">MakerLab</option>
+                                <option value="cnc">test test</option>
+                                <option value="general">test test</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="label">Commentaires</label>
+                            <textarea id="comments" placeholder="Commentaires (optionnel)"></textarea>
+                        </div>
+
+                        <div style="display:flex;gap:0.5rem;align-items:center">
+                            <button class="btn primary" id="submit-btn" type="button">Enregistrer l'entrée</button>
+                            <div id="submit-result" class="muted"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <hr style="margin:1rem 0">
+        <div class="note">Encore et toujours en teeeest.</div>
+    </div>
+
+    <script>
+        // helpers
+        function renderScanned(data){
+            const out = document.getElementById('scanned-info');
+            out.innerHTML = '';
+            const rows = [];
+            for(const k of ['id','name','email','type']){
+                if(data[k]) rows.push(`<div class="field"><strong>${k}:</strong> <span class="big">${data[k]}</span></div>`);
+            }
+            if(rows.length===0) rows.push('<div class="field"><span class="muted">No structured data</span></div>');
+            out.innerHTML = rows.join('');
+
+            // populate form fields
+            if(data.name) document.getElementById('member-name').value = data.name;
+            if(data.id) document.getElementById('member-id').value = data.id;
+        }
+
+        function parseScan(payload){
+            // payload can be JSON or simple id or delimited string
+            let data = { raw: payload };
+            payload = payload.trim();
+            // JSON
+            if((payload.startsWith('{') && payload.endsWith('}')) || payload.startsWith('[')){
+                try{
+                    const obj = JSON.parse(payload);
+                    data = Object.assign(data, obj);
+                    data.type = 'qr-json';
+                    return data;
+                }catch(e){ /* fallthrough */ }
+            }
+            // common QR formats: id:name:email or id|name|email
+            const sep = payload.includes(':') ? ':' : (payload.includes('|') ? '|' : null);
+            if(sep){
+                const parts = payload.split(sep).map(s=>s.trim());
+                if(parts.length>=1) data.id = parts[0];
+                if(parts.length>=2) data.name = parts[1];
+                if(parts.length>=3) data.email = parts[2];
+                data.type = 'qr-delim';
+                return data;
+            }
+            // fallback: treat as rfid id string
+            data.id = payload;
+            data.type = 'rfid';
+            return data;
+        }
+
+        // simulate actions
+        document.getElementById('simulate-qr').addEventListener('click', ()=>{
+            const sample = JSON.stringify({id:'CARD-1001', name:'Alice Martin', email:'alice@example.com'});
+            const parsed = parseScan(sample);
+            renderScanned(parsed);
+        });
+        document.getElementById('simulate-rfid').addEventListener('click', ()=>{
+            const sample = 'RFID-7C:89:AA:10';
+            const parsed = parseScan(sample);
+            renderScanned(parsed);
+        });
+
+        // manual input (keyboard-wedge scanners often paste + Enter)
+        const manual = document.getElementById('manual-input');
+        manual.addEventListener('keydown', (e)=>{
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                const p = manual.value.trim();
+                if(!p) return;
+                const parsed = parseScan(p);
+                renderScanned(parsed);
+                manual.value = '';
+            }
+        });
+
+        // submit handler - for now we just log; hook to backend as needed
+        document.getElementById('submit-btn').addEventListener('click', ()=>{
+            const payload = {
+                id: document.getElementById('member-id').value.trim(),
+                name: document.getElementById('member-name').value.trim(),
+                reason: document.getElementById('reason').value,
+                zone: document.getElementById('zone').value,
+                comments: document.getElementById('comments').value.trim(),
+                time: new Date().toISOString()
+            };
+            // basic validation
+            if(!payload.id || !payload.name){
+                alert('Please provide member name and id (scanned or manual).');
+                return;
+            }
+            // TODO: replace with real POST to server if desired
+            console.log('Arrival recorded:', payload);
+            const result = document.getElementById('submit-result');
+            result.textContent = 'Recorded at ' + new Date().toLocaleTimeString();
+            result.className = 'success';
+            // small visual reset after 2s
+            setTimeout(()=>{ result.textContent=''; result.className='muted'; }, 2500);
+        });
+
+    </script>
+</body>
+</html>

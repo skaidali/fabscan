@@ -16,7 +16,7 @@ import sql_request as db
 import traitementQR as qr
 
 # Configuration du serveur
-PORT_SERVEUR = 8080
+PORT_SERVEUR = 8050
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     """Classe dérivée pour traiter les requêtes entrantes du serveur"""
@@ -399,7 +399,7 @@ if __name__ == "__main__":
     print("Initialisation de la base de données...")
     db.init_database()
     db.import_csv_data()
-    db.add_user(dt.datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3], "Admin", "Admin", "Administrateur", "")
+    # db.add_user(dt.datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3], "Admin", "Admin", "Administrateur", "")
     
 
 
