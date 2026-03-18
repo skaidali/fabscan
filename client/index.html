@@ -31,7 +31,7 @@
 
 
   <div id="content" style="margin-top:20px;"></div>
-
+  <script ref="machines.js"></script>
   <script>
     function findNavButtonByPage(page) {
       return document.querySelector(`header nav button[data-page="${page}"]`);
@@ -582,12 +582,53 @@
               window.location.hash = nextHash;
             }
           }
-          initRegistrationAutofill();
-          initUsersPage();
+          // Load per-page CSS/JS resources (e.g. reservations.js, reservations.css)
+          loadPageResources(page, () => {
+            // After resources loaded, call known init functions if present.
+            const inits = ['initRegistrationAutofill', 'initUsersPage'];
+            inits.forEach(fnName => { try { const fn = window[fnName]; if (typeof fn === 'function') fn(); } catch (e) { /* ignore */ } });
+          });
         })
         .catch(error => {
           console.error("Erreur :", error);
         });
+    }
+
+    // Helper: attach per-page CSS and JS. Calls callback when script loaded (or immediately if no script).
+    function loadPageResources(pagePath, cb) {
+      try {
+        const base = String(pagePath || '').replace(/^(?:\.\/|\/)/, '').replace(/\.html?$/, '');
+        if (!base) { if (typeof cb === 'function') cb(); return; }
+
+        // remove previously injected page resources
+        const prevCss = document.getElementById('page-css');
+        if (prevCss) prevCss.remove();
+        const prevScript = document.getElementById('page-script');
+        if (prevScript) prevScript.remove();
+
+        // try to add CSS (optional)
+        const cssHref = `${base}.css`;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = cssHref;
+        link.id = 'page-css';
+        // don't await load errors; append and continue
+        document.head.appendChild(link);
+
+        // try to add JS (optional)
+        const jsSrc = `${base}.js`;
+        const script = document.createElement('script');
+        script.src = jsSrc;
+        script.id = 'page-script';
+        script.async = false;
+        script.onload = function () { if (typeof cb === 'function') cb(); };
+        script.onerror = function () { /* still call callback so UI can initialize */ if (typeof cb === 'function') cb(); };
+        // append after a short timeout to ensure DOM is ready
+        document.body.appendChild(script);
+      } catch (e) {
+        console.warn('loadPageResources failed', e);
+        if (typeof cb === 'function') cb();
+      }
     }
 
     window.addEventListener('DOMContentLoaded', function () {

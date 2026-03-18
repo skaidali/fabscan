@@ -7,6 +7,7 @@ from pathlib import Path
 import sqlite3
 import datetime
 import csv
+import json
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -76,6 +77,15 @@ def init_database():
             zone_travail TEXT,
             commentaire TEXT,
             FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE CASCADE
+        )
+    """)
+
+    # Machines table: id, name, type, slots (JSON array of times)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS MACHINES (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            type TEXT
         )
     """)
 
@@ -206,6 +216,70 @@ def get_all_users():
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+
+def list_machines():
+    """Retourner la liste des machines (id,name,type,slots_json)"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, type, slots FROM MACHINES ORDER BY name")
+    rows = cursor.fetchall()
+    conn.close()
+    machines = []
+    for r in rows:
+        machines.append({
+            "id": r[0],
+            "name": r[1],
+            "type": r[2],
+            "slots": [] if r[3] is None else json.loads(r[3])
+        })
+    return machines
+
+
+def add_machine(id_machine, name, type_machine, slots_list):
+    """Ajouter une machine avec une liste de slots (list)"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    slots_json = json.dumps(slots_list or [])
+    cursor.execute("INSERT OR REPLACE INTO MACHINES (id, name, type, slots) VALUES (?, ?, ?, ?)",
+                   (id_machine, name, type_machine, slots_json))
+    conn.commit()
+    conn.close()
+
+
+def update_machine(id_machine, name=None, type_machine=None, slots_list=None):
+    """Mettre à jour une machine existante"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    # build update dynamically
+    parts = []
+    params = []
+    if name is not None:
+        parts.append('name = ?')
+        params.append(name)
+    if type_machine is not None:
+        parts.append('type = ?')
+        params.append(type_machine)
+    if slots_list is not None:
+        parts.append('slots = ?')
+        params.append(json.dumps(slots_list))
+    if not parts:
+        conn.close(); return
+    params.append(id_machine)
+    sql = f"UPDATE MACHINES SET {', '.join(parts)} WHERE id = ?"
+    cursor.execute(sql, params)
+    conn.commit()
+    conn.close()
+
+
+def delete_machine(id_machine):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM MACHINES WHERE id = ?", (id_machine,))
+    changed = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return changed
 
 
 def list_users(search="", statut="", page=1, page_size=50):

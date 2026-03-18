@@ -1,0 +1,18 @@
+body{font-family:system-ui, sans-serif;margin:0}
+.container{max-width:900px;margin:0 auto;background:#fff;padding:1rem;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+h1{margin:0 0 0.75rem}
+.scan-area{display:flex;gap:1rem;align-items:flex-start}
+.scan-box{flex:1;padding:0.75rem;border:1px dashed #ddd;border-radius:6px;background:#f9f9f9}
+.label{font-weight:600;margin-bottom:0.4rem}
+.field{margin-bottom:0.5rem}
+.big{font-size:1.1rem}
+.btn{display:inline-block;padding:0.4rem 0.6rem;border-radius:4px;border:1px solid #ccc;background:#fff;cursor:pointer}
+.btn.primary{background:#005bbb;color:#fff;border-color:#005bbb}
+form{margin-top:0.75rem}
+input[type=text], input[type=date], select, textarea{width:100%;padding:0.4rem;border:1px solid #ddd;border-radius:4px}
+textarea{min-height:80px}
+.row{display:flex;gap:0.75rem}
+.col{flex:1}
+.note{font-size:0.85rem;color:#666}
+.success{color:green;font-weight:600}
+.muted{color:#666}

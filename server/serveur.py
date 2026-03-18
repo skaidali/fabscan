@@ -87,6 +87,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response_json({"success": True, "status": "ok"})
             elif self.path_info[1] == "stats":
                 self.send_stats()
+            elif self.path_info[1] == "machines":
+                self.send_machines()
             elif self.path_info[1] == "users":
                 self.send_users()
             elif self.path_info[1] == "entries":
@@ -122,6 +124,12 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.manual_checkin(data)
             elif self.path_info[1] == "delete_user":
                 self.delete_user(data)
+            elif self.path_info[1] == "machines":
+                # create or upsert machine
+                self.add_machine(data)
+            elif self.path_info[1] == "machines_update":
+                # update existing machine
+                self.update_machine(data)
             else:
                 self.send_response_json({"error": "Route POST inconnue"}, 404)
         else:
@@ -131,9 +139,14 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         """Traiter les requêtes DELETE"""
         self.init_params()
 
-        if len(self.path_info) > 2 and self.path_info[0] == "api" and self.path_info[1] == "user":
-            self.delete_user({"user_id": self.path_info[2]})
-            return
+        if len(self.path_info) > 2 and self.path_info[0] == "api":
+            if self.path_info[1] == "user":
+                self.delete_user({"user_id": self.path_info[2]})
+                return
+            if self.path_info[1] == "machines":
+                # DELETE /api/machines/<id>
+                self.delete_machine({"id": self.path_info[2]})
+                return
 
         self.send_response_json({"error": "Route DELETE invalide"}, 404)
 
@@ -206,6 +219,71 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Erreur entries: {e}")
             self.send_response_json({"error": str(e)}, 500)
 
+    # --- Machines API ---
+    def send_machines(self):
+        try:
+            machines = db.list_machines()
+            self.send_response_json({"items": machines})
+        except Exception as e:
+            print(f"Erreur machines: {e}")
+            self.send_response_json({"error": str(e)}, 500)
+
+    def add_machine(self, data):
+        try:
+            mid = str(data.get('id') or data.get('machine_id') or '').strip()
+            name = data.get('name', '').strip()
+            mtype = data.get('type', '').strip()
+            slots = data.get('slots', [])
+            if not mid or not name:
+                self.send_response_json({"success": False, "error": "id et name requis"}, 400)
+                return
+            # ensure slots is a list
+            if isinstance(slots, str):
+                try:
+                    slots = json.loads(slots)
+                except Exception:
+                    slots = []
+            db.add_machine(mid, name, mtype, slots)
+            self.send_response_json({"success": True, "id": mid})
+        except Exception as e:
+            print(f"Erreur add_machine: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def update_machine(self, data):
+        try:
+            mid = str(data.get('id') or data.get('machine_id') or '').strip()
+            if not mid:
+                self.send_response_json({"success": False, "error": "id requis"}, 400)
+                return
+            name = data.get('name')
+            mtype = data.get('type')
+            slots = data.get('slots') if 'slots' in data else None
+            if isinstance(slots, str):
+                try:
+                    slots = json.loads(slots)
+                except Exception:
+                    slots = None
+            db.update_machine(mid, name, mtype, slots)
+            self.send_response_json({"success": True, "id": mid})
+        except Exception as e:
+            print(f"Erreur update_machine: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def delete_machine(self, data):
+        try:
+            mid = str(data.get('id') or data.get('machine_id') or '').strip()
+            if not mid:
+                self.send_response_json({"success": False, "error": "id requis"}, 400)
+                return
+            ok = db.delete_machine(mid)
+            if ok:
+                self.send_response_json({"success": True})
+            else:
+                self.send_response_json({"success": False, "error": "Machine non trouvée"}, 404)
+        except Exception as e:
+            print(f"Erreur delete_machine: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
     def send_user_by_id(self, user_id):
         """Rechercher un utilisateur par son ID"""
         try:
@@ -218,6 +296,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Erreur user by id: {e}")
             self.send_response_json({"error": str(e)}, 500)
+
+        
 
     def process_scan(self, data):
         """Traiter un scan de QR code"""
