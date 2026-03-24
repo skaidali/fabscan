@@ -3,6 +3,20 @@
 # Choses à faire
 * Mettre des LEDs dans le boitier qui sera en plexiglas pour indiquer l'état du lecteur (reconnu, refusé)
 
+# Retours Chloé et Clara
+
+- Dans clients : séparez les fichiers html / css / js dans une architecture view / assets. 
+- Listez les dépendances python (qrcode)
+- Sortez le javascript du html
+- Supprimer les fichiers inutiles ( index.html par exemple)
+- d'une maniere générale 1 site = plusieurs vues ( html) 1 ou quelques fichiers css et 1 ou quelques fichiers js.
+- Nommage des variables : (exemple r2 dans home.js) choisissez des noms de variables explicites pour qu'on comprenne facilement quelle variable est quoi dans la lecture du code.
+- Tres bien le fichier sql_request pour separer les requetes db du serveur et la petite doc qui va avec. Attention à bien la mettre à jour en meme temps que les modifications dans le code :)  
+
+OPTION QR CODE: 
+est ce qu'on garde la solution en plan B ? et si oui > reflechir à comment integrer la scannette au systeme dans le cas ou les personnes n'ont pas de carte ? 
+- Sinon, enlever la solution et dependances li&es au QRcode dans le python
+
 # Editing this README
 
 When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
