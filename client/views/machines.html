@@ -2,27 +2,27 @@
     <div class="card">
         <h1>Machines</h1>
         <div class="muted">Gérer la liste des machines, leurs types et visualiser les créneaux disponibles.</div>
-        <div style="margin-top:0.6rem;display:flex;gap:0.5rem;align-items:center">
+        <div >
             <button id="add-machine-btn" class="btn primary">+ Ajouter une machine</button>
             <button id="import-sample" class="btn">Charger exemple</button>
-            <div id="api-status" style="margin-left:12px;font-weight:600;color:#d9534f"></div>
+            <div id="api-status" ></div>
         </div>
     </div>
 
     <div class="card">
         <strong>Liste des machines</strong>
-        <ul id="machines" class="machine-list" style="margin-top:0.6rem"></ul>
+        <ul id="machines" class="machine-list" ></ul>
     </div>
 
-    <div id="slots-card" class="card" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+    <div id="slots-card" class="card" >
+        <div >
             <div><strong id="slots-title">Créneaux</strong><div class="muted" id="slots-sub"></div></div>
             <div><button id="close-slots" class="btn">Fermer</button></div>
         </div>
-        <div id="slots-list" style="margin-top:0.6rem"></div>
-        <div style="margin-top:0.6rem">
+        <div id="slots-list" ></div>
+        <div >
             <strong>Ajouter un créneau</strong>
-            <div style="margin-top:0.4rem">
+            <div >
                 <label>Date</label>
                 <input type="date" id="slot-date">
                 <label>Heure début</label>
@@ -35,7 +35,7 @@
                     <option value="atelier">Atelier</option>
                     <option value="maintenance">Maintenance</option>
                 </select>
-                <div style="margin-top:0.6rem">
+                <div >
                     <button id="add-slot-btn" class="btn primary">Ajouter le créneau</button>
                 </div>
             </div>
@@ -43,10 +43,10 @@
     </div>
 
     <!-- Add Machine Modal -->
-    <div id="add-modal" class="modal" style="display:none">
+    <div id="add-modal" class="modal" >
         <div class="modal-content">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-                <h3 style="margin:0">Ajouter une machine</h3>
+            <div >
+                <h3 >Ajouter une machine</h3>
                 <button class="btn" id="close-add">X</button>
             </div>
             <label>Nom</label>
@@ -61,7 +61,7 @@
             </select>
             <label>Description (optionnelle)</label>
             <textarea id="machine-desc"></textarea>
-            <div style="margin-top:0.6rem;display:flex;gap:0.5rem">
+            <div >
                 <button id="save-machine" class="btn primary">Enregistrer</button>
                 <button id="cancel-machine" class="btn">Annuler</button>
             </div>

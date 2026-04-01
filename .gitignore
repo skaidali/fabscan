@@ -1,1 +1,5 @@
+# On enlève les fichiers Python en cache
 server/__pycache__/
+*.py[cod]
+# On enlève les changements à la database
+database/database.db

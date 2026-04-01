@@ -2,14 +2,14 @@
     <h1>Statistiques</h1>
 
         <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
+            <div >
                 <div class="muted">Résumé</div>
                 <div class="controls">
                     <button class="btn" id="refresh-btn">Actualiser</button>
                     <button class="btn primary" id="toggle-range">Afficher: Semaine</button>
                 </div>
             </div>
-            <div class="kpi" style="margin-top:0.75rem">
+            <div class="kpi" >
                 <div class="item"><div class="muted">Nouveaux arrivants (aujourd'hui)</div><div id="today-count" class="val">—</div></div>
                 <div class="item"><div class="muted">Activité (7 jours)</div><div id="week-count" class="val">—</div></div>
                 <div class="item"><div class="muted">Entrées totales</div><div id="total-count" class="val">—</div></div>
@@ -18,26 +18,26 @@
 
         <div class="row">
             <div class="col card">
-                <div style="display:flex;justify-content:space-between;align-items:center">
+                <div >
                     <div><strong>Activité</strong><div class="muted">Nombre d'entrées par jour</div></div>
                     <div class="muted">Période: <span id="range-label">7 derniers jours</span></div>
                 </div>
                 <div id="activity-chart" class="chart"></div>
-                <div id="activity-xlabels" style="display:flex;justify-content:space-between;margin-top:6px;color:#444;font-size:0.9rem"></div>
+                <div id="activity-xlabels" ></div>
             </div>
 
-            <div class="col card" style="max-width:360px">
-                <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="col card" >
+                <div >
                     <div><strong>Utilisation par zone</strong><div class="muted">Répartition par zone de travail</div></div>
                     <div class="muted">Total: <span id="zone-total">—</span></div>
                 </div>
-                <div id="zone-list" style="margin-top:0.6rem"></div>
+                <div id="zone-list" ></div>
             </div>
         </div>
 
         <div class="card">
             <div><strong>Dernières entrées</strong> <span class="muted" id="entries-note"></span></div>
-            <table id="entries-table" style="margin-top:0.6rem">
+            <table id="entries-table" >
                 <thead><tr><th>Date</th><th>Nom</th><th>Zone</th><th>Projet</th></tr></thead>
                 <tbody></tbody>
             </table>
