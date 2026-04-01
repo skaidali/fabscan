@@ -3,15 +3,23 @@
 # Choses à faire
 * Mettre des LEDs dans le boitier qui sera en plexiglas pour indiquer l'état du lecteur (reconnu, refusé)
 
-# Retours Chloé et Clara
+# Retours Chloé et Clara 1 avril
+[ ] mettre en ligne les fichiers 3d (sketch fab) 
+[ ] travailler sur les readme. 
+[ ] replicabilité des branchmeents arduino avec shemas.
+[ ] photos !!
+[ ] antipciper les tests de mise en place du boitier
+[ ] Tracer les directions rgpd rapidement (qu'on puisse anticiper rapidement)
 
-- Dans clients : séparez les fichiers html / css / js dans une architecture view / assets. 
-- Listez les dépendances python (qrcode)
-- Sortez le javascript du html
-- Supprimer les fichiers inutiles ( index.html par exemple)
-- d'une maniere générale 1 site = plusieurs vues ( html) 1 ou quelques fichiers css et 1 ou quelques fichiers js.
-- Nommage des variables : (exemple r2 dans home.js) choisissez des noms de variables explicites pour qu'on comprenne facilement quelle variable est quoi dans la lecture du code.
-- Tres bien le fichier sql_request pour separer les requetes db du serveur et la petite doc qui va avec. Attention à bien la mettre à jour en meme temps que les modifications dans le code :)  
+# Retours Chloé et Clara mars
+
+[ ] Dans clients : séparez les fichiers html / css / js dans une architecture view / assets. 
+[ ] Listez les dépendances python (qrcode)
+[ ] Sortez le javascript du html
+[ ] Supprimer les fichiers inutiles ( index.html par exemple)
+[ ] d'une maniere générale 1 site = plusieurs vues ( html) 1 ou quelques fichiers css et 1 ou quelques fichiers js.
+[ ] Nommage des variables : (exemple r2 dans home.js) choisissez des noms de variables explicites pour qu'on comprenne facilement quelle variable est quoi dans la lecture du code.
+[ ] Tres bien le fichier sql_request pour separer les requetes db du serveur et la petite doc qui va avec. Attention à bien la mettre à jour en meme temps que les modifications dans le code :)  
 
 OPTION QR CODE: 
 est ce qu'on garde la solution en plan B ? et si oui > reflechir à comment integrer la scannette au systeme dans le cas ou les personnes n'ont pas de carte ? 
