@@ -1,69 +1,58 @@
 # Projet d'Études 63 : FabScan
 
-## Description
-**FabScan** est une application Web qui a pour but de centrer tous les outils et éléments nécessaires à la gestion d'un FabLab ou structure équivalente. Il propose plusieurs fonctionnalités à disposition des personnels de ces établissements :
-- La gestion des entrées des utilisateur·ices, grâce à un système rapide et efficace ;
-- La gestion des machines, ainsi que leur réservation ;
-- La gestion des utilisateur·ices, ainsi que la liaison avec une carte RFID ou un code QR.
+# Choses à faire
+* Mettre des LEDs dans le boitier qui sera en plexiglas pour indiquer l'état du lecteur (reconnu, refusé)
 
-## Visuals
-L'application se présente comme une page web hebergée localement, avec plusieurs onglets qui permettent de gérer les différentes facettes du FabLab :
+# Retours Chloé et Clara
 
-- home, machines, reservations, users, stats, bills, scan, registration
-
-## Installation
-
-Pour pouvoir installer correctement l'ensemble du logiciel, vous allez avoir besoin de :
-- Un Raspberry Pi (4 ou supérieur)
-- *(si utilisation RFID)* Un Arduino Nano avec un lecteur RFID
-- Des câbles USB
-
-**TODO : voir si on peut ne pas le faire comme ça ; option portable ?**
-
-### Requirements
-
-**TODO : fichier .requirements doit être fait par Zac**
-
-## Usage
-
-**TODO : à faire !!**
-
-## Support
-
-**TODO : à faire !!**
-
-## Contributing
-Les contributions sont acceptées mais doivent rester dans le contexte d'étude. Merci de respecter la volonté du projet original !
-
-## Authors and acknowledgment
-Ce projet a été créé dans le contexte du Projet d'Études de l'École Centrale de Lyon, qui s'est déroulé d'octobre 2025 à juin 2026.
-Nous remercions les conceptrices de ce projet : Chloé Laurent et [Clara Rigaud](https://github.com/Clararigaud) qui nous ont aidé et guidé tout au long du projet !
-
-## License
-Pas encore décidé, voir si MIT ou quelque chose du genre la licence anti-capitaliste ?
-'Fin je veux juste pas que ce projet soit vendu en quelconque matière parce que c'est un projet étudiant et qu'il y a aucune raison que ça en sorte
-
-# TODO: Choses à faire
-- [ ] Mettre des LEDs dans le boitier qui sera en plexiglas pour indiquer l'état du lecteur (reconnu, refusé)
-
-## Retours Chloé et Clara 1 avril
-- [ ] mettre en ligne les fichiers 3d (sketch fab) 
-- [ ] travailler sur les readme. 
-- [ ] replicabilité des branchmeents arduino avec shemas.
-- [ ] photos !!
-- [ ] antipciper les tests de mise en place du boitier
-- [ ] Tracer les directions rgpd rapidement (qu'on puisse anticiper rapidement)
-
-## Retours Chloé et Clara mars
-
-- [X] Dans clients : séparez les fichiers html / css / js dans une architecture view / assets. 
-- [ ] Listez les dépendances python (qrcode)
-- [ ] Sortez le javascript du html
-- [ ] Supprimer les fichiers inutiles ( index.html par exemple)
-- [ ] d'une maniere générale 1 site = plusieurs vues ( html) 1 ou quelques fichiers css et 1 ou quelques fichiers js.
-- [ ] Nommage des variables : (exemple r2 dans home.js) choisissez des noms de variables explicites pour qu'on comprenne facilement quelle variable est quoi dans la lecture du code.
-- [ ] Tres bien le fichier sql_request pour separer les requetes db du serveur et la petite doc qui va avec. Attention à bien la mettre à jour en meme temps que les modifications dans le code :)  
+- Dans clients : séparez les fichiers html / css / js dans une architecture view / assets. 
+- Listez les dépendances python (qrcode)
+- Sortez le javascript du html
+- Supprimer les fichiers inutiles ( index.html par exemple)
+- d'une maniere générale 1 site = plusieurs vues ( html) 1 ou quelques fichiers css et 1 ou quelques fichiers js.
+- Nommage des variables : (exemple r2 dans home.js) choisissez des noms de variables explicites pour qu'on comprenne facilement quelle variable est quoi dans la lecture du code.
+- Tres bien le fichier sql_request pour separer les requetes db du serveur et la petite doc qui va avec. Attention à bien la mettre à jour en meme temps que les modifications dans le code :)  
 
 OPTION QR CODE: 
 est ce qu'on garde la solution en plan B ? et si oui > reflechir à comment integrer la scannette au systeme dans le cas ou les personnes n'ont pas de carte ? 
-- [ ] Sinon, enlever la solution et dependances li&es au QRcode dans le python
+- Sinon, enlever la solution et dependances li&es au QRcode dans le python
+
+# Editing this README
+
+When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+
+## Description
+Ceci est un outil handy dandy pour pouvoir gérer le FabLab à la perfection (saignant s'il vous plaît).
+
+>>> lien des fichiers 3D : https://ecloud.myecl.fr/s/2JnsZxnKDqR7NKA <<<
+
+## Visuals
+todo
+
+## Installation
+Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+
+## Usage
+Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+
+## Support
+Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+
+## Roadmap
+If you have ideas for releases in the future, it is a good idea to list them in the README.
+
+## Contributing
+State if you are open to contributions and what your requirements are for accepting them.
+
+For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+
+You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+
+## Authors and acknowledgment
+Merci tout le monde <3
+
+## License
+Pas encore décidé lul
+
+## Project status
+If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
