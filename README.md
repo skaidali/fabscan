@@ -24,7 +24,7 @@ When you're ready to make this README your own, just edit this file and use the 
 ## Description
 Ceci est un outil handy dandy pour pouvoir gérer le FabLab à la perfection (saignant s'il vous plaît).
 
->>> lien des fichiers 3D : https://ecloud.myecl.fr/s/2JnsZxnKDqR7NKA <<<
+\>\>\> lien des fichiers 3D : https://ecloud.myecl.fr/s/2JnsZxnKDqR7NKA <<<
 
 ## Visuals
 todo
