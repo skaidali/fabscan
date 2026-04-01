@@ -1,84 +1,71 @@
-<!doctype html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Machines – FabLab</title>
-    <link rel="stylesheet" href="machines.css">
-</head>
-<body>
-    <div class="wrap">
-        <div class="card">
-            <h1>Machines</h1>
-            <div class="muted">Gérer la liste des machines, leurs types et visualiser les créneaux disponibles.</div>
-            <div style="margin-top:0.6rem;display:flex;gap:0.5rem;align-items:center">
-                <button id="add-machine-btn" class="btn primary">+ Ajouter une machine</button>
-                <button id="import-sample" class="btn">Charger exemple</button>
-                <div id="api-status" style="margin-left:12px;font-weight:600;color:#d9534f"></div>
-            </div>
+<div id="content">
+    <div class="card">
+        <h1>Machines</h1>
+        <div class="muted">Gérer la liste des machines, leurs types et visualiser les créneaux disponibles.</div>
+        <div style="margin-top:0.6rem;display:flex;gap:0.5rem;align-items:center">
+            <button id="add-machine-btn" class="btn primary">+ Ajouter une machine</button>
+            <button id="import-sample" class="btn">Charger exemple</button>
+            <div id="api-status" style="margin-left:12px;font-weight:600;color:#d9534f"></div>
         </div>
-
-        <div class="card">
-            <strong>Liste des machines</strong>
-            <ul id="machines" class="machine-list" style="margin-top:0.6rem"></ul>
-        </div>
-
-        <div id="slots-card" class="card" style="display:none">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-                <div><strong id="slots-title">Créneaux</strong><div class="muted" id="slots-sub"></div></div>
-                <div><button id="close-slots" class="btn">Fermer</button></div>
-            </div>
-            <div id="slots-list" style="margin-top:0.6rem"></div>
-            <div style="margin-top:0.6rem">
-                <strong>Ajouter un créneau</strong>
-                <div style="margin-top:0.4rem">
-                    <label>Date</label>
-                    <input type="date" id="slot-date">
-                    <label>Heure début</label>
-                    <input type="time" id="slot-start">
-                    <label>Heure fin</label>
-                    <input type="time" id="slot-end">
-                    <label>Type de créneau</label>
-                    <select id="slot-type">
-                        <option value="horaire">Horaire (1h)</option>
-                        <option value="atelier">Atelier</option>
-                        <option value="maintenance">Maintenance</option>
-                    </select>
-                    <div style="margin-top:0.6rem">
-                        <button id="add-slot-btn" class="btn primary">Ajouter le créneau</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add Machine Modal -->
-        <div id="add-modal" class="modal" style="display:none">
-            <div class="modal-content">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <h3 style="margin:0">Ajouter une machine</h3>
-                    <button class="btn" id="close-add">X</button>
-                </div>
-                <label>Nom</label>
-                <input id="machine-name">
-                <label>Type</label>
-                <select id="machine-type">
-                    <option value="laser-cutter">Laser cutter</option>
-                    <option value="3d-printer">3D printer</option>
-                    <option value="cnc">CNC router</option>
-                    <option value="vinyl-cutter">Vinyl cutter</option>
-                    <option value="electronics-bench">Electronics bench</option>
-                </select>
-                <label>Description (optionnelle)</label>
-                <textarea id="machine-desc"></textarea>
-                <div style="margin-top:0.6rem;display:flex;gap:0.5rem">
-                    <button id="save-machine" class="btn primary">Enregistrer</button>
-                    <button id="cancel-machine" class="btn">Annuler</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <script src="machines.js"></script>
-</body>
-</html>
+    <div class="card">
+        <strong>Liste des machines</strong>
+        <ul id="machines" class="machine-list" style="margin-top:0.6rem"></ul>
+    </div>
+
+    <div id="slots-card" class="card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong id="slots-title">Créneaux</strong><div class="muted" id="slots-sub"></div></div>
+            <div><button id="close-slots" class="btn">Fermer</button></div>
+        </div>
+        <div id="slots-list" style="margin-top:0.6rem"></div>
+        <div style="margin-top:0.6rem">
+            <strong>Ajouter un créneau</strong>
+            <div style="margin-top:0.4rem">
+                <label>Date</label>
+                <input type="date" id="slot-date">
+                <label>Heure début</label>
+                <input type="time" id="slot-start">
+                <label>Heure fin</label>
+                <input type="time" id="slot-end">
+                <label>Type de créneau</label>
+                <select id="slot-type">
+                    <option value="horaire">Horaire (1h)</option>
+                    <option value="atelier">Atelier</option>
+                    <option value="maintenance">Maintenance</option>
+                </select>
+                <div style="margin-top:0.6rem">
+                    <button id="add-slot-btn" class="btn primary">Ajouter le créneau</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Machine Modal -->
+    <div id="add-modal" class="modal" style="display:none">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <h3 style="margin:0">Ajouter une machine</h3>
+                <button class="btn" id="close-add">X</button>
+            </div>
+            <label>Nom</label>
+            <input id="machine-name">
+            <label>Type</label>
+            <select id="machine-type">
+                <option value="laser-cutter">Laser cutter</option>
+                <option value="3d-printer">3D printer</option>
+                <option value="cnc">CNC router</option>
+                <option value="vinyl-cutter">Vinyl cutter</option>
+                <option value="electronics-bench">Electronics bench</option>
+            </select>
+            <label>Description (optionnelle)</label>
+            <textarea id="machine-desc"></textarea>
+            <div style="margin-top:0.6rem;display:flex;gap:0.5rem">
+                <button id="save-machine" class="btn primary">Enregistrer</button>
+                <button id="cancel-machine" class="btn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+</div>

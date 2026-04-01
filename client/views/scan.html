@@ -1,83 +1,70 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Scan – FabLab</title>
-    <link rel="stylesheet" href="scan.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Scan (RFID / QR)</h1>
+<div id="content">
+    <h1>Scan (RFID / QR)</h1>
 
-        <div class="scan-area">
-            <div class="scan-box">
-                <div class="label">Résultat du scan</div>
-                <div id="scanned-info">
-                    <div class="field"><span class="muted">Pas encore de scan détecté</span></div>
-                </div>
-
-                <div style="margin-top:0.6rem">
-                    <button class="btn" id="simulate-qr">Scan code QR</button>
-                    <button class="btn" id="simulate-rfid">Scan carte RFID</button>
-                </div>
-
-                <div style="margin-top:0.6rem">
-                    <div class="label">Input manuel</div>
-                    <input id="manual-input" type="text" placeholder="Coller série de numéros ici et appuyer sur entrée">                </div>
+    <div class="scan-area">
+        <div class="scan-box">
+            <div class="label">Résultat du scan</div>
+            <div id="scanned-info">
+                <div class="field"><span class="muted">Pas encore de scan détecté</span></div>
             </div>
 
-            <div style="width:380px">
-                <div class="scan-box">
-                    <div class="label">Formulaire d'arrivée</div>
-                    <form id="arrival-form">
-                        <div class="field">
-                            <label class="label">Nom</label>
-                            <input type="text" id="member-name" placeholder="Nom scanné, ou entrée manuelle">
-                        </div>
-                        <div class="field">
-                            <label class="label">Identifiant</label>
-                            <input type="text" id="member-id" placeholder="ID scanné">
-                        </div>
-                        <div class="field">
-                            <label class="label">Raison de la venue</label>
-                            <select id="reason">
-                                <option value="">-- sélectionner --</option>
-                                <option value="work">Personnel</option>
-                                <option value="class">Projet d'Études</option>
-                                <option value="visit">Visite</option>
-                                <option value="other">Autre</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label class="label">Zone de travail</label>
-                            <select id="zone">
-                                <option value="">-- sélectionner --</option>
-                                <option value="2d">Espace 2D</option>
-                                <option value="3d">Espace 3D</option>
-                                <option value="electronics">MakerLab</option>
-                                <option value="cnc">test test</option>
-                                <option value="general">test test</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label class="label">Commentaires</label>
-                            <textarea id="comments" placeholder="Commentaires (optionnel)"></textarea>
-                        </div>
-
-                        <div style="display:flex;gap:0.5rem;align-items:center">
-                            <button class="btn primary" id="submit-btn" type="button">Enregistrer l'entrée</button>
-                            <div id="submit-result" class="muted"></div>
-                        </div>
-                    </form>
-                </div>
+            <div style="margin-top:0.6rem">
+                <button class="btn" id="simulate-qr">Scan code QR</button>
+                <button class="btn" id="simulate-rfid">Scan carte RFID</button>
             </div>
+
+            <div style="margin-top:0.6rem">
+                <div class="label">Input manuel</div>
+                <input id="manual-input" type="text" placeholder="Coller série de numéros ici et appuyer sur entrée">                </div>
         </div>
 
-        <hr style="margin:1rem 0">
-        <div class="note">Encore et toujours en teeeest.</div>
+        <div style="width:380px">
+            <div class="scan-box">
+                <div class="label">Formulaire d'arrivée</div>
+                <form id="arrival-form">
+                    <div class="field">
+                        <label class="label">Nom</label>
+                        <input type="text" id="member-name" placeholder="Nom scanné, ou entrée manuelle">
+                    </div>
+                    <div class="field">
+                        <label class="label">Identifiant</label>
+                        <input type="text" id="member-id" placeholder="ID scanné">
+                    </div>
+                    <div class="field">
+                        <label class="label">Raison de la venue</label>
+                        <select id="reason">
+                            <option value="">-- sélectionner --</option>
+                            <option value="work">Personnel</option>
+                            <option value="class">Projet d'Études</option>
+                            <option value="visit">Visite</option>
+                            <option value="other">Autre</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="label">Zone de travail</label>
+                        <select id="zone">
+                            <option value="">-- sélectionner --</option>
+                            <option value="2d">Espace 2D</option>
+                            <option value="3d">Espace 3D</option>
+                            <option value="electronics">MakerLab</option>
+                            <option value="cnc">test test</option>
+                            <option value="general">test test</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="label">Commentaires</label>
+                        <textarea id="comments" placeholder="Commentaires (optionnel)"></textarea>
+                    </div>
+
+                    <div style="display:flex;gap:0.5rem;align-items:center">
+                        <button class="btn primary" id="submit-btn" type="button">Enregistrer l'entrée</button>
+                        <div id="submit-result" class="muted"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <script src="scan.js"></script>
-</body>
-</html>
+    <hr style="margin:1rem 0">
+    <div class="note">Encore et toujours en teeeest.</div>
+</div>
