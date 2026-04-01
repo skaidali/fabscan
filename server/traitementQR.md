@@ -13,9 +13,3 @@ Par défaut, l'identifiant est généré à partir de `generateID()` mais pour r
 
 -`qr_exists(ID)` 
 renvoie vrai si il existe un QRcode associé à l'id dans `database/QRcode`
-
-
-
-
-
-

@@ -1,31 +1,18 @@
-<div id="content">
-    <section class="users-card" aria-labelledby="users-title">
-        <div class="users-header">
-            <h1 id="users-title" class="users-title">Gestion des Utilisateurs</h1>
-            <a
-                href="./views/registration.html"
-                class="new-user-btn"
-                onclick="if(window.loadPage){event.preventDefault();const btn=window.findNavButtonByPage?window.findNavButtonByPage('./views/registration.html'):null;window.loadPage('./views/registration.html', btn);}"
-            >
-                <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                <span>Nouvel Utilisateur</span>
-            </a>
-        </div>
+<div class="container">
+    <header class="page-header">
+        <h1 id="users-title">Gestion des Utilisateurs</h1>
+        <a href="./views/registration.html" class="btn btn-primary" onclick="if(window.loadPage){event.preventDefault();const btn=window.findNavButtonByPage?window.findNavButtonByPage('./views/registration.html'):null;window.loadPage('./views/registration.html', btn);}">
+            <i class="fa-solid fa-plus"></i> Nouvel Utilisateur
+        </a>
+    </header>
 
-        <div class="users-toolbar">
-            <div class="search-wrap">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                <input
-                    type="search"
-                    id="users-search"
-                    class="search-input"
-                    placeholder="Rechercher par nom, prénom ou email..."
-                    name="query"
-                >
+    <div class="card">
+        <div class="flex-row flex-between form-group">
+            <div class="flex-row" style="flex: 1; max-width: 400px;">
+                <input type="search" id="users-search" class="form-control" placeholder="Rechercher par nom, prénom ou email..." name="query">
             </div>
-
-            <select id="users-status-filter" class="filter-select" name="status_filter" aria-label="Filtrer par statut">
-                <option value="all">Tous</option>
+            <select id="users-status-filter" class="form-control" style="width: auto;" name="status_filter" aria-label="Filtrer par statut">
+                <option value="all">Tous les statuts</option>
                 <option value="etudiants">Étudiant</option>
                 <option value="personnel">Personnel</option>
                 <option value="externes">Externe</option>
@@ -33,7 +20,7 @@
         </div>
 
         <div class="table-wrap">
-            <table class="users-table" aria-label="Liste des utilisateurs">
+            <table class="data-table" aria-label="Liste des utilisateurs">
                 <thead>
                     <tr>
                         <th>Prénom</th>
@@ -48,30 +35,30 @@
             </table>
         </div>
 
-        <div id="users-table-state" class="message" role="status" aria-live="polite" ></div>
+        <div id="users-table-state" class="muted form-group" role="status" aria-live="polite"></div>
 
-        <template id="users-row-template">
-            <tr>
-                <td class="user-prenom"></td>
-                <td class="user-nom"></td>
-                <td class="user-email"></td>
-                <td class="user-statut"></td>
-                <td class="user-rfid"></td>
-                <td>
-                    <div class="action-group">
-                        <button type="button" class="icon-btn action-edit" title="Éditer le profil" aria-label="Éditer"><i class="fa-solid fa-pen"></i></button>
-                        <button type="button" class="icon-btn action-resend-qr" title="Renvoyer le QR code" aria-label="Renvoyer QR"><i class="fa-solid fa-rotate"></i></button>
-                        <button type="button" class="icon-btn action-checkin" title="Pointage manuel" aria-label="Pointage manuel"><i class="fa-solid fa-check"></i></button>
-                        <button type="button" class="icon-btn action-delete" title="Supprimer l'utilisateur" aria-label="Supprimer"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </td>
-            </tr>
-        </template>
-
-        <div class="pagination" aria-label="Pagination utilisateurs">
-            <button type="button" id="users-page-prev" class="page-btn">Précédent</button>
-            <div id="users-page-numbers" ></div>
-            <button type="button" id="users-page-next" class="page-btn">Suivant</button>
+        <div class="flex-row flex-between form-group" aria-label="Pagination utilisateurs">
+            <button type="button" id="users-page-prev" class="btn btn-outline">Précédent</button>
+            <div id="users-page-numbers"></div>
+            <button type="button" id="users-page-next" class="btn btn-outline">Suivant</button>
         </div>
-    </section>
+    </div>
+
+    <template id="users-row-template">
+        <tr>
+            <td class="user-prenom"></td>
+            <td class="user-nom"></td>
+            <td class="user-email"></td>
+            <td class="user-statut"></td>
+            <td class="user-rfid"></td>
+            <td>
+                <div class="flex-row">
+                    <button type="button" class="icon-btn action-edit" title="Éditer le profil"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="icon-btn action-resend-qr" title="Renvoyer le QR code"><i class="fa-solid fa-rotate"></i></button>
+                    <button type="button" class="icon-btn action-checkin" title="Pointage manuel"><i class="fa-solid fa-check"></i></button>
+                    <button type="button" class="icon-btn action-delete" title="Supprimer l'utilisateur"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>
+    </template>
 </div>

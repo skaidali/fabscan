@@ -1,29 +1,36 @@
-<div id="content">
-        <h1>Comptabilité !!</h1>
-        <p>Gérer les balances des utilisateurs — recherche par nom/prénom ou identifiant.</p>
+<div class="container">
+    <header class="page-header">
+        <h1>Comptabilité</h1>
+        <p class="muted">Gérer les soldes des utilisateurs (Recherche par nom, prénom ou identifiant).</p>
+    </header>
 
-        <!-- Balance panel (inline) -->
-        <div id="balancePanel">
-            <h2 style="margin-top:0">Gestion des soldes</h2>
-            <div>
-                <input id="balSearch" placeholder="Nom, prénom ou identifiant">
-                <button id="balSearchBtn" class="btn primary">Rechercher</button>
-            </div>
-
-            <div id="balResults"></div>
-
-            <div id="balEditor">
-                <h3 id="balName"></h3>
-                <p class="muted">ID: <span id="balId"></span></p>
-                <p>Balance actuelle: <strong id="balAmount">0.00</strong> €</p>
-
-                <div>
-                    <input id="balDelta" type="number" step="0.01" placeholder="Montant (+/-)">
-                    <button id="balAdd" class="btn primary">Ajouter</button>
-                    <button id="balSub" class="btn">Retirer</button>
-                    <button id="balSaveLocal" class="btn">Enregistrer localement</button>
-                </div>
-                <p class="muted">Remarque: la modification est stockée localement. Pour persister côté serveur, ajoutez une route API côté serveur (ex: POST /api/update_balance).</p>
-            </div>
+    <div class="card" id="balancePanel">
+        <div class="flex-row form-group">
+            <input id="balSearch" class="form-control" placeholder="Nom, prénom ou identifiant..." style="max-width: 400px;">
+            <button id="balSearchBtn" class="btn btn-primary">Rechercher</button>
         </div>
+
+        <div id="balResults" class="form-group"></div>
+
+        <div id="balEditor" class="highlight-box" style="display: none;">
+            <div class="card-header">
+                <div>
+                    <h3 id="balName"></h3>
+                    <p class="muted">ID: <span id="balId"></span></p>
+                </div>
+                <div class="kpi-box" style="padding: 0.5rem 1rem;">
+                    Solde: <strong id="balAmount" style="font-size: 1.5rem; color: var(--primary);">0.00</strong> €
+                </div>
+            </div>
+
+            <div class="flex-row form-group">
+                <input id="balDelta" type="number" step="0.01" class="form-control" placeholder="Montant (+/-)" style="max-width: 200px;">
+                <button id="balAdd" class="btn btn-success" style="background: var(--success); color: white;">Ajouter</button>
+                <button id="balSub" class="btn btn-danger">Retirer</button>
+            </div>
+            
+            <button id="balSaveLocal" class="btn btn-outline form-group">Enregistrer localement</button>
+            <p class="muted"><i class="fa-solid fa-circle-info"></i> Remarque: la modification est stockée localement. Prêt pour l'API serveur.</p>
+        </div>
+    </div>
 </div>

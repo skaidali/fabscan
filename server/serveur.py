@@ -9,7 +9,6 @@ import socketserver
 from urllib.parse import urlparse, parse_qs, unquote
 import json
 import datetime as dt
-import os 
 
 # Import des fonctions SQL
 import sql_request as db

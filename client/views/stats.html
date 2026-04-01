@@ -1,45 +1,67 @@
-<div id="content">
-    <h1>Statistiques</h1>
+<div class="container">
+    <header class="page-header flex-between">
+        <h1>Statistiques</h1>
+        <div class="flex-row">
+            <button class="btn btn-outline" id="refresh-btn"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
+            <button class="btn btn-primary" id="toggle-range">Afficher: Semaine</button>
+        </div>
+    </header>
+
+    <div class="grid-3 form-group">
+        <div class="card kpi-box">
+            <div class="muted">Nouveaux arrivants (aujourd'hui)</div>
+            <div id="today-count" class="val">—</div>
+        </div>
+        <div class="card kpi-box">
+            <div class="muted">Activité (7 jours)</div>
+            <div id="week-count" class="val">—</div>
+        </div>
+        <div class="card kpi-box">
+            <div class="muted">Entrées totales</div>
+            <div id="total-count" class="val">—</div>
+        </div>
+    </div>
+
+    <div class="grid-2 form-group">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <strong>Activité</strong>
+                    <div class="muted">Nombre d'entrées par jour</div>
+                </div>
+                <div class="muted">Période: <span id="range-label">7 derniers jours</span></div>
+            </div>
+            <div id="activity-chart" style="min-height: 200px; background: var(--light); border-radius: var(--border-radius);"></div>
+            <div id="activity-xlabels"></div>
+        </div>
 
         <div class="card">
-            <div >
-                <div class="muted">Résumé</div>
-                <div class="controls">
-                    <button class="btn" id="refresh-btn">Actualiser</button>
-                    <button class="btn primary" id="toggle-range">Afficher: Semaine</button>
+            <div class="card-header">
+                <div>
+                    <strong>Utilisation par zone</strong>
+                    <div class="muted">Répartition par zone de travail</div>
                 </div>
+                <div class="muted">Total: <span id="zone-total">—</span></div>
             </div>
-            <div class="kpi" >
-                <div class="item"><div class="muted">Nouveaux arrivants (aujourd'hui)</div><div id="today-count" class="val">—</div></div>
-                <div class="item"><div class="muted">Activité (7 jours)</div><div id="week-count" class="val">—</div></div>
-                <div class="item"><div class="muted">Entrées totales</div><div id="total-count" class="val">—</div></div>
-            </div>
+            <div id="zone-list"></div>
         </div>
+    </div>
 
-        <div class="row">
-            <div class="col card">
-                <div >
-                    <div><strong>Activité</strong><div class="muted">Nombre d'entrées par jour</div></div>
-                    <div class="muted">Période: <span id="range-label">7 derniers jours</span></div>
-                </div>
-                <div id="activity-chart" class="chart"></div>
-                <div id="activity-xlabels" ></div>
-            </div>
-
-            <div class="col card" >
-                <div >
-                    <div><strong>Utilisation par zone</strong><div class="muted">Répartition par zone de travail</div></div>
-                    <div class="muted">Total: <span id="zone-total">—</span></div>
-                </div>
-                <div id="zone-list" ></div>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <strong>Dernières entrées</strong> 
+            <span class="muted" id="entries-note"></span>
         </div>
-
-        <div class="card">
-            <div><strong>Dernières entrées</strong> <span class="muted" id="entries-note"></span></div>
-            <table id="entries-table" >
-                <thead><tr><th>Date</th><th>Nom</th><th>Zone</th><th>Projet</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
+        <table id="entries-table" class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Nom</th>
+                    <th>Zone</th>
+                    <th>Projet</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>

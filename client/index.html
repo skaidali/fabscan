@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>FabScan</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="index.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FabScan - Dashboard</title>
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="index.js" defer></script>
 </head>
 <body>
-  <header>
+  <header class="main-header">
     <div class="logo">FabScan <span>Web</span></div>
-    <nav>
+    <nav class="main-nav">
       <button onclick="loadPage('./views/home.html', this)" data-page="./views/home.html" class="active">Accueil</button>
       <button onclick="loadPage('./views/scan.html', this)" data-page="./views/scan.html">Scanner</button>
       <button onclick="loadPage('./views/users.html', this)" data-page="./views/users.html">Utilisateurs</button>
@@ -20,7 +22,8 @@
       <button onclick="loadPage('./views/registration.html', this)" data-page="./views/registration.html">Inscription</button>
     </nav>
   </header>
-  <div id="content" style="margin-top:20px;"></div>
   
+  <main id="content">
+    </main>
 </body>
 </html>

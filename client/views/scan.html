@@ -1,70 +1,44 @@
-<div id="content">
-    <h1>Scan (RFID / QR)</h1>
+<div class="container">
+    <header class="page-header">
+        <h1>Scanner d'Entrée</h1>
+        <p class="muted">Contrôle des accès RFID / QR Code</p>
+    </header>
 
-    <div class="scan-area">
-        <div class="scan-box">
-            <div class="label">Résultat du scan</div>
-            <div id="scanned-info">
-                <div class="field"><span class="muted">Pas encore de scan détecté</span></div>
+    <div class="grid-2">
+        <section class="card">
+            <h3>Contrôle du Scanner</h3>
+            <div id="scanned-info" class="highlight-box form-group">
+                <span class="muted">En attente d'un badge ou d'un code...</span>
             </div>
-
-            <div >
-                <button class="btn" id="simulate-qr">Scan code QR</button>
-                <button class="btn" id="simulate-rfid">Scan carte RFID</button>
+            
+            <div class="flex-row form-group">
+                <button class="btn btn-primary" id="simulate-qr">Simuler QR</button>
+                <button class="btn btn-outline" id="simulate-rfid">Simuler RFID</button>
             </div>
-
-            <div >
-                <div class="label">Input manuel</div>
-                <input id="manual-input" type="text" placeholder="Coller série de numéros ici et appuyer sur entrée">                </div>
-        </div>
-
-        <div >
-            <div class="scan-box">
-                <div class="label">Formulaire d'arrivée</div>
-                <form id="arrival-form">
-                    <div class="field">
-                        <label class="label">Nom</label>
-                        <input type="text" id="member-name" placeholder="Nom scanné, ou entrée manuelle">
-                    </div>
-                    <div class="field">
-                        <label class="label">Identifiant</label>
-                        <input type="text" id="member-id" placeholder="ID scanné">
-                    </div>
-                    <div class="field">
-                        <label class="label">Raison de la venue</label>
-                        <select id="reason">
-                            <option value="">-- sélectionner --</option>
-                            <option value="work">Personnel</option>
-                            <option value="class">Projet d'Études</option>
-                            <option value="visit">Visite</option>
-                            <option value="other">Autre</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label class="label">Zone de travail</label>
-                        <select id="zone">
-                            <option value="">-- sélectionner --</option>
-                            <option value="2d">Espace 2D</option>
-                            <option value="3d">Espace 3D</option>
-                            <option value="electronics">MakerLab</option>
-                            <option value="cnc">test test</option>
-                            <option value="general">test test</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label class="label">Commentaires</label>
-                        <textarea id="comments" placeholder="Commentaires (optionnel)"></textarea>
-                    </div>
-
-                    <div >
-                        <button class="btn primary" id="submit-btn" type="button">Enregistrer l'entrée</button>
-                        <div id="submit-result" class="muted"></div>
-                    </div>
-                </form>
+            
+            <div class="form-group">
+                <label for="manual-input">Saisie manuelle</label>
+                <input id="manual-input" type="text" class="form-control" placeholder="Entrez l'ID du badge...">
             </div>
-        </div>
+        </section>
+
+        <section class="card">
+            <h3>Enregistrement d'entrée</h3>
+            <form id="arrival-form">
+                <div class="form-group">
+                    <label for="member-name">Nom du membre</label>
+                    <input type="text" id="member-name" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="zone">Zone de destination</label>
+                    <select id="zone" class="form-control">
+                        <option value="2d">Espace 2D</option>
+                        <option value="3d">Espace 3D</option>
+                        <option value="electronics">MakerLab</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="submit-btn" type="button">Valider l'entrée</button>
+            </form>
+        </section>
     </div>
-
-    <hr >
-    <div class="note">Encore et toujours en teeeest.</div>
 </div>
