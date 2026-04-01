@@ -1,0 +1,19 @@
+-- général index.html --
+body
+header
+nav (barre de navigation)
+card (boîte contenant des éléments)
+muted (texte en gris)
+btn (bouton)
+
+h1 / h2 / h3 (titres)
+
+tab-header (titres des différents onglets)
+
+field (zone de texte)
+pill (???)
+
+modal (fenêtre qui pop up)
+modal-content (contenu de ladite fenêtre)
+-- machines.html --
+machine-list (liste des machines)
