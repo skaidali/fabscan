@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FabScan</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWix+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkR4j8yM54f9WavkQ2g2TqWQz4Q6kR7lYjQw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+</head>
+<body>
+  <header>
+    <div class="logo">FabScan <span>Web</span></div>
+    <nav>
+      <button onclick="loadPage('./views/home.html', this)" data-page="./views/home.html" class="active">Accueil</button>
+      <button onclick="loadPage('./views/scan.html', this)" data-page="./views/scan.html">Scanner</button>
+      <button onclick="loadPage('./views/users.html', this)" data-page="./views/users.html">Utilisateurs</button>
+      <button onclick="loadPage('./views/machines.html', this)" data-page="./views/machines.html">Machines</button>
+      <button onclick="loadPage('./views/reservations.html', this)" data-page="./views/reservations.html">Réservations</button>
+      <button onclick="loadPage('./views/bills.html', this)" data-page="./views/bills.html">Comptabilité</button>
+      <button onclick="loadPage('./views/stats.html', this)" data-page="./views/stats.html">Statistiques</button>
+      <button onclick="loadPage('./views/registration.html', this)" data-page="./views/registration.html">Inscription</button>
+    </nav>
+  </header>
+  <div id="content" style="margin-top:20px;"></div>
+  <script src="index.js"></script>
+</body>
+</html>
