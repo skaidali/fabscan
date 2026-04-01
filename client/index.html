@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <title>FabScan</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./assets/css/style.css">
   <script src="index.js"></script>
 </head>
 <body>
   <header>
     <div class="logo">FabScan <span>Web</span></div>
-    <nav>
+    <nav id="header-nav">
       <button onclick="loadPage('./views/home.html', this)" data-page="./views/home.html" class="active">Accueil</button>
       <button onclick="loadPage('./views/scan.html', this)" data-page="./views/scan.html">Scanner</button>
       <button onclick="loadPage('./views/users.html', this)" data-page="./views/users.html">Utilisateurs</button>
@@ -20,7 +20,6 @@
       <button onclick="loadPage('./views/registration.html', this)" data-page="./views/registration.html">Inscription</button>
     </nav>
   </header>
-  <div id="content" style="margin-top:20px;"></div>
   
 </body>
 </html>

@@ -1,9 +1,53 @@
+/* Définition des variables couleurs principales */
 :root {
-    --primary: #e63946; /* Rouge FabLab */
+    --primary: #e63946;
     --dark: #1d3557;
     --light: #f1faee;
     --grey: #457b9d;
 }
 
-body{font-family:system-ui,sans-serif;margin:0}
-h1{margin:0 0 0.5rem}
+/* Code partagé */
+.card{
+    background:#fff;
+    padding:1rem;
+    border-radius:8px;
+    border-color: #000000;
+    margin-bottom:1rem
+}
+
+body{
+    font-family:system-ui,sans-serif;
+    margin:0
+}
+
+h1{
+    margin:0 0 0.5rem
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 2em
+}
+
+/* En-tête de navigation (index.html) */
+header {
+    background-color: var(--dark);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav#header-nav button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    margin-left: 20px;
+    cursor: pointer;
+    padding-bottom: 5px;
+}
+
+nav#header-nav button.active { border-bottom: 3px solid var(--primary); }
+
