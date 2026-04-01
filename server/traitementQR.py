@@ -2,8 +2,6 @@ from datetime import datetime
 import qrcode
 from pathlib import Path 
 
-
-
 def generateID():
     id = str(datetime.now())
     id = ''.join(c for c in id if c.isdigit())
