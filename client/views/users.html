@@ -1,14 +1,18 @@
 <div class="container">
     <header class="page-header">
-        <h1 id="users-title">Gestion des Utilisateurs</h1>
-        <a href="./views/registration.html" class="btn btn-primary" onclick="if(window.loadPage){event.preventDefault();const btn=window.findNavButtonByPage?window.findNavButtonByPage('./views/registration.html'):null;window.loadPage('./views/registration.html', btn);}">
-            <i class="fa-solid fa-plus"></i> Nouvel Utilisateur
-        </a>
+        <div>
+            <h1>Gestion des utilisateurs</h1>
+            <p class="muted">Gérer la liste des utilisateurs et visualiser les actions disponibles.</p>
+        </div>
+        <div class="flex-row">
+            <button onclick="loadPage('./views/registration.html', this)" class="btn btn-primary"><i class="fa-solid fa-circle-plus"></i> Ajouter un utilisateur</button>
+            <!-- Bug : ne highlight pas le bouton Inscription-->
+        </div>
     </header>
 
     <div class="card">
         <div class="flex-row flex-between form-group">
-            <div class="flex-row" style="flex: 1; max-width: 400px;">
+            <div class="flex-row">
                 <input type="search" id="users-search" class="form-control" placeholder="Rechercher par nom, prénom ou email..." name="query">
             </div>
             <select id="users-status-filter" class="form-control" style="width: auto;" name="status_filter" aria-label="Filtrer par statut">
