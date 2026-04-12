@@ -1,0 +1,7 @@
+qrcode
+http.server
+socketserver
+pathlib
+urllib.parse
+json
+datetime
