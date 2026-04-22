@@ -1,2 +1,4 @@
+requests
+pyserial
 qrcode
 pillow

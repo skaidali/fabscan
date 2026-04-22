@@ -14,8 +14,10 @@ import datetime as dt
 import sql_request as db
 import traitementQR as qr
 
+DERNIER_SCAN = None
+
 # Configuration du serveur
-PORT_SERVEUR = 8020
+PORT_SERVEUR = 8000
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     """Classe dérivée pour traiter les requêtes entrantes du serveur"""
@@ -80,10 +82,17 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         """Traiter les requêtes GET"""
         self.init_params()
         
-        # Route API stats - statistiques générales
         if len(self.path_info) > 0 and self.path_info[0] == "api" and len(self.path_info) > 1:
             if self.path_info[1] == "health":
                 self.send_response_json({"success": True, "status": "ok"})
+                
+            # NOUVELLE ROUTE ICI :
+            elif self.path_info[1] == "get_last_scan":
+                global DERNIER_SCAN
+                self.send_response_json({"success": True, "id_carte": DERNIER_SCAN})
+                # On efface la mémoire juste après pour ne pas associer la même carte au suivant
+                DERNIER_SCAN = None 
+                
             elif self.path_info[1] == "stats":
                 self.send_stats()
             elif self.path_info[1] == "machines":
@@ -297,21 +306,18 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response_json({"error": str(e)}, 500)
 
         
-
     def process_scan(self, data):
-        """Traiter un scan de QR code"""
+        """Traiter un scan de QR code ou RFID"""
+        global DERNIER_SCAN # NOUVEAU : On prévient qu'on utilise la variable globale
+        
         try:
             user_id = data.get('user_id')
             motif = data.get('motif', 'Non spécifié')
             
+            # NOUVEAU : On mémorise la carte, même si l'utilisateur est inconnu !
+            DERNIER_SCAN = user_id 
+            
             if not user_id:
-                self.send_response_json({"success": False, "error": "ID utilisateur manquant"}, 400)
-                return
-            
-            # Vérifier si l'utilisateur existe
-            user = db.research_user_by_id(user_id)
-            
-            if not user:
                 self.send_response_json({"success": False, "error": "Utilisateur non trouvé"}, 404)
                 return
             
