@@ -15,7 +15,7 @@ import sql_request as db
 import traitementQR as qr
 
 # Configuration du serveur
-PORT_SERVEUR = 8000
+PORT_SERVEUR = 8020
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     """Classe dérivée pour traiter les requêtes entrantes du serveur"""
