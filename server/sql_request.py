@@ -367,8 +367,11 @@ def get_stats():
     cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date LIKE ?", (today + "%",))
     today_entries = cursor.fetchone()[0]
 
-    week_ago = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
-    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date >= ?", (week_ago,))
+    now = datetime.datetime.now()
+    start_of_week = now - datetime.timedelta(days=now.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date >= ?", (start_of_week,))
     week_entries = cursor.fetchone()[0]
 
     conn.close()
@@ -544,9 +547,9 @@ def import_csv_data():
                             row.get("ID_MOODLE", ""),
                         ),
                     )
-            print(f"✓ Utilisateurs importés depuis {users_file}")
+            print(f"Utilisateurs importés depuis {users_file}")
         except Exception as exc:
-            print(f"⚠ Erreur import users: {exc}")
+            print(f"Erreur import users: {exc}")
 
     if entries_file.exists():
         try:
@@ -566,9 +569,9 @@ def import_csv_data():
                             row.get("COMMENTAIRE", ""),
                         ),
                     )
-            print(f"✓ Entrées importées depuis {entries_file}")
+            print(f"Entrées importées depuis {entries_file}")
         except Exception as exc:
-            print(f"⚠ Erreur import entries: {exc}")
+            print(f"Erreur import entries: {exc}")
 
     conn.commit()
     conn.close()
