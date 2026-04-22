@@ -16,6 +16,21 @@ function loadPage(page, button) {
     .then(function (data) {
       setActiveNav(targetButton, page);
       document.getElementById('content').innerHTML = data;
+        
+        // Trying to call initTabNamePage() from the corresponding tab's JS file when it is loaded
+        // Seems like this makes loading separate js files possible so I guess it works
+        try{
+          const parts = page.split('/');
+          const base = (parts[parts.length-1] || '').split('.')[0] || '';
+          if(base){
+            const initName = 'init' + base.charAt(0).toUpperCase() + base.slice(1) + 'Page';
+            const fn = window[initName];
+            if(typeof fn === 'function'){
+              // call asynchronously to avoid blocking
+              setTimeout(()=>{ try{ fn(); }catch(e){ console.error('init fn error', e); } }, 0);
+            }
+          }
+        }catch(err){ console.error('init call failed', err); }
     })
     .catch(function (error) {
       console.error('Error:', error);
