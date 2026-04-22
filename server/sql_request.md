@@ -11,6 +11,7 @@ Module s'occupant de la communication entre le serveur et la base de donnée à 
 - `_normalize_user_row` permet de standardiser les données. 
 - `to_excel` permet d'obtenir un excel contenant les données, du même format que celui fourni en exemple. 
 
+---
 
 ### Fonctions d'actualisation
 
@@ -26,8 +27,7 @@ Module s'occupant de la communication entre le serveur et la base de donnée à 
 - `add_formation` permet de modifier les formations d'un utilisateur.
   
 
-
-
+---
 
 
 ### Fonctions de recherche
@@ -49,4 +49,4 @@ Module s'occupant de la communication entre le serveur et la base de donnée à 
     - nombre d'entrée aujourd'hui, 
     - nombre d'entrée cette semaine. 
 
-
+--- 
