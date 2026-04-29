@@ -190,6 +190,3 @@ function initRegistrationPage() {
         });
     });
 }
-
-// On lance
-initRegistrationPage();
