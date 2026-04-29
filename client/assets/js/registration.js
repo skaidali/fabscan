@@ -62,45 +62,50 @@ function initRegistrationPage() {
         radiosStatut[j].addEventListener('change', mettreAJourEmail);
     }
 
-    // ==========================================
-    // 3. GESTION DE LA CARTE RFID (SIMULATION)
+ // ==========================================
+    // 3. GESTION DE LA CARTE RFID (VRAIE LECTURE)
     // ==========================================
     if (boutonRfid) {
         var ecouteEnCours = false;
         var chronometreEcoute;
 
         boutonRfid.addEventListener('click', function() {
-            // Si on est déjà en train d'écouter, on ne fait rien
+            
+            // NOUVEAU : Si on écoute déjà, un deuxième clic ANNULE la recherche
             if (ecouteEnCours === true) {
-                return;
+                clearInterval(chronometreEcoute); // On casse le chronomètre
+                ecouteEnCours = false;
+                boutonRfid.textContent = "Associer la carte";
+                boutonRfid.style.opacity = "1";
+                return; // On arrête la fonction ici
             }
             
             ecouteEnCours = true;
 
-            // On change l'aspect du bouton pour montrer qu'on attend le badge
-            boutonRfid.textContent = "Passer le badge sur le lecteur...";
+            boutonRfid.textContent = "Passez le badge (cliquez pour annuler)...";
             boutonRfid.style.opacity = "0.7";
 
-            // On utilise setInterval pour interroger le serveur toutes les secondes (1000 ms)
             chronometreEcoute = setInterval(function() {
                 
-                // On va interroger une nouvelle petite route qu'on va créer sur le serveur
+                // NOUVEAU (LE KILL SWITCH) : Si on a changé de page, le bouton a disparu du HTML.
+                // On doit absolument tuer le chronomètre fantôme !
+                if (!document.body.contains(boutonRfid)) {
+                    clearInterval(chronometreEcoute);
+                    return;
+                }
+                
                 fetch('/api/get_last_scan')
                 .then(function(reponse) {
                     return reponse.json();
                 })
                 .then(function(donnees) {
-                    // Si le serveur a bien une carte en mémoire
                     if (donnees.success === true && donnees.id_carte !== null) {
                         
-                        // BINGO ! On arrête de demander au serveur
-                        clearInterval(chronometreEcoute);
+                        clearInterval(chronometreEcoute); // On arrête de demander
                         ecouteEnCours = false;
 
-                        // On cache l'ID de la vraie carte dans le formulaire
                         champRfidCache.value = donnees.id_carte;
                         
-                        // On met à jour l'aspect du bouton pour valider
                         boutonRfid.textContent = "Carte associée (" + donnees.id_carte + ")";
                         boutonRfid.style.opacity = "1";
                         boutonRfid.classList.remove('btn-outline');
@@ -111,7 +116,7 @@ function initRegistrationPage() {
                     console.error("Erreur lors de l'écoute RFID :", erreur);
                 });
 
-            }, 1000); // 1000 millisecondes = 1 seconde
+            }, 1000);
         });
     }
     // ==========================================

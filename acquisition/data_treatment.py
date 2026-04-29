@@ -1,112 +1,92 @@
 import serial
-import serial.tools.list_ports  # NOUVEAU : Pour scanner les ports USB
+import serial.tools.list_ports
 import time
-import requests                 # NOUVEAU : Pour parler à serveur.py
+import requests
+from datetime import datetime as dt
 
-# Adresse de ton serveur (route de l'API prévue dans serveur.py)
+
+# ==========================================
+# CONFIGURATION
+# ==========================================
 SERVER_URL = "http://localhost:8000/api/scan"
-CYCLE_DELAY = 0.5 # en secondes
 
-# ---------------------------------------------------------
-# 1. DÉTECTION AUTOMATIQUE DU PORT USB
-# ---------------------------------------------------------
+# ==========================================
+# 1. DÉTECTION DU MATÉRIEL
+# ==========================================
 def find_arduino_port():
-    """
-    Scanne les ports USB et cherche un appareil ressemblant à un Arduino.
-    """
+    """Scanne les ports USB pour trouver l'Arduino automatiquement."""
     print("Recherche du lecteur RFID...")
     ports = serial.tools.list_ports.comports()
     
     for port in ports:
-        # On affiche ce qu'on trouve pour le debug
-        print(f" - Trouvé : {port.device} ({port.description})")
-        
-        # Les Arduino ont souvent "Arduino", "CH340" ou "USB Serial" dans leur description
         if "Arduino" in port.description or "CH340" in port.description or "USB" in port.description:
             print(f"-> Lecteur détecté sur le port : {port.device}")
             return port.device
             
-    # Si on ne trouve rien
     return None
 
-# ---------------------------------------------------------
-# 2. ENVOI DES DONNÉES AU SERVEUR (HTTP)
-# ---------------------------------------------------------
+
+# ==========================================
+# 2. COMMUNICATION WEB
+# ==========================================
 def send_to_server(card_id):
-    """
-    Envoie l'ID scanné au serveur web via une requête POST.
-    """
+    """Envoie l'ID de la carte au serveur via une requête HTTP POST."""
     payload = {
         "user_id": card_id,
         "motif": "Entrée via Arduino"
     }
     
     try:
-        print(f"Envoi au serveur de l'ID : {card_id}...")
-        # Envoi de la requête au serveur (timeout court pour ne pas bloquer le lecteur)
         reponse = requests.post(SERVER_URL, json=payload, timeout=2)
         
         if reponse.status_code == 200:
             resultat = reponse.json()
             if resultat.get("success"):
-                print(f"OK : {resultat.get('message', 'Entrée validée')}")
+                print(f" OK : {resultat.get('message', 'Opération réussie')}")
             else:
-                print(f"Refusé : {resultat.get('error', 'Erreur inconnue')}")
+                print(f" Info : {resultat.get('error', 'Non reconnu')}")
         else:
-            print(f"Erreur serveur : Code {reponse.status_code}")
+            print(f" Erreur serveur : Code {reponse.status_code}")
             
-    except requests.exceptions.RequestException as e:
-        print(f"Impossible de joindre le serveur. Est-il allumé sur le port 8000 ?")
+    except requests.exceptions.RequestException:
+        print(" Impossible de joindre le serveur. (Est-il allumé sur le port 8000 ?)")
 
-# ---------------------------------------------------------
-# 3. TRAITEMENT ET ACQUISITION
-# ---------------------------------------------------------
+
+# ==========================================
+# 3. LECTURE DES BADGES
+# ==========================================
 def clear_data(byteString):
-    """Nettoie le string et le rend prêt à être traité"""
-    text = byteString.decode(errors="ignore")
-    text = text.strip()
+    """Nettoie les données brutes reçues par le port série."""
+    text = byteString.decode(errors="ignore").strip()
     return text
 
 def data_acquisition():
-    """
-    Initialise la connexion avec le port détecté et boucle à l'infini pour lire les badges.
-    """
-    # On cherche le port automatiquement
+    """Boucle principale d'acquisition des données."""
     port_detecte = find_arduino_port()
     
     if not port_detecte:
-        print("Erreur : Aucun lecteur RFID/Arduino trouvé. Vérifiez le branchement USB.")
-        return # On arrête le programme
+        print("Erreur : Aucun lecteur RFID/Arduino branché ou reconnu.")
+        return 
 
     try:
-        # On se connecte au port trouvé (plus besoin de concaténer "COM")
         ser = serial.Serial(port_detecte, baudrate=9600, timeout=1)
-        
-        print("Initialisation de la connexion...")
-        time.sleep(2)
+        time.sleep(2) # Laisse le temps à la connexion de s'établir
         ser.reset_input_buffer()
-        print("\n--- LECTEUR PRÊT ! En attente d'un badge... ---")
+        print("\n--- LECTEUR PRÊT ! En attente d'un badge... ---\n")
 
         while True:
             ligne_brute = ser.readline()
             ID = clear_data(ligne_brute)
             
-            if not ID:
-                continue
-
-            print("\n--------------------------")
-            print(f"Badge détecté : {ID}")
-            
-            # Au lieu de juste faire un print, on l'envoie au serveur !
-            send_to_server(ID)
-            
-            # Petite pause pour ne pas lire la même carte 10 fois par seconde
-            time.sleep(CYCLE_DELAY)
+            if ID:
+                print("--------------------------")
+                print(f"Badge scanné : {ID}")
+                send_to_server(ID)
             
     except serial.SerialException as e:
-        print(f"Erreur de communication série : {e}")
-        print("Le port est peut-être déjà ouvert dans un autre logiciel (ex: Moniteur Série Arduino).")
+        print(f"Erreur de port série : {e}")
+        print("Vérifiez que le Moniteur Série Arduino est bien fermé.")
 
-# Lancement du programme (plus besoin de passer le port en paramètre !)
+# Lancement du script
 if __name__ == "__main__":
     data_acquisition()
