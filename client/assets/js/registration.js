@@ -27,7 +27,7 @@ function initRegistrationPage() {
         var prenom = champPrenom.value.trim().toLowerCase();
         var nom = champNom.value.trim().toLowerCase();
 
-        // Si la personne a un nom composé (ex: "Jean Luc"), on remplace l'espace par un tiret ("jean-luc")
+        // Si la personne a un nom composé, on remplace l'espace par un tiret ("jean-luc")
         prenom = prenom.replace(/\s+/g, '-');
         nom = nom.replace(/\s+/g, '-');
 
@@ -62,7 +62,7 @@ function initRegistrationPage() {
         radiosStatut[j].addEventListener('change', mettreAJourEmail);
     }
 
- // ==========================================
+    // ==========================================
     // 3. GESTION DE LA CARTE RFID (VRAIE LECTURE)
     // ==========================================
     if (boutonRfid) {
@@ -71,9 +71,9 @@ function initRegistrationPage() {
 
         boutonRfid.addEventListener('click', function() {
             
-            // NOUVEAU : Si on écoute déjà, un deuxième clic ANNULE la recherche
-            if (ecouteEnCours === true) {
-                clearInterval(chronometreEcoute); // On casse le chronomètre
+            // Si on écoute déjà, un deuxième clic ANNULE la recherche
+            if (ecouteEnCours=== true) {
+                clearInterval(chronometreEcoute);
                 ecouteEnCours = false;
                 boutonRfid.textContent = "Associer la carte";
                 boutonRfid.style.opacity = "1";
@@ -86,9 +86,6 @@ function initRegistrationPage() {
             boutonRfid.style.opacity = "0.7";
 
             chronometreEcoute = setInterval(function() {
-                
-                // NOUVEAU (LE KILL SWITCH) : Si on a changé de page, le bouton a disparu du HTML.
-                // On doit absolument tuer le chronomètre fantôme !
                 if (!document.body.contains(boutonRfid)) {
                     clearInterval(chronometreEcoute);
                     return;
