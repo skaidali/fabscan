@@ -156,7 +156,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         """Ajoute un utilisateur et lie sa carte RFID"""
         try:
             # Générer un ID unique basé sur l'heure
-            user_id = dt.datetime.now().strftime('%Y%m%d%H%M%S')
+            user_id = dt.now().strftime('%Y%m%d%H%M%S')
             
             nom = data.get('nom', '')
             prenom = data.get('prenom', '')
@@ -184,24 +184,79 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Erreur add_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
 
-    # (J'ai conservé tes autres fonctions d'envoi intactes mais compactées pour la propreté)
+
     def send_users(self):
         try:
+            # On récupère les filtres envoyés par le Javascript
+            search = self.params.get('search', [''])[0]
+            statut = self.params.get('statut', ['all'])[0]
             page = int(self.params.get('page', [1])[0])
-            rows, total = db.list_users(page=page)
-            users = [{"id": r[0], "nom": r[2], "prenom": r[3], "statut": r[4]} for r in rows]
-            self.send_response_json({"items": users, "total": total})
+            page_size = int(self.params.get('page_size', [12])[0])
+
+            # On demande à la base de données
+            rows, total = db.list_users(search=search, statut=statut, page=page, page_size=page_size)
+            
+            # On prépare les données pour le Javascript (ON AJOUTE L'EMAIL ICI)
+            users = []
+            for r in rows:
+                users.append({
+                    "id": r[0], 
+                    "email": r[1], 
+                    "nom": r[2], 
+                    "prenom": r[3], 
+                    "statut": r[4]
+                })
+            
+            # On calcule le nombre total de pages
+            total_pages = max(1, (total + page_size - 1) // page_size)
+            
+            # On envoie le tout au format JSON
+            self.send_response_json({
+                "items": users, 
+                "pagination": {
+                    "page": page,
+                    "total": total,
+                    "total_pages": total_pages
+                }
+            })
         except Exception as e:
             self.send_response_json({"error": str(e)}, 500)
 
-    def send_entries(self):
+    # ==========================================
+    # GESTION DE LA SUPPRESSION (DELETE)
+    # ==========================================
+    def do_DELETE(self):
+        """Traiter les requêtes DELETE (comme la suppression d'utilisateur)"""
+        self.init_params()
+
+        # On vérifie que la route demandée commence bien par /api/user/
+        if len(self.path_info) > 2 and self.path_info[0] == "api" and self.path_info[1] == "user":
+            # L'identifiant est le 3ème élément de l'URL (ex: /api/user/12345)
+            id_utilisateur = self.path_info[2]
+            self.delete_user(id_utilisateur)
+        else:
+            self.send_response_json({"error": "Route DELETE invalide"}, 404)
+
+    def delete_user(self, user_id):
+        """Fonction métier pour supprimer un utilisateur de la base de données"""
         try:
-            rows = db.get_all_entries(50)
-            entries = [{"date": r[0], "nom": r[2], "prenom": r[3]} for r in rows]
-            self.send_response_json(entries)
+            # On appelle la fonction de ton fichier sql_request.py
+            supprime = db.delete_user(user_id) 
+            
+            if supprime:
+                self.send_response_json({
+                    "success": True, 
+                    "message": "Utilisateur supprimé avec succès."
+                })
+            else:
+                self.send_response_json({
+                    "success": False, 
+                    "error": "Utilisateur introuvable dans la base."
+                }, 404)
+                
         except Exception as e:
-            self.send_response_json({"error": str(e)}, 500)
-
+            print(f"Erreur delete_user: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
 # ==========================================
 # DÉMARRAGE DU SERVEUR
 # ==========================================

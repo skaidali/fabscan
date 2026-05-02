@@ -49,7 +49,7 @@ def send_to_server(card_id):
             print(f" Erreur serveur : Code {reponse.status_code}")
             
     except requests.exceptions.RequestException:
-        print(" Impossible de joindre le serveur. (Est-il allumé sur le port 8000 ?)")
+        print(" Impossible de joindre le serveur. Vérifiez que le serveur est en cours d'exécution.")
 
 
 # ==========================================
