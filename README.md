@@ -45,10 +45,9 @@ Pas encore décidé, voir si MIT ou quelque chose du genre la licence anti-capit
 
 # TODO: Choses à faire
 - [ ] (!) Mettre des LEDs dans le boitier qui sera en plexiglas pour indiquer l'état du lecteur (reconnu, refusé)
-- [ ] (!!) Faire en sorte de faire fonctionner le scan et de sortir du mode lecture de carte après un court temps / bouton
+- [ ] (!!) Faire en sorte de faire fonctionner le scan et de sortir du mode lecture de carte après un court temps / bouton. Aussi ajouter les raisons de venue et les commentaires au scan.js
 - [ ] (!) Relier la fonction de scan présente dans registration.js sur scan.js
 - [ ] (!!!) Continuer à ajouter les autres fonctionnalités dans les tabs, notamment actions récentes et stats
-
 
 - [ ] Dans un futur lointain, config file qui régiera toutes les sélections + traductabilité
 
