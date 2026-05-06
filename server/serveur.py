@@ -42,12 +42,20 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def send_response_json(self, data, status=200):
         """Outil pour renvoyer des données au format JSON au navigateur"""
         body = json.dumps(data, ensure_ascii=False)
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json; charset=utf-8')
-        self.send_header('Content-Length', str(len(body.encode('utf-8'))))
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(body.encode('utf-8'))
+        try:
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(body.encode('utf-8'))))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            try:
+                self.wfile.write(body.encode('utf-8'))
+            except (BrokenPipeError, ConnectionResetError) as e:
+                # Client disconnected while we were writing the response; log and continue
+                print(f"Client disconnected while writing response: {e}")
+        except Exception as e:
+            # Protect server from unexpected failures while preparing response
+            print(f"send_response_json failed: {e}")
 
     def parse_json_body(self):
         """Outil pour lire les données envoyées en POST"""
@@ -129,24 +137,25 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response_json({"success": False, "error": "ID de carte manquant"}, 400)
                 return
 
-            # Vérifie si la carte correspond à un utilisateur (fonction modifiée pour la sécurité)
-            user = db.research_user_by_id_carte(user_id)
-            
-            if user:
-                # Utilisateur reconnu !
-                db.add_entry(user_id, type_projet=motif)
+            # Accept either a full user id or a card id; try to resolve card id to user id
+            resolved = db.research_user_by_id_carte(user_id)
+            if resolved:
+                real_id, nom, prenom = resolved[0], resolved[1], resolved[2]
+                db.add_entry(real_id, type_projet=motif)
                 self.send_response_json({
                     "success": True,
-                    "nom": user[0],
-                    "prenom": user[1],
-                    "message": f"Bienvenue {user[1]} {user[0]} !"
+                    "nom": nom,
+                    "prenom": prenom,
+                    "message": f"Bienvenue {prenom} {nom} !"
                 })
             else:
-                # Utilisateur inconnu
-                self.send_response_json({
-                    "success": False,
-                    "error": "Badge non reconnu. Prêt pour l'inscription."
-                })
+                # If not found by carte, check if it's a direct user id
+                user = db.research_user_by_id(user_id)
+                if user:
+                    db.add_entry(user_id, type_projet=motif)
+                    self.send_response_json({"success": True, "nom": user[0], "prenom": user[1], "message": f"Bienvenue {user[1]} {user[0]} !"})
+                else:
+                    self.send_response_json({"success": False, "error": "Badge non reconnu. Prêt pour l'inscription."})
                 
         except Exception as e:
             print(f"Erreur scan: {e}")
@@ -184,79 +193,55 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Erreur add_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
 
+    def add_entry(self, data):
+        """Ajoute une entrée à la base de données"""
+        
+        try:
+            user_id = data.get('user_id')
+            type_projet = data.get('type_projet', 'Non spécifié')
+            zone_travail = data.get('zone_travail', 'Non spécifié')
+            commentaire = data.get('commentaire', 'Non spécifié')
+            
+            if not user_id:
+                self.send_response_json({"success": False, "error": "ID manquant"}, 400)
+                return
+
+            # Accept either a direct user id or a card id; resolve accordingly
+            resolved = db.research_user_by_id_carte(user_id)
+            if resolved:
+                real_id, nom, prenom = resolved[0], resolved[1], resolved[2]
+                db.add_entry(real_id, type_projet=type_projet, zone_travail=zone_travail, commentaire=commentaire)
+                self.send_response_json({"success": True, "nom": nom, "prenom": prenom, "message": f"Bienvenue {prenom} {nom} !"})
+                return
+
+            user = db.research_user_by_id(user_id)
+            if user:
+                db.add_entry(user_id, type_projet=type_projet, zone_travail=zone_travail, commentaire=commentaire)
+                self.send_response_json({"success": True, "nom": user[0], "prenom": user[1], "message": f"Bienvenue {user[1]} {user[0]} !"})
+            else:
+                self.send_response_json({"success": False, "error": "Badge non reconnu. Prêt pour l'inscription."})
+                
+        except Exception as e:
+            print(f"Erreur scan: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
 
     def send_users(self):
         try:
-            # On récupère les filtres envoyés par le Javascript
-            search = self.params.get('search', [''])[0]
-            statut = self.params.get('statut', ['all'])[0]
             page = int(self.params.get('page', [1])[0])
-            page_size = int(self.params.get('page_size', [12])[0])
-
-            # On demande à la base de données
-            rows, total = db.list_users(search=search, statut=statut, page=page, page_size=page_size)
-            
-            # On prépare les données pour le Javascript (ON AJOUTE L'EMAIL ICI)
-            users = []
-            for r in rows:
-                users.append({
-                    "id": r[0], 
-                    "email": r[1], 
-                    "nom": r[2], 
-                    "prenom": r[3], 
-                    "statut": r[4]
-                })
-            
-            # On calcule le nombre total de pages
-            total_pages = max(1, (total + page_size - 1) // page_size)
-            
-            # On envoie le tout au format JSON
-            self.send_response_json({
-                "items": users, 
-                "pagination": {
-                    "page": page,
-                    "total": total,
-                    "total_pages": total_pages
-                }
-            })
+            rows, total = db.list_users(page=page)
+            users = [{"id": r[0], "nom": r[2], "prenom": r[3], "statut": r[4]} for r in rows]
+            self.send_response_json({"items": users, "total": total})
         except Exception as e:
             self.send_response_json({"error": str(e)}, 500)
 
-    # ==========================================
-    # GESTION DE LA SUPPRESSION (DELETE)
-    # ==========================================
-    def do_DELETE(self):
-        """Traiter les requêtes DELETE (comme la suppression d'utilisateur)"""
-        self.init_params()
-
-        # On vérifie que la route demandée commence bien par /api/user/
-        if len(self.path_info) > 2 and self.path_info[0] == "api" and self.path_info[1] == "user":
-            # L'identifiant est le 3ème élément de l'URL (ex: /api/user/12345)
-            id_utilisateur = self.path_info[2]
-            self.delete_user(id_utilisateur)
-        else:
-            self.send_response_json({"error": "Route DELETE invalide"}, 404)
-
-    def delete_user(self, user_id):
-        """Fonction métier pour supprimer un utilisateur de la base de données"""
+    def send_entries(self):
         try:
-            # On appelle la fonction de ton fichier sql_request.py
-            supprime = db.delete_user(user_id) 
-            
-            if supprime:
-                self.send_response_json({
-                    "success": True, 
-                    "message": "Utilisateur supprimé avec succès."
-                })
-            else:
-                self.send_response_json({
-                    "success": False, 
-                    "error": "Utilisateur introuvable dans la base."
-                }, 404)
-                
+            rows = db.get_all_entries(50)
+            entries = [{"date": r[0], "nom": r[2], "prenom": r[3]} for r in rows]
+            self.send_response_json(entries)
         except Exception as e:
-            print(f"Erreur delete_user: {e}")
-            self.send_response_json({"success": False, "error": str(e)}, 500)
+            self.send_response_json({"error": str(e)}, 500)
+
 # ==========================================
 # DÉMARRAGE DU SERVEUR
 # ==========================================

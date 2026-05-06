@@ -8,8 +8,6 @@ def generateID():
     return id
 
 def createQR(create_id = True, id = None):  
-    
-
     qr_data = id 
     if create_id : 
         qr_data = generateID()

@@ -133,7 +133,6 @@ def research_user_by_id_carte(id_carte):
     conn.close()
     return result
 
-
 def add_user(id_user, nom, prenom, statut, id_moodle="", commentaire=""):
     """Ajouter un utilisateur"""
     conn = get_connection()

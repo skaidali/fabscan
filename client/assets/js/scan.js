@@ -5,7 +5,9 @@ async function initScanPage(){
 	const simulateRfidBtn = document.getElementById('simulate-rfid');
 	const manualInput = document.getElementById('manual-input');
 	const memberName = document.getElementById('member-name');
-	const zoneSelect = document.getElementById('zone');
+	const zoneTravail = document.getElementById('zone_travail');
+	const typeProjet = document.getElementById('type_projet');
+	const commentaire = document.getElementById('commentaire');
 	const submitBtn = document.getElementById('submit-btn');
 
 	if(!scannedInfo) return;
@@ -21,7 +23,7 @@ async function initScanPage(){
 	async function lookupUserById(id){
 		if(!id) return null;
 		try{
-			const resp = await fetch(`/api/user/${encodeURIComponent(id)}`);
+			const resp = await fetch(`/api/users/${encodeURIComponent(id)}`);
 			if(!resp.ok) return null;
 			const data = await resp.json();
 			return data;
@@ -81,7 +83,9 @@ async function initScanPage(){
 	// Manual entry submission from the form
 	async function submitManualEntry(){
 		const userId = manualInput.value && manualInput.value.trim();
-		const zone = zoneSelect && zoneSelect.value ? zoneSelect.value : '';
+		const zone = zoneTravail && zoneTravail.value ? zoneTravail.value : '';
+		const comm = commentaire && commentaire.value ? commentaire.value : '';
+		const type = typeProjet && typeProjet.value ? typeProjet.value : '';
 		if(!userId){ alert('Veuillez entrer l\'ID du badge ou du QR.'); return; }
 
 		// Try to lookup user for nicer message
@@ -89,7 +93,7 @@ async function initScanPage(){
 
 		try{
 			const resp = await fetch('/api/add_entry',{
-				method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, zone: zone })
+				method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, zone_travail: zone, type_projet: type, commentaire: comm })
 			});
 			const d = await resp.json().catch(()=>({}));
 			if(resp.ok && d.success){
