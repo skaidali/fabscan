@@ -353,10 +353,11 @@ def get_all_entries(limit=50):
 
 
 def get_stats():
-    """Récupérer les statistiques générales"""
+    """Récupérer les statistiques générales et détaillées"""
     conn = get_connection()
     cursor = conn.cursor()
 
+    # 1. Chiffres globaux
     cursor.execute("SELECT COUNT(*) FROM UTILISATEURS")
     total_users = cursor.fetchone()[0]
 
@@ -367,21 +368,52 @@ def get_stats():
     cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date LIKE ?", (today + "%",))
     today_entries = cursor.fetchone()[0]
 
-    now = datetime.datetime.now()
-    start_of_week = now - datetime.timedelta(days=now.weekday())
-    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date >= ?", (start_of_week,))
+    # Activité sur les 7 derniers jours
+    week_ago = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date >= ?", (week_ago,))
     week_entries = cursor.fetchone()[0]
 
+    # 2. Données pour le Graphique (Entrées par jour sur 7 jours)
+    cursor.execute("""
+        SELECT strftime('%Y-%m-%d', date) as d, COUNT(*)
+        FROM ENTREE
+        WHERE date >= ?
+        GROUP BY d ORDER BY d
+    """, (week_ago,))
+    # On transforme ça en dictionnaire { '2026-05-01': 5, '2026-05-02': 12... }
+    chart_data = {row[0]: row[1] for row in cursor.fetchall()}
+
+    # 3. Répartition par Zone
+    cursor.execute("""
+        SELECT zone_travail, COUNT(*)
+        FROM ENTREE
+        WHERE zone_travail IS NOT NULL AND zone_travail != ''
+        GROUP BY zone_travail
+    """)
+    zones = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
+
+    # 4. Les 5 dernières entrées pour le tableau
+    cursor.execute("""
+        SELECT e.date, u.nom, u.prenom, e.zone_travail, e.type_projet
+        FROM ENTREE e
+        JOIN UTILISATEURS u ON e.id_utilisateur = u.id
+        ORDER BY e.date DESC
+        LIMIT 5
+    """)
+    recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}", "zone": r[3], "projet": r[4]} for r in cursor.fetchall()]
+
     conn.close()
+    
+    # On renvoie les données
     return {
         "total_users": total_users,
         "total_entries": total_entries,
         "today_entries": today_entries,
         "week_entries": week_entries,
+        "chart_data": chart_data,
+        "zones": zones,
+        "recent_entries": recent
     }
-
 
 def check_status(id_user):
     """Vérifier le statut d'un utilisateur"""

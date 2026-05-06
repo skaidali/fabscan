@@ -14,6 +14,10 @@ from datetime import datetime as dt
 import sql_request as db
 import traitementQR as qr
 
+# Pour l'export CSV
+import csv
+import io
+
 # ==========================================
 # VARIABLES GLOBALES ET CONFIGURATION
 # ==========================================
@@ -75,7 +79,6 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 global DERNIER_SCAN
                 self.send_response_json({"success": True, "id_carte": DERNIER_SCAN})
                 DERNIER_SCAN = None  # Réinitialise la mémoire après lecture
-            
             elif route == "stats":
                 self.send_response_json(db.get_stats())
             elif route == "machines":
@@ -84,6 +87,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_users()
             elif route == "entries":
                 self.send_entries()
+            elif route == "export_csv":
+                self.export_csv()
             else:
                 self.send_response_json({"error": "Route API inconnue"}, 404)
         else:
@@ -257,6 +262,37 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Erreur delete_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def export_csv(self):
+        """Génère un fichier CSV lisible par Excel avec l'historique du FabLab"""
+        try:
+            # On récupère toutes les entrées (jusqu'à 10000)
+            rows = db.get_all_entries(limit=10000)
+            
+            output = io.StringIO()
+            # On utilise le point-virgule, pour l'Excel français
+            writer = csv.writer(output, delimiter=';') 
+            
+            # 1. On écrit l'en-tête des colonnes
+            writer.writerow(['Date', 'Statut', 'Nom', 'Prenom', 'Type Projet', 'Zone', 'Commentaire'])
+            
+            # 2. On écrit toutes les lignes de la base de données
+            for row in rows:
+                writer.writerow(row)
+
+            csv_content = output.getvalue()
+            
+            # 3. On envoie au navigateur 
+            self.send_response(200)
+            # utf-8-sig force Excel à lire correctement les accents (é, à, etc.)
+            self.send_header('Content-Type', 'text/csv; charset=utf-8-sig')
+            self.send_header('Content-Disposition', 'attachment; filename="Historique_FabLab.csv"')
+            self.end_headers()
+            self.wfile.write(csv_content.encode('utf-8-sig'))
+            
+        except Exception as e:
+            print(f"Erreur Export CSV: {e}")
+            self.send_response_json({"error": str(e)}, 500)
 # ==========================================
 # DÉMARRAGE DU SERVEUR
 # ==========================================
