@@ -228,3 +228,31 @@ body {
 .kpi-box .val { font-size: 2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
 .highlight-box { background-color: var(--light); padding: 1rem; border-radius: var(--border-radius); border-left: 4px solid var(--primary); }
 
+/* --- Graphique d'activité --- */
+#activity-chart {
+  display: flex;
+  align-items: flex-end;         /* Aligne les barres en bas */
+  justify-content: space-around; /* Espace les barres uniformément */
+  height: 200px;                 /* HAUTEUR OBLIGATOIRE, sinon le graphe disparaît ! */
+  padding: 1rem;
+  background-color: var(--light);
+  border-radius: var(--border-radius);
+}
+
+.chart-bar {
+  width: 40px;
+  background-color: var(--primary);
+  border-radius: 4px 4px 0 0;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;    /* Place le texte en bas de la barre */
+  padding-bottom: 5px;
+}
+
+.chart-bar:hover {
+  background-color: var(--primary-hover);
+}
