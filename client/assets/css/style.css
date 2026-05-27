@@ -256,3 +256,62 @@ body {
 .chart-bar:hover {
   background-color: var(--primary-hover);
 }
+
+/* ==========================================
+   CLASSES UTILITAIRES (Réutilisables)
+   ========================================== */
+.w-100 { width: 100%; }
+.w-auto { width: auto; }
+.text-center { text-align: center; }
+.flex-center { justify-content: center; }
+.mt-1 { margin-top: 1rem; }
+
+.divider { 
+  border: 0; 
+  border-top: 1px solid var(--gray-light); 
+  margin: 0.5rem 0; 
+}
+
+/* ==========================================
+   PAGE SCANNER 
+   ========================================== */
+.auto-mode-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  color: var(--primary);
+  cursor: pointer;
+  background: white;
+  border: 2px solid var(--primary);
+}
+
+.auto-mode-checkbox {
+  width: 1.2rem;
+  height: 1.2rem;
+  cursor: pointer;
+}
+
+#user-panel {
+  border-top: 4px solid var(--gray);
+  transition: border-color var(--transition); /* Pour l'animation JS */
+}
+
+.panel-avatar-container {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.panel-avatar-icon {
+  font-size: 5rem;
+  color: var(--gray-light);
+}
+
+.panel-name {
+  margin-top: 1rem;
+}
+
+.panel-status {
+  display: inline-block;
+  margin-top: 0.5rem;
+}
