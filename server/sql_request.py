@@ -351,47 +351,65 @@ def get_all_entries(limit=50):
     return rows
 
 
-def get_stats():
-    """Récupérer les statistiques générales et détaillées"""
+def get_stats(periode="semaine"):
+    """Récupérer les statistiques générales filtrées par période"""
+    import datetime
     conn = get_connection()
     cursor = conn.cursor()
 
-    # 1. Chiffres globaux
+    # 1. Chiffres globaux fixes
     cursor.execute("SELECT COUNT(*) FROM UTILISATEURS")
     total_users = cursor.fetchone()[0]
 
     cursor.execute("SELECT COUNT(*) FROM ENTREE")
     total_entries = cursor.fetchone()[0]
 
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date LIKE ?", (today + "%",))
+    now = datetime.datetime.now()
+    today_str = now.strftime("%Y-%m-%d")
+    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date LIKE ?", (today_str + "%",))
     today_entries = cursor.fetchone()[0]
 
-    # Activité sur les 7 derniers jours
-    week_ago = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
-    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date >= ?", (week_ago,))
-    week_entries = cursor.fetchone()[0]
+    # 2. Logique de calcul selon la période demandée
+    if periode == "jour":
+        # 24 dernières heures -> on groupe par heure
+        start_date = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
+        group_by = "strftime('%Y-%m-%d %H:00', date)" 
+    elif periode == "mois":
+        # 30 derniers jours -> on groupe par jour
+        start_date = (now - datetime.timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
+        group_by = "strftime('%Y-%m-%d', date)"
+    elif periode == "annee":
+        # 365 derniers jours -> on groupe par mois
+        start_date = (now - datetime.timedelta(days=365)).strftime("%Y-%m-%d %H:%M:%S")
+        group_by = "strftime('%Y-%m', date)"
+    else:
+        # Par défaut : "semaine" (7 derniers jours) -> on groupe par jour
+        start_date = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+        group_by = "strftime('%Y-%m-%d', date)"
 
-    # 2. Données pour le Graphique (Entrées par jour sur 7 jours)
-    cursor.execute("""
-        SELECT strftime('%Y-%m-%d', date) as d, COUNT(*)
+    # Nombre d'entrées sur la période choisie
+    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date >= ?", (start_date,))
+    period_entries = cursor.fetchone()[0]
+
+    # 3. Données pour le Graphique dynamique
+    cursor.execute(f"""
+        SELECT {group_by} as d, COUNT(*)
         FROM ENTREE
         WHERE date >= ?
         GROUP BY d ORDER BY d
-    """, (week_ago,))
-    # On transforme ça en dictionnaire { '2026-05-01': 5, '2026-05-02': 12... }
+    """, (start_date,))
     chart_data = {row[0]: row[1] for row in cursor.fetchall()}
 
-    # 3. Répartition par Zone
+    # 4. Répartition par Zone (filtrée sur la période pour plus de pertinence)
     cursor.execute("""
         SELECT zone_travail, COUNT(*)
         FROM ENTREE
-        WHERE zone_travail IS NOT NULL AND zone_travail != ''
+        WHERE zone_travail IS NOT NULL AND zone_travail != '' AND date >= ?
         GROUP BY zone_travail
-    """)
+    """, (start_date,))
     zones = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
 
-    # 4. Les 5 dernières entrées pour le tableau
+    # 5. Les 5 dernières entrées
     cursor.execute("""
         SELECT e.date, u.nom, u.prenom, e.zone_travail, e.type_projet
         FROM ENTREE e
@@ -403,16 +421,16 @@ def get_stats():
 
     conn.close()
     
-    # On renvoie les données
     return {
         "total_users": total_users,
         "total_entries": total_entries,
         "today_entries": today_entries,
-        "week_entries": week_entries,
+        "period_entries": period_entries, # La valeur dynamique
         "chart_data": chart_data,
         "zones": zones,
         "recent_entries": recent
     }
+
 
 def check_status(id_user):
     """Vérifier le statut d'un utilisateur"""

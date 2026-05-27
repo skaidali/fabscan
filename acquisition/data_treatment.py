@@ -77,7 +77,6 @@ def data_acquisition():
         while True:
             ligne_brute = ser.readline()
             ID = clear_data(ligne_brute)
-            
             if ID:
                 print("--------------------------")
                 print(f"Badge scanné : {ID}")

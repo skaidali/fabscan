@@ -1,6 +1,5 @@
-cd server
-python -m pip install -r requirements.txt
-python serveur.py
-cd ../acquisition
-python data_treatment.py
+
+python -m pip install -r ./server/requirements.txt
+start /B python ./server/serveur.py
+start /B python ./acquisition/data_treatment.py
 start iexplore.exe "http://localhost:8000"

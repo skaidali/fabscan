@@ -51,6 +51,9 @@ Pas encore décidé, voir si MIT ou quelque chose du genre la licence anti-capit
 
 - [ ] Dans un futur lointain, config file qui régiera toutes les sélections + traductabilité
 
+
+- [ ] Perspective d'amélioration : ajouter une option qui permet d'importer les données d'une base de données déjà existante (ex: si le fablab a déjà une base de données d'utilisateur·ices, pouvoir l'importer facilement dans notre système)
+
 ## Retours Chloé et Clara 1 avril
 - [ ] mettre en ligne les fichiers 3d (sketch fab) 
 - [X] travailler sur les readme. 

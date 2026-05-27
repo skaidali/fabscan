@@ -85,7 +85,11 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 DERNIER_SCAN = None  # Réinitialise la mémoire après lecture
             
             elif route == "stats":
-                self.send_response_json(db.get_stats())
+                # On cherche si l'URL contient "?period=..." (par défaut, on met "semaine")
+                periode_choisie = self.params.get('period', ['semaine'])[0]
+                
+                # On envoie ce choix à la base de données
+                self.send_response_json(db.get_stats(periode_choisie))
             elif route == "machines":
                 self.send_response_json({"items": db.list_machines()})
             elif route == "users":
