@@ -96,6 +96,23 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_users()
             elif route == "entries":
                 self.send_entries()
+            elif route == "user_info":
+                # Récupère les infos pour le panneau latéral
+                scan_id = self.params.get('id', [''])[0]
+                user_data = db.get_user_by_scan_id(scan_id)
+                if user_data:
+                    self.send_response_json({"success": True, "data": user_data})
+                else:
+                    self.send_response_json({"success": False, "error": "Badge inconnu"})
+                    
+            elif route == "search_users":
+                # Pour la barre de recherche manuelle
+                query = self.params.get('q', [''])[0]
+                rows, _ = db.list_users(search=query, page_size=15)
+                # On prépare une liste simplifiée pour le menu déroulant
+                users = [{"id": r[0], "texte": f"{r[3]} {r[2]} ({r[4]})"} for r in rows]
+                self.send_response_json({"success": True, "items": users})
+            
             else:
                 self.send_response_json({"error": "Route API inconnue"}, 404)
         else:
@@ -128,42 +145,20 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     # FONCTIONS MÉTIER (LOGIQUE DU FABLAB)
     # ==========================================
     def process_scan(self, data):
-        """Traite le scan reçu de l'Arduino"""
+        """Traite le scan reçu de l'Arduino (Sert juste de relais vers la page web)"""
         global DERNIER_SCAN
         try:
             user_id = data.get('user_id')
-            motif = data.get('motif', 'Non spécifié')
-            
-            # On mémorise la carte, même si l'utilisateur est inconnu (pour l'inscription)
-            DERNIER_SCAN = user_id 
-            
             if not user_id:
-                self.send_response_json({"success": False, "error": "ID de carte manquant"}, 400)
+                self.send_response_json({"success": False, "error": "ID manquant"}, 400)
                 return
 
-            # Accept either a full user id or a card id; try to resolve card id to user id
-            resolved = db.research_user_by_id_carte(user_id)
-            if resolved:
-                real_id, nom, prenom = resolved[0], resolved[1], resolved[2]
-                db.add_entry(real_id, type_projet=motif)
-                self.send_response_json({
-                    "success": True,
-                    "nom": nom,
-                    "prenom": prenom,
-                    "message": f"Bienvenue {prenom} {nom} !"
-                })
-            else:
-                # If not found by carte, check if it's a direct user id
-                user = db.research_user_by_id(user_id)
-                if user:
-                    db.add_entry(user_id, type_projet=motif)
-                    self.send_response_json({"success": True, "nom": user[0], "prenom": user[1], "message": f"Bienvenue {user[1]} {user[0]} !"})
-                else:
-                    self.send_response_json({"success": False, "error": "Badge non reconnu. Prêt pour l'inscription."})
+            DERNIER_SCAN = user_id 
+            self.send_response_json({"success": True, "message": "Scan reçu par le serveur."})
                 
         except Exception as e:
-            print(f"Erreur scan: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
+
 
     def add_user(self, data):
         """Ajoute un utilisateur et lie sa carte RFID"""
@@ -183,6 +178,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             
             # 1. Créer l'utilisateur
             db.add_user(user_id, nom, prenom, statut, email)
+            qr.createQR(False, user_id)  # Génère un QR code pour cet utilisateur
             
             # 2. Lier la carte RFID si elle existe
             if id_carte:
@@ -196,6 +192,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Erreur add_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
+
 
     def add_entry(self, data):
         """Ajoute une entrée à la base de données"""

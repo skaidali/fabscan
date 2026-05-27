@@ -337,7 +337,7 @@ def get_all_entries(limit=50):
     cursor = conn.cursor()
     cursor.execute(
         """
-        SELECT e.date, u.statut, u.nom, u.prenom,
+        SELECT datetime(e.date, 'localtime'), u.statut, u.nom, u.prenom,
                e.type_projet, e.zone_travail, e.commentaire
         FROM ENTREE e
         JOIN UTILISATEURS u ON e.id_utilisateur = u.id
@@ -411,7 +411,7 @@ def get_stats(periode="semaine"):
 
     # 5. Les 5 dernières entrées
     cursor.execute("""
-        SELECT e.date, u.nom, u.prenom, e.zone_travail, e.type_projet
+        SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, e.zone_travail, e.type_projet
         FROM ENTREE e
         JOIN UTILISATEURS u ON e.id_utilisateur = u.id
         ORDER BY e.date DESC
@@ -630,11 +630,25 @@ def to_excel():
     """Placeholder export Excel"""
     pass
 
-
-
-
-
-
-
-
-
+def get_user_by_scan_id(scan_id):
+    """Trouve un utilisateur via son ID ou sa carte RFID, et renvoie ses infos"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, nom, prenom, statut, email, id_carte
+        FROM UTILISATEURS
+        WHERE id = ? OR id_carte = ?
+    """, (scan_id, scan_id))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row:
+        return {
+            "id": row[0],
+            "nom": row[1],
+            "prenom": row[2],
+            "statut": row[3],
+            "email": row[4],
+            "has_rfid": bool(row[5])
+        }
+    return None

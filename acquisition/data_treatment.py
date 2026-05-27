@@ -2,7 +2,6 @@ import serial
 import serial.tools.list_ports
 import time
 import requests
-from datetime import datetime as dt
 
 
 # ==========================================

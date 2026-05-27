@@ -1,125 +1,214 @@
-// Scan page logic - handles simulated QR/RFID, manual lookup and adding entries
-async function initScanPage(){
-	const scannedInfo = document.getElementById('scanned-info');
-	const simulateQrBtn = document.getElementById('simulate-qr');
-	const simulateRfidBtn = document.getElementById('simulate-rfid');
-	const manualInput = document.getElementById('manual-input');
-	const memberName = document.getElementById('member-name');
-	const zoneTravail = document.getElementById('zone_travail');
-	const typeProjet = document.getElementById('type_projet');
-	const commentaire = document.getElementById('commentaire');
-	const submitBtn = document.getElementById('submit-btn');
+// ./js/scan.js
 
-	if(!scannedInfo) return;
+function initScanPage() {
+    console.log("Page Scanner chargée !");
 
-	function setScannedText(txt, kind){
-		scannedInfo.innerHTML = '';
-		const el = document.createElement('div');
-		el.className = kind || '';
-		el.textContent = txt;
-		scannedInfo.appendChild(el);
-	}
+    // Éléments HTML
+    var form = document.getElementById('entry-form');
+    var userIdInput = document.getElementById('current-user-id');
+    var btnValider = document.getElementById('btn-valider');
+    var msgBox = document.getElementById('scan-message');
+    var autoModeToggle = document.getElementById('auto-mode-toggle');
+    var manualSearch = document.getElementById('manual-search');
+    var datalist = document.getElementById('users-list');
 
-	async function lookupUserById(id){
-		if(!id) return null;
-		try{
-			const resp = await fetch(`/api/users/${encodeURIComponent(id)}`);
-			if(!resp.ok) return null;
-			const data = await resp.json();
-			return data;
-		}catch(e){
-			console.error('lookup error', e);
-			return null;
-		}
-	}
+    // Éléments du Panneau Gauche
+    var panelCard = document.getElementById('user-panel');
+    var panelName = document.getElementById('panel-name');
+    var panelStatus = document.getElementById('panel-status');
+    var panelEmail = document.getElementById('panel-email');
+    var panelRfid = document.getElementById('panel-rfid');
 
-    // TODO: Replace the following two simulate buttons with a "scan button"
-    // that will use the same function as the registration page and call /api/scan with it
+    // Chronomètre pour le scan
+    var chronometreScan = null;
+    
+	// ==========================================
+    // 0. GESTION VISUELLE DU MODE AUTOMATIQUE
+    // ==========================================
+    autoModeToggle.addEventListener('change', function() {
+        var champCommentaire = document.getElementById('commentaire');
+        
+        if (this.checked) {
+            // MODE AUTO ACTIVÉ
+            
+            // On grise l'opacité de tout le formulaire
+            form.style.opacity = "0.5";
+            
+            // On désactive les champs inutiles en mode auto
+            manualSearch.disabled = true;
+            champCommentaire.disabled = true;
+            
+            // On cache le bouton de validation manuel
+            btnValider.style.display = "none"; 
+            
+            // On affiche un petit message rassurant
+            msgBox.style.color = "var(--primary)";
+            msgBox.innerHTML = "<i class='fa-solid fa-robot'></i> Mode Automatique en cours d'écoute...";
+        } else {
+            // MODE AUTO DÉSACTIVÉ (Retour à la normale)
+            
+            form.style.opacity = "1";
+            
+            manualSearch.disabled = false;
+            champCommentaire.disabled = false;
+            btnValider.style.display = "flex"; 
+            
+            msgBox.innerHTML = "";
+        }
+    });
+
+    // ==========================================
+    // 1. AFFICHAGE DES INFOS UTILISATEUR
+    // ==========================================
+    function afficherProfil(user) {
+        userIdInput.value = user.id;
+        
+        panelName.textContent = user.prenom + " " + user.nom;
+        panelStatus.textContent = user.statut;
+        panelEmail.textContent = user.email || "Non renseigné";
+        
+        if (user.has_rfid) {
+            panelRfid.innerHTML = "<span style='color:var(--success);'><i class='fa-solid fa-check'></i> Oui</span>";
+        } else {
+            panelRfid.innerHTML = "<span style='color:var(--danger);'><i class='fa-solid fa-xmark'></i> Non</span>";
+        }
+
+        // On change la couleur de la bordure du haut pour faire joli
+        panelCard.style.borderTopColor = "var(--primary)";
+        
+        // On active le bouton de validation
+        btnValider.disabled = false;
+        msgBox.innerHTML = "";
+    }
+
+    // ==========================================
+    // 2. SOUMISSION DE L'ENTRÉE (Manuel ou Auto)
+    // ==========================================
+    function enregistrerEntree(motif, zone, commentaire) {
+        var id = userIdInput.value;
+        if (!id) return;
+
+        fetch('/api/add_entry', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: id,
+                type_projet: motif,
+                zone_travail: zone,
+                commentaire: commentaire
+            })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                msgBox.style.color = "var(--success)";
+                msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée validée pour " + data.prenom + " !";
+                
+                // Nettoyage après 3 secondes
+                setTimeout(function() {
+                    form.reset();
+                    userIdInput.value = "";
+                    btnValider.disabled = true;
+                    panelName.textContent = "En attente de scan...";
+                    panelStatus.textContent = "-";
+                    panelEmail.textContent = "-";
+                    panelRfid.textContent = "-";
+                    panelCard.style.borderTopColor = "var(--gray)";
+                    msgBox.innerHTML = "";
+                }, 3000);
+            }
+        });
+    }
+
+    // Soumission Manuelle
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var motif = document.getElementById('motif').value;
+        var zone = document.getElementById('zone').value;
+        var commentaire = document.getElementById('commentaire').value;
+        enregistrerEntree(motif, zone, commentaire);
+    });
 
 
+    // ==========================================
+    // 3. ÉCOUTE PERMANENTE DU LECTEUR RFID/QR
+    // ==========================================
+    function verifierDernierScan() {
+        // Si on a changé de page, on coupe l'écoute (Kill Switch)
+        if (!document.body.contains(panelName)) {
+            clearInterval(chronometreScan);
+            return;
+        }
 
-	// Simulate a QR scan: generate a timestamp-based id and call /api/scan
-	async function simulateQr(){
-		// generate a simple id similar to server's add_user id format
-		const id = new Date().toISOString().replace(/[^0-9]/g,'');
-		setScannedText(`Simulated QR: ${id}`,'highlight');
-		try{
-			const resp = await fetch('/api/scan',{
-				method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: id })
-			});
-			const d = await resp.json().catch(()=>({}));
-			if(resp.ok && d.success){
-				setScannedText(`Entrée enregistrée pour ${d.prenom||''} ${d.nom||''}`,'success');
-			}else{
-				// store last scan on server's DERNIER_SCAN but user unknown => show message
-				setScannedText(`Carte lue (${id}) - Utilisateur inconnu. Vous pouvez lier cet ID lors de l'inscription.`,'warning');
-			}
-		}catch(e){
-			console.error(e);
-			setScannedText('Erreur lors de l\'envoi du scan','error');
-		}
-	}
+        fetch('/api/get_last_scan')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            // SI on a détecté une carte !
+            if (data.success && data.id_carte) {
+                
+                // On va chercher qui c'est
+                fetch('/api/user_info?id=' + data.id_carte)
+                .then(function(resUser) { return resUser.json(); })
+                .then(function(userData) {
+                    if (userData.success) {
+                        afficherProfil(userData.data);
 
-	// Simulate an RFID scan: use a short numeric id
-	async function simulateRfid(){
-		const id = String(Math.floor(100000 + Math.random()*900000));
-		setScannedText(`Simulated RFID: ${id}`,'highlight');
-		try{
-			const resp = await fetch('/api/scan',{
-				method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: id })
-			});
-			const d = await resp.json().catch(()=>({}));
-			if(resp.ok && d.success){
-				setScannedText(`Entrée enregistrée pour ${d.prenom||''} ${d.nom||''}`,'success');
-			}else{
-				setScannedText(`Carte lue (${id}) - Utilisateur inconnu.`,`warning`);
-			}
-		}catch(e){
-			console.error(e);
-			setScannedText('Erreur lors de l\'envoi du scan','error');
-		}
-	}
+                        // MAGIE DU MODE AUTO : On valide direct sans cliquer !
+                        if (autoModeToggle.checked) {
+                            var motifAuto = document.getElementById('motif').value;
+                            var zoneAuto = document.getElementById('zone').value;
+                            enregistrerEntree(motifAuto, zoneAuto, "Mode Auto");
+                        }
+                    } else {
+                        // Carte inconnue
+                        msgBox.style.color = "var(--danger)";
+                        msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Carte Inconnue ! Allez dans 'Inscription'.";
+                    }
+                });
+            }
+        });
+    }
+    
+    // On lance la boucle d'écoute toutes les secondes
+    chronometreScan = setInterval(verifierDernierScan, 1000);
 
-	// Manual entry submission from the form
-	async function submitManualEntry(){
-		const userId = manualInput.value && manualInput.value.trim();
-		const zone = zoneTravail && zoneTravail.value ? zoneTravail.value : '';
-		const comm = commentaire && commentaire.value ? commentaire.value : '';
-		const type = typeProjet && typeProjet.value ? typeProjet.value : '';
-		if(!userId){ alert('Veuillez entrer l\'ID du badge ou du QR.'); return; }
+    // ==========================================
+    // 4. RECHERCHE MANUELLE (Sans badge)
+    // ==========================================
+    // Quand on tape dans la barre de recherche
+    manualSearch.addEventListener('input', function(e) {
+        var texte = e.target.value;
+        
+        // On demande au serveur uniquement si on a tapé au moins 3 lettres
+        if (texte.length >= 3) {
+            fetch('/api/search_users?q=' + encodeURIComponent(texte))
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                datalist.innerHTML = ""; // On vide la liste
+                if (data.success) {
+                    data.items.forEach(function(u) {
+                        var option = document.createElement('option');
+                        option.value = u.id; // L'id technique
+                        option.textContent = u.texte; // Le joli nom affiché
+                        datalist.appendChild(option);
+                    });
+                }
+            });
+        }
+    });
 
-		// Try to lookup user for nicer message
-		const user = await lookupUserById(userId);
-
-		try{
-			const resp = await fetch('/api/add_entry',{
-				method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId, zone_travail: zone, type_projet: type, commentaire: comm })
-			});
-			const d = await resp.json().catch(()=>({}));
-			if(resp.ok && d.success){
-				setScannedText(`Entrée enregistrée pour ${user? (user.prenom + ' ' + user.nom) : userId}`,'success');
-				memberName.value = user ? `${user.prenom} ${user.nom}` : '';
-			}else{
-				setScannedText(d.error || 'Erreur enregistrement','error');
-			}
-		}catch(e){
-			console.error(e);
-			setScannedText('Erreur réseau','error');
-		}
-	}
-
-	// bind buttons
-	if(simulateQrBtn) simulateQrBtn.addEventListener('click', simulateQr);
-	if(simulateRfidBtn) simulateRfidBtn.addEventListener('click', simulateRfid);
-	if(submitBtn) submitBtn.addEventListener('click', submitManualEntry);
-
-	// If manual input loses focus, try to lookup user and pre-fill name
-	if(manualInput){
-		manualInput.addEventListener('blur', async ()=>{
-			const id = manualInput.value && manualInput.value.trim();
-			if(!id) return;
-			const u = await lookupUserById(id);
-			if(u){ memberName.value = `${u.prenom || ''} ${u.nom || ''}`; }
-		});
-	}
+    // Quand l'utilisateur a fini de taper ou a sélectionné quelqu'un
+    manualSearch.addEventListener('change', function(e) {
+        var idChoisi = e.target.value;
+        if (idChoisi.length > 5) { // Un ID système fait plus de 5 caractères
+            fetch('/api/user_info?id=' + idChoisi)
+            .then(function(res) { return res.json(); })
+            .then(function(userData) {
+                if (userData.success) {
+                    afficherProfil(userData.data);
+                    manualSearch.value = ""; // On vide la barre de recherche
+                }
+            });
+        }
+    });
 }
