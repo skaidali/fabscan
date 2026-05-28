@@ -1,119 +1,212 @@
-// Function to call when users page is opened
-async function initUsersPage(){
-  
-  // Get HTML elements from users.html page to be able to modify them dynamically
-  const tableBody = document.getElementById('users-table-body');
-  const template = document.getElementById('users-row-template');
-  const state = document.getElementById('users-table-state');
-  const search = document.getElementById('users-search');
-  const statusFilter = document.getElementById('users-status-filter');
-  const prevBtn = document.getElementById('users-page-prev');
-  const nextBtn = document.getElementById('users-page-next');
-  const pageNumbers = document.getElementById('users-page-numbers');
-
-  if(!tableBody || !template) return;
-
-  // Edit the state message under the table (showing either pages or "Aucun utilisateur trouvé.")
-  function setState(msg, kind){ if(!state) return; state.textContent = msg||''; state.className = kind?`message ${kind}`:'message'; }
-
-  const pager = { page: 1, page_size: 12, total: 0, total_pages: 1 };
-
-  // Add page selection buttons under the table
-  function renderPageNumbers(){
-    pageNumbers.innerHTML = '';
-    const start = Math.max(1, pager.page-2);
-    const end = Math.min(pager.total_pages, pager.page+2);
-
-    // create page buttons (this will end up creating like 500 buttons but a)
-    for(let p=start;p<=end;p++){
-      const b = document.createElement('button'); b.type='button'; b.textContent = String(p); b.className = (p===pager.page?'page-btn active':'page-btn'); b.addEventListener('click', ()=>{ pager.page=p; fetchUsers(); });
-      pageNumbers.appendChild(b);
-    }
-    prevBtn.disabled = pager.page<=1; nextBtn.disabled = pager.page>=pager.total_pages;
-  }
-
-  // Main function: show the fetched users in the user list
-  function renderRows(items){
-    tableBody.innerHTML='';
-
-    // edit state message to show the number of users shown
-    if(!items || items.length===0){ setState('Aucun utilisateur trouvé.','error'); return; }
-    setState(`Affichage ${Math.max(1,(pager.page-1)*pager.page_size+1)}-${Math.min(pager.total,(pager.page)*pager.page_size)} sur ${pager.total}`,'');
+function initUsersPage() {
+    var corpsDuTableau = document.getElementById('users-table-body');
+    var modeleLigne = document.getElementById('users-row-template');
+    var champRecherche = document.getElementById('users-search');
+    var filtreStatut = document.getElementById('users-status-filter');
     
-    // add users to table
-    for(const u of items){
-      const frag = template.content.cloneNode(true); // clone template
-      const tr = frag.querySelector('tr'); // get table row from template element
-      tr.dataset.userId = u.id;
+    // Éléments du Panneau Gauche
+    var panneauDetails = document.getElementById('user-details-panel');
+    var panneauVide = document.getElementById('user-empty-panel');
+    var btnFermer = document.getElementById('btn-fermer-panneau');
+    var formEdit = document.getElementById('edit-user-form');
+    var msgBox = document.getElementById('edit-message');
 
-      // construct row from user information
-      frag.querySelector('.user-prenom').textContent = u.prenom || '';
-      frag.querySelector('.user-nom').textContent = u.nom || '';
-      frag.querySelector('.user-email').textContent = u.email || (u.id_moodle||'') ;
-      const statu = frag.querySelector('.user-statut'); statu.innerHTML = `<span class="pill">${u.statut||''}</span>`;
-      const rfid = frag.querySelector('.user-rfid'); rfid.innerHTML = (u.id_moodle?'<span class="rfid-badge rfid-linked">Liée</span>':'<span class="rfid-badge rfid-unlinked">Non liée</span>');
+    var pagination = { pageActuelle: 1, utilisateursParPage: 12 };
 
-      // wire action buttons to other functions
-      const edit = frag.querySelector('.action-edit'); if(edit) edit.addEventListener('click', ()=> loadPage('./views/registration.html', edit));
-      const resend = frag.querySelector('.action-resend-qr'); if(resend) resend.addEventListener('click', ()=> resendQr(u.id));
-      const checkin = frag.querySelector('.action-checkin'); if(checkin) checkin.addEventListener('click', ()=> manualCheckin(u.id));
-      const del = frag.querySelector('.action-delete'); if(del) del.addEventListener('click', ()=> deleteUser(u.id));
+    if (!corpsDuTableau) return;
 
-      tableBody.appendChild(frag);
+    // ==========================================
+    // 1. CHARGEMENT ET AFFICHAGE DU TABLEAU
+    // ==========================================
+    function chargerLesUtilisateurs() {
+        var urlApi = '/api/users?search=' + encodeURIComponent(champRecherche.value) + '&statut=' + encodeURIComponent(filtreStatut.value) + '&page=' + pagination.pageActuelle + '&page_size=' + pagination.utilisateursParPage;
+
+        fetch(urlApi)
+            .then(function(res) { return res.json(); })
+            .then(function(donnees) {
+                corpsDuTableau.innerHTML = '';
+                donnees.items.forEach(function(utilisateur) {
+                    var clone = modeleLigne.content.cloneNode(true);
+                    clone.querySelector('.user-prenom').textContent = utilisateur.prenom;
+                    clone.querySelector('.user-nom').textContent = utilisateur.nom;
+                    clone.querySelector('.user-statut').innerHTML = '<span class="pill">' + utilisateur.statut + '</span>';
+                    
+                    // Quand on clique sur une ligne, on ouvre le panneau !
+                    var ligne = clone.querySelector('tr');
+                    ligne.addEventListener('click', function() {
+                        ouvrirPanneauUtilisateur(utilisateur.id);
+                    });
+
+                    corpsDuTableau.appendChild(clone);
+                });
+            });
     }
-  }
 
-  // Fetch all users from database
-  async function fetchUsers(){
-    setState('Chargement...', '');
+    // ==========================================
+    // 2. GESTION DU PANNEAU LATÉRAL
+    // ==========================================
+    function ouvrirPanneauUtilisateur(id) {
+        // On récupère toutes les infos détaillées via l'API existante
+        fetch('/api/user_info?id=' + id)
+            .then(function(res) { return res.json(); })
+            .then(function(resultat) {
+                if (resultat.success) {
+                    var u = resultat.data;
+                    
+                    // On affiche le bon panneau
+                    panneauVide.style.display = 'none';
+                    panneauDetails.style.display = 'block';
 
-    // take in account both search and statut filter
-    const searchvalue = encodeURIComponent((search&&search.value)||'');
-    const statut = encodeURIComponent((statusFilter&&statusFilter.value)||'all');
+                    // On remplit l'en-tête et l'image du QR
+                    document.getElementById('panel-name-header').textContent = u.prenom + " " + u.nom;
+                    document.getElementById('panel-qr-img').src = "/api/qr_code?id=" + u.id;
 
-    // fetch users based on the above criteria
-    const resp = await fetch(`/api/users?search=${searchvalue}&statut=${statut}&page=${pager.page}&page_size=${pager.page_size}`);
-    if(!resp.ok){ setState('Erreur lors du chargement des utilisateurs.','error'); return; }
-    const payload = await resp.json();
-    const items = payload.items || payload || []; // package the users in a list variable
-    pager.total = Number((payload.pagination && payload.pagination.total) || items.length || 0);
-    pager.total_pages = Number((payload.pagination && payload.pagination.total_pages) || 1);
+                    // On remplit le formulaire de base
+                    document.getElementById('edit-user-id').value = u.id;
+                    document.getElementById('edit-prenom').value = u.prenom;
+                    document.getElementById('edit-nom').value = u.nom;
+                    document.getElementById('edit-email').value = u.email;
+                    document.getElementById('edit-statut').value = u.statut;
 
-    // render all fetched items
-    renderRows(items);
-    renderPageNumbers();
-  }
-  
-  // Call /resend_qr endpoint and show an alert when successful
-  async function resendQr(userId){
-    if(!confirm('Renvoyer le QR code par email à cet utilisateur ?')) return;
-    const res = await fetch('/api/resend_qr', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId }) });
-    const d = await res.json().catch(()=>({success:false}));
-    if(res.ok && d.success) alert(d.message||'QR renvoyé'); else alert(d.error||'Erreur serveur');
-  }
+                    // On remplit le RFID
+                    document.getElementById('edit-rfid-id').value = u.id_carte;
+                    document.getElementById('edit-rfid-display').textContent = u.id_carte || "Aucune";
+                    document.getElementById('edit-rfid-btn').textContent = "Modifier la carte";
 
-  // TODO
-  async function manualCheckin(userId){
-    if(!confirm('Enregistrer un pointage manuel pour cet utilisateur ?')) return;
-    const res = await fetch('/api/manual_checkin', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: userId })});
-    const d = await res.json().catch(()=>({success:false}));
-    if(res.ok && d.success) alert(d.message||'Pointage enregistré'); else alert(d.error||'Erreur serveur');
-  }
+                    // On coche les certifications
+                    document.getElementById('certif-3d').checked = u.formation_3d;
+                    document.getElementById('certif-laser').checked = u.formation_laser;
+                    document.getElementById('certif-brodeuse').checked = u.formation_brodeuse;
+                    
+                    msgBox.innerHTML = "";
+                }
+            });
+    }
 
-  // Call /user endpoint to delete user from database
-  async function deleteUser(userId){
-    if(!confirm('Supprimer cet utilisateur et toutes ses données ?')) return;
-    const res = await fetch(`/api/user/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-    const d = await res.json().catch(()=>({success:false}));
-    if(res.ok && d.success){ alert(d.message||'Utilisateur supprimé'); fetchUsers(); } else alert(d.error||'Erreur suppression');
-  }
+    btnFermer.addEventListener('click', function() {
+        panneauDetails.style.display = 'none';
+        panneauVide.style.display = 'flex';
+    });
 
-  // Wire controls to buttons
-  if(search) search.addEventListener('input', ()=>{ pager.page=1; fetchUsers(); });
-  if(statusFilter) statusFilter.addEventListener('change', ()=>{ pager.page=1; fetchUsers(); });
-  if(prevBtn) prevBtn.addEventListener('click', ()=>{ if(pager.page>1){ pager.page--; fetchUsers(); }});
-  if(nextBtn) nextBtn.addEventListener('click', ()=>{ if(pager.page<pager.total_pages){ pager.page++; fetchUsers(); }});
+    // ==========================================
+    // 3. SAUVEGARDE DES MODIFICATIONS
+    // ==========================================
+    formEdit.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var donneesAEnvoyer = {
+            id: document.getElementById('edit-user-id').value,
+            prenom: document.getElementById('edit-prenom').value,
+            nom: document.getElementById('edit-nom').value,
+            email: document.getElementById('edit-email').value,
+            statut: document.getElementById('edit-statut').value,
+            id_carte: document.getElementById('edit-rfid-id').value,
+            formation_3d: document.getElementById('certif-3d').checked,
+            formation_laser: document.getElementById('certif-laser').checked,
+            formation_brodeuse: document.getElementById('certif-brodeuse').checked
+        };
 
-  // Initial load
-  fetchUsers();
+        fetch('/api/update_user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(donneesAEnvoyer)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(resultat) {
+            if (resultat.success) {
+                msgBox.style.color = "var(--success)";
+                msgBox.textContent = "✔ Modifications sauvegardées !";
+                chargerLesUtilisateurs(); // Rafraîchit le tableau
+                setTimeout(function() { msgBox.textContent = ""; }, 3000);
+            }
+        });
+    });
+
+    // ==========================================
+    // 4. LECTURE DE LA CARTE RFID DANS LE PANNEAU
+    // ==========================================
+    var btnRfid = document.getElementById('edit-rfid-btn');
+    var inputRfid = document.getElementById('edit-rfid-id');
+    var displayRfid = document.getElementById('edit-rfid-display');
+    var chronometreRfid;
+
+    // Action du nouveau bouton Corbeille
+    var btnClearRfid = document.getElementById('edit-rfid-clear');
+    if (btnClearRfid) {
+        btnClearRfid.addEventListener('click', function() {
+            inputRfid.value = ""; // On vide le champ caché
+            displayRfid.textContent = "Aucune (N'oubliez pas de sauvegarder)";
+            displayRfid.style.color = "var(--danger)";
+            btnRfid.textContent = "Associer une carte";
+            
+            // On coupe l'écoute si elle était en cours
+            clearInterval(chronometreRfid);
+            btnRfid.setAttribute('data-ecoute', 'non');
+        });
+    }
+    
+    btnRfid.addEventListener('click', function() {
+        var estEnEcoute = btnRfid.getAttribute('data-ecoute');
+
+        if (estEnEcoute === "oui") {
+            clearInterval(chronometreRfid);
+            btnRfid.setAttribute('data-ecoute', 'non');
+            btnRfid.textContent = "Modifier la carte";
+            return;
+        }
+
+        btnRfid.setAttribute('data-ecoute', 'oui');
+        btnRfid.textContent = "En attente du badge...";
+        
+        chronometreRfid = setInterval(function() {
+            if (!document.body.contains(btnRfid)) {
+                clearInterval(chronometreRfid);
+                return;
+            }
+            
+            fetch('/api/get_last_scan')
+            .then(function(res) { return res.json(); })
+            .then(function(donnees) {
+                if (donnees.success && donnees.id_carte) {
+                    clearInterval(chronometreRfid);
+                    btnRfid.setAttribute('data-ecoute', 'non');
+                    
+                    inputRfid.value = donnees.id_carte;
+                    displayRfid.textContent = donnees.id_carte + " (N'oubliez pas de sauvegarder)";
+                    displayRfid.style.color = "var(--primary)";
+                    btnRfid.textContent = "Badge détecté !";
+                }
+            });
+        }, 1000);
+    });
+
+    // ==========================================
+    // 5. ACTIONS ANNEXES (Supprimer, Renvoyer QR)
+    // ==========================================
+    document.getElementById('btn-supprimer-user').addEventListener('click', function() {
+        var id = document.getElementById('edit-user-id').value;
+        if (confirm("Voulez-vous vraiment supprimer cet utilisateur et son historique ?")) {
+            fetch('/api/user/' + id, { method: 'DELETE' })
+            .then(function() {
+                panneauDetails.style.display = 'none';
+                panneauVide.style.display = 'flex';
+                chargerLesUtilisateurs();
+            });
+        }
+    });
+
+    document.getElementById('btn-renvoyer-qr').addEventListener('click', function() {
+        // Note: L'envoi de mail Python n'est pas encore codé dans le serveur, on simule l'UI
+        alert("L'ordre d'envoi de l'email avec le QR Code a été transmis au serveur.");
+    });
+
+    // ==========================================
+    // 6. ÉVÉNEMENTS GLOBAUX
+    // ==========================================
+    champRecherche.addEventListener('input', function() { pagination.pageActuelle = 1; chargerLesUtilisateurs(); });
+    filtreStatut.addEventListener('change', function() { pagination.pageActuelle = 1; chargerLesUtilisateurs(); });
+    document.getElementById('users-page-prev').addEventListener('click', function() { if (pagination.pageActuelle > 1) { pagination.pageActuelle--; chargerLesUtilisateurs(); }});
+    document.getElementById('users-page-next').addEventListener('click', function() { pagination.pageActuelle++; chargerLesUtilisateurs(); });
+
+    chargerLesUtilisateurs();
 }

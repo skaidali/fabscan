@@ -20,7 +20,7 @@ def send_to_server(card_id):
     payload = {"user_id": card_id}
     
     try:
-        reponse = requests.post(SERVER_URL, json=payload, timeout=2)
+        reponse = requests.post(SERVER_URL, json=payload, timeout=0.1)
         if reponse.status_code == 200:
             print(f"✅ Scan transmis à la mémoire du serveur : {card_id}")
         else:
@@ -38,7 +38,7 @@ def data_acquisition():
         return
 
     try:
-        ser = serial.Serial(port_detecte, baudrate=9600, timeout=1)
+        ser = serial.Serial(port_detecte, baudrate=9600, timeout=0.5)
         time.sleep(2)
         ser.reset_input_buffer()
         print("\n=======================================================")
@@ -51,7 +51,6 @@ def data_acquisition():
             
             if ID:
                 send_to_server(ID)
-                time.sleep(CYCLE_DELAY) # Anti-spam
                 
     except serial.SerialException as e:
         print(f"Erreur de communication : {e}")

@@ -39,7 +39,8 @@ function loadPage(page, button) {
 
 /* The following two functions are here to locate and activate the header button when on its corresponding page */
 function findNavButtonByPage(page) {
-  return document.querySelector(`header nav button[data-page="${page}"]`);
+  // On cherche le bouton dont l'attribut onclick contient le nom de la page
+  return document.querySelector(`header nav button[onclick*="${page}"]`);
 }
 
 function setActiveNav(button, page) {

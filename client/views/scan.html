@@ -13,28 +13,51 @@
     </header>
 
     <div class="grid-2">
-        <div class="card" id="user-panel">
-            <div class="card-header">
-                <strong>Profil scanné</strong>
-            </div>
-            
-            <div class="panel-avatar-container">
-                <i class="fa-solid fa-circle-user panel-avatar-icon"></i>
-                <h2 id="panel-name" class="panel-name">En attente de scan...</h2>
-                <div id="panel-status" class="pill panel-status">-</div>
+        <div>
+            <div class="card form-group">
+                <label for="manual-search"><i class="fa-solid fa-magnifying-glass"></i> Recherche manuelle (Si oubli de carte)</label>
+                <input type="text" id="manual-search" class="form-control" list="users-list" placeholder="Taper un nom ou prénom..." autocomplete="off">
+                <datalist id="users-list"></datalist>
             </div>
 
-            <div class="form-group highlight-box">
-                <div class="flex-between">
-                    <span><i class="fa-solid fa-envelope"></i> Email</span>
-                    <strong id="panel-email">-</strong>
+            <div class="card" id="user-panel">
+                <div class="card-header">
+                    <strong>Profil scanné</strong>
                 </div>
                 
-                <hr class="divider">
-                
-                <div class="flex-between">
-                    <span><i class="fa-solid fa-id-card"></i> Carte RFID liée</span>
-                    <strong id="panel-rfid">-</strong>
+                <div class="panel-avatar-container">
+                    <i class="fa-solid fa-circle-user panel-avatar-icon"></i>
+                    <h2 id="panel-name" class="panel-name">En attente de scan...</h2>
+                    <div id="panel-status" class="pill panel-status">-</div>
+                </div>
+
+                <div class="form-group highlight-box">
+                    <div class="flex-between">
+                        <span><i class="fa-solid fa-envelope"></i> Email</span>
+                        <strong id="panel-email">-</strong>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <div class="flex-between">
+                        <span><i class="fa-solid fa-id-card"></i> Carte RFID liée</span>
+                        <strong id="panel-rfid">-</strong>
+                    </div>
+
+                    <hr class="divider">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Certifications Machines</div>
+                    <div class="flex-between">
+                        <span><i class="fa-solid fa-cube"></i> Impression 3D</span>
+                        <strong id="panel-form-3d">-</strong>
+                    </div>
+                    <div class="flex-between">
+                        <span><i class="fa-solid fa-fire"></i> Découpe Laser</span>
+                        <strong id="panel-form-laser">-</strong>
+                    </div>
+                    <div class="flex-between">
+                        <span><i class="fa-solid fa-shirt"></i> Brodeuse</span>
+                        <strong id="panel-form-brodeuse">-</strong>
+                    </div>
                 </div>
             </div>
         </div>
@@ -45,12 +68,6 @@
             </div>
             <form id="entry-form">
                 <input type="hidden" id="current-user-id" required>
-
-                <div class="form-group">
-                    <label for="manual-search">Recherche manuelle (Si oubli de carte)</label>
-                    <input type="text" id="manual-search" class="form-control" list="users-list" placeholder="Taper un nom ou prénom..." autocomplete="off">
-                    <datalist id="users-list"></datalist>
-                </div>
 
                 <div class="form-group">
                     <label for="motif">Motif de la visite *</label>
@@ -82,7 +99,6 @@
                 <button type="submit" class="btn btn-primary w-100 flex-center" id="btn-valider" disabled>
                     <i class="fa-solid fa-check"></i> Valider l'entrée
                 </button>
-                
                 <div id="scan-message" class="muted form-group text-center mt-1"></div>
             </form>
         </div>

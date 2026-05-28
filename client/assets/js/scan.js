@@ -72,7 +72,13 @@ function initScanPage() {
         } else {
             panelRfid.innerHTML = "<span style='color:var(--danger);'><i class='fa-solid fa-xmark'></i> Non</span>";
         }
-
+         var valid = "<span style='color:var(--success);'><i class='fa-solid fa-check'></i></span>";
+        var invalid = "<span style='color:var(--danger);'><i class='fa-solid fa-xmark'></i></span>";
+        
+        document.getElementById('panel-form-3d').innerHTML = user.formation_3d ? valid : invalid;
+        document.getElementById('panel-form-laser').innerHTML = user.formation_laser ? valid : invalid;
+        document.getElementById('panel-form-brodeuse').innerHTML = user.formation_brodeuse ? valid : invalid;
+        
         // On change la couleur de la bordure du haut pour faire joli
         panelCard.style.borderTopColor = "var(--primary)";
         

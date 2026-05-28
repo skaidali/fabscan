@@ -1,68 +1,152 @@
 <div class="container">
-    <header class="page-header">
+    <header class="page-header flex-between">
         <div>
             <h1>Gestion des utilisateurs</h1>
-            <p class="muted">Gérer la liste des utilisateurs et visualiser les actions disponibles.</p>
+            <p class="muted">Gérez les profils, les certifications et les accès de vos membres.</p>
         </div>
         <div class="flex-row">
             <button onclick="loadPage('./views/registration.html')" class="btn btn-primary"><i class="fa-solid fa-circle-plus"></i> Ajouter un utilisateur</button>
         </div>
     </header>
 
-    <div class="card">
-        <div class="flex-row flex-between form-group">
-            <div class="flex-row">
-                <input type="search" id="users-search" class="form-control" placeholder="Rechercher par nom, prénom ou email..." name="query">
+    <div class="grid-2">
+        <div class="card" id="user-details-panel" style="display: none; border-top: 4px solid var(--primary);">
+            <div class="card-header flex-between">
+                <strong>Profil Utilisateur</strong>
+                <button type="button" class="btn btn-outline" id="btn-fermer-panneau">Fermer</button>
             </div>
-            <select id="users-status-filter" class="form-control w-auto" name="status_filter" aria-label="Filtrer par statut">
-                <option value="all">Tous les statuts</option>
-                <option value="etudiants">Étudiant</option>
-                <option value="personnel">Personnel</option>
-                <option value="externes">Externe</option>
-            </select>
+            
+            <div class="panel-avatar-container">
+                <img id="panel-qr-img" src="" alt="QR Code" style="width: 120px; height: 120px; border-radius: 8px; margin: 0 auto; display: block; border: 1px solid var(--gray-light);">
+                <h2 id="panel-name-header" class="panel-name">Prénom Nom</h2>
+            </div>
+
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-id">
+
+                <div class="form-group highlight-box">
+                    <strong>Informations de base</strong>
+                    <div class="grid-2 mt-1">
+                        <div>
+                            <label>Prénom</label>
+                            <input type="text" id="edit-prenom" class="form-control" required>
+                        </div>
+                        <div>
+                            <label>Nom</label>
+                            <input type="text" id="edit-nom" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group mt-1">
+                        <label>Email</label>
+                        <input type="email" id="edit-email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Statut</label>
+                        <select id="edit-statut" class="form-control" required>
+                            <option value="1A">1A</option>
+                            <option value="2A">2A</option>
+                            <option value="3A">3A</option>
+                            <option value="Alternant·e">Alternant·e</option>
+                            <option value="Doctorant·e">Doctorant·e</option>
+                            <option value="Enseignant·e/Chercheur·se">Enseignant·e/Chercheur·se</option>
+                            <option value="Extérieur">Extérieur</option>
+                            <option value="Master">Master</option>
+                            <option value="Personnel">Personnel</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group highlight-box flex-between">
+                    <div>
+                        <strong>Carte RFID</strong>
+                        <p class="muted">ID: <span id="edit-rfid-display">Aucune</span></p>
+                    </div>
+                    <div class="flex-row">
+                        <button type="button" id="edit-rfid-clear" class="icon-btn action-delete" title="Retirer la carte"><i class="fa-solid fa-trash"></i></button>
+                        <button type="button" id="edit-rfid-btn" class="btn btn-outline">Associer une carte</button>
+                    </div>
+                    <input type="hidden" id="edit-rfid-id">
+                </div>
+
+                <div class="form-group highlight-box">
+                    <strong>Certifications Machines</strong>
+                    <div class="mt-1 flex-row">
+                        <input type="checkbox" id="certif-3d" class="auto-mode-checkbox">
+                        <label for="certif-3d">Impression 3D</label>
+                    </div>
+                    <div class="mt-1 flex-row">
+                        <input type="checkbox" id="certif-laser" class="auto-mode-checkbox">
+                        <label for="certif-laser">Découpe Laser</label>
+                    </div>
+                    <div class="mt-1 flex-row">
+                        <input type="checkbox" id="certif-brodeuse" class="auto-mode-checkbox">
+                        <label for="certif-brodeuse">Brodeuse Numérique</label>
+                    </div>
+                </div>
+
+                <hr class="divider">
+                
+                <div class="grid-2 form-group">
+                    <button type="submit" class="btn btn-primary flex-center w-100"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder</button>
+                    <button type="button" class="btn btn-outline flex-center w-100" id="btn-renvoyer-qr"><i class="fa-solid fa-paper-plane"></i> Envoyer le QR</button>
+                </div>
+                <button type="button" class="btn btn-danger flex-center w-100 mt-1" id="btn-supprimer-user"><i class="fa-solid fa-trash"></i> Supprimer cet utilisateur</button>
+
+                <div id="edit-message" class="text-center mt-1 font-weight-bold"></div>
+            </form>
         </div>
 
-        <div class="table-wrap">
-            <table class="data-table" aria-label="Liste des utilisateurs">
-                <thead>
-                    <tr>
-                        <th>Prénom</th>
-                        <th>Nom</th>
-                        <th>Email</th>
-                        <th>Statut</th>
-                        <th>Carte RFID</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="users-table-body"></tbody>
-            </table>
+        <div class="card" id="user-empty-panel" style="display: flex; align-items: center; justify-content: center; min-height: 400px;">
+            <div class="text-center muted">
+                <i class="fa-solid fa-hand-pointer" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <p>Sélectionnez un utilisateur dans le tableau pour afficher et modifier ses informations.</p>
+            </div>
         </div>
 
-        <div id="users-table-state" class="muted form-group" role="status" aria-live="polite"></div>
+        <div class="card">
+            <div class="flex-row flex-between form-group">
+                <div class="flex-row w-100">
+                    <input type="search" id="users-search" class="form-control" placeholder="Rechercher par nom, prénom..." name="query">
+                </div>
+                <select id="users-status-filter" class="form-control w-auto">
+                    <option value="all">Tous les statuts</option>
+                    <option value="1A">1A</option>
+                    <option value="2A">2A</option>
+                    <option value="3A">3A</option>
+                    <option value="Alternant·e">Alternant·e</option>
+                    <option value="Doctorant·e">Doctorant·e</option>
+                    <option value="Enseignant·e/Chercheur·se">Enseignant·e/Chercheur·se</option>
+                    <option value="Extérieur">Extérieur</option>
+                    <option value="Master">Master</option>
+                    <option value="Personnel">Personnel</option>
+                </select>
+            </div>
 
-        <div class="flex-row flex-between form-group" aria-label="Pagination utilisateurs">
-            <button type="button" id="users-page-prev" class="btn btn-outline">Précédent</button>
-            <div id="users-page-numbers"></div>
-            <button type="button" id="users-page-next" class="btn btn-outline">Suivant</button>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body"></tbody>
+                </table>
+            </div>
+
+            <div class="flex-row flex-between form-group mt-1">
+                <button type="button" id="users-page-prev" class="btn btn-outline">Précédent</button>
+                <button type="button" id="users-page-next" class="btn btn-outline">Suivant</button>
+            </div>
         </div>
     </div>
 
-    <!-- Template to add a new user row -->
     <template id="users-row-template">
-        <tr>
+        <tr class="clickable-row" style="cursor: pointer;" title="Cliquez pour voir les détails">
             <td class="user-prenom"></td>
             <td class="user-nom"></td>
-            <td class="user-email"></td>
             <td class="user-statut"></td>
-            <td class="user-rfid"></td>
-            <td>
-                <div class="flex-row">
-                    <button type="button" class="icon-btn action-edit" title="Éditer le profil"><i class="fa-solid fa-pen"></i></button>
-                    <button type="button" class="icon-btn action-resend-qr" title="Renvoyer le QR code"><i class="fa-solid fa-rotate"></i></button>
-                    <button type="button" class="icon-btn action-checkin" title="Pointage manuel"><i class="fa-solid fa-check"></i></button>
-                    <button type="button" class="icon-btn action-delete" title="Supprimer l'utilisateur"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </td>
         </tr>
     </template>
 </div>

@@ -83,15 +83,25 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 global DERNIER_SCAN
                 self.send_response_json({"success": True, "id_carte": DERNIER_SCAN})
                 DERNIER_SCAN = None  # Réinitialise la mémoire après lecture
-            
+            elif route == "qr_code":
+                # Route pour afficher directement l'image du QR Code
+                user_id = self.params.get('id', [''])[0]
+                qr_path = self.root / "database" / "QRcode" / f"{user_id}.png"
+                if qr_path.exists():
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'image/png')
+                    self.end_headers()
+                    with open(qr_path, 'rb') as f:
+                        self.wfile.write(f.read())
+                    return
+                else:
+                    self.send_response_json({"error": "QR Code introuvable"}, 404)
             elif route == "stats":
                 # On cherche si l'URL contient "?period=..." (par défaut, on met "semaine")
                 periode_choisie = self.params.get('period', ['semaine'])[0]
                 
                 # On envoie ce choix à la base de données
                 self.send_response_json(db.get_stats(periode_choisie))
-            elif route == "machines":
-                self.send_response_json({"items": db.list_machines()})
             elif route == "users":
                 self.send_users()
             elif route == "entries":
@@ -112,6 +122,9 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 # On prépare une liste simplifiée pour le menu déroulant
                 users = [{"id": r[0], "texte": f"{r[3]} {r[2]} ({r[4]})"} for r in rows]
                 self.send_response_json({"success": True, "items": users})
+
+            elif route == "export_csv":
+                self.export_csv()
             
             else:
                 self.send_response_json({"error": "Route API inconnue"}, 404)
@@ -141,6 +154,18 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_response_json({"error": "Route POST invalide"}, 404)
 
+    def do_DELETE(self):
+        """Intercepte les requêtes de suppression (DELETE) du JavaScript"""
+        self.init_params()
+        
+        # On vérifie que l'URL demandée est bien du type /api/user/123456
+        if len(self.path_info) > 2 and self.path_info[0] == "api" and self.path_info[1] == "user":
+            id_utilisateur = self.path_info[2]
+            # On appelle ta fonction métier qui supprime le user et le QR Code
+            self.delete_user(id_utilisateur)
+        else:
+            self.send_response_json({"error": "Route DELETE invalide"}, 404)
+    
     # ==========================================
     # FONCTIONS MÉTIER (LOGIQUE DU FABLAB)
     # ==========================================
@@ -228,8 +253,16 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def send_users(self):
         try:
+            # 1. On récupère les filtres envoyés par le JavaScript
+            search = self.params.get('search', [''])[0]
+            statut = self.params.get('statut', ['all'])[0]
             page = int(self.params.get('page', [1])[0])
-            rows, total = db.list_users(page=page)
+            page_size = int(self.params.get('page_size', [12])[0])
+
+            # 2. On les donne à la base de données pour qu'elle trie
+            rows, total = db.list_users(search=search, statut=statut, page=page, page_size=page_size)
+            
+            # 3. On prépare la réponse
             users = [{"id": r[0], "nom": r[2], "prenom": r[3], "statut": r[4]} for r in rows]
             self.send_response_json({"items": users, "total": total})
         except Exception as e:
@@ -243,6 +276,97 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_response_json({"error": str(e)}, 500)
 
+    def update_user(self, data):
+        """Mettre à jour un utilisateur depuis le panneau latéral"""
+        try:
+            user_id = data.get('id')
+            if not user_id:
+                self.send_response_json({"success": False, "error": "ID manquant"}, 400)
+                return
+            
+            # 1. Mise à jour des infos de base
+            db.update_user(
+                user_id, 
+                data.get('nom'), 
+                data.get('prenom'), 
+                data.get('statut'), 
+                data.get('email')
+            )
+            
+            # 2. Mise à jour de la carte RFID
+            if 'id_carte' in data:
+                db.link_id_carte(user_id, data.get('id_carte'))
+                
+            # 3. Mise à jour des certifications
+            db.add_formation(
+                user_id, 
+                bool(data.get('formation_3d', False)), 
+                bool(data.get('formation_laser', False)), 
+                bool(data.get('formation_brodeuse', False))
+            )
+            
+            self.send_response_json({"success": True, "message": "Utilisateur mis à jour !"})
+        except Exception as e:
+            print(f"Erreur update_user: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+            
+    def delete_user(self, user_id):
+        """Fonction métier pour supprimer un utilisateur de la base de données"""
+        try:
+            # 1. On supprime de la base de données SQL
+            supprime = db.delete_user(user_id) 
+            
+            if supprime:
+                # 2. NOUVEAU : On supprime aussi l'image du QR Code du disque dur !
+                qr.deleteQR(user_id)
+                
+                self.send_response_json({
+                    "success": True, 
+                    "message": "Utilisateur et QR Code supprimés avec succès."
+                })
+            else:
+                self.send_response_json({
+                    "success": False, 
+                    "error": "Utilisateur introuvable dans la base."
+                }, 404)
+                
+        except Exception as e:
+            print(f"Erreur delete_user: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
+    def export_csv(self):
+        """Génère un fichier CSV lisible par Excel avec l'historique du FabLab"""
+        import io
+        import csv
+        try:
+            # On récupère toutes les entrées (limite à 10000 pour ne pas saturer)
+            rows = db.get_all_entries(limit=10000)
+            
+            output = io.StringIO()
+            # On utilise le point-virgule comme séparateur pour Excel en français
+            writer = csv.writer(output, delimiter=';') 
+            
+            # 1. On écrit l'en-tête des colonnes
+            writer.writerow(['Date', 'Statut', 'Nom', 'Prenom', 'Type Projet', 'Zone', 'Commentaire'])
+            
+            # 2. On écrit toutes les lignes de la base de données
+            for row in rows:
+                writer.writerow(row)
+
+            csv_content = output.getvalue()
+            
+            # 3. On envoie au navigateur
+            self.send_response(200)
+            # utf-8-sig force Excel à lire correctement les accents (é, à, etc.)
+            self.send_header('Content-Type', 'text/csv; charset=utf-8-sig')
+            self.send_header('Content-Disposition', 'attachment; filename="Historique_FabLab.csv"')
+            self.end_headers()
+            
+            self.wfile.write(csv_content.encode('utf-8-sig'))
+            
+        except Exception as e:
+            print(f"Erreur Export CSV: {e}")
+            self.send_response_json({"error": str(e)}, 500)
 # ==========================================
 # DÉMARRAGE DU SERVEUR
 # ==========================================

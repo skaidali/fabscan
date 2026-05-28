@@ -27,6 +27,18 @@ def qr_exists(ID):
     file_path = data_dir / f"{ID}.png"
     return file_path.exists()
 
+def deleteQR(ID):
+    """Supprime le fichier image du QR code s'il existe"""
+    base_dir = Path(__file__).resolve().parent.parent 
+    data_dir = base_dir / "database/QRcode"
+    file_path = data_dir / f"{ID}.png"
+    
+    # On vérifie que le fichier existe avant d'essayer de le supprimer
+    if file_path.exists():
+        file_path.unlink() # commande Python pour supprimer un fichier
+        return True
+    return False
+
 
 if __name__ == "__main__" : 
     ID_test = generateID()

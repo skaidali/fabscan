@@ -180,7 +180,11 @@ def link_id_carte(id_user, id_carte):
     """Associer une carte RFID à un utilisateur"""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE UTILISATEURS SET id_carte = ? WHERE id = ?", (id_carte, id_user))
+    
+    # Si id_carte est vide, on le transforme en None (NULL en SQL)
+    valeur_carte = id_carte if id_carte and id_carte.strip() != "" else None
+    
+    cursor.execute("UPDATE UTILISATEURS SET id_carte = ? WHERE id = ?", (valeur_carte, id_user))
     conn.commit()
     conn.close()
 
@@ -290,20 +294,19 @@ def list_users(search="", statut="", page=1, page_size=50):
     params = []
 
     clean_search = (search or "").strip().lower()
-    clean_statut = (statut or "").strip().lower()
+    
+    # On garde le statut exact (sans le passer en minuscules) pour faire une recherche précise
+    clean_statut = (statut or "").strip()
 
     if clean_search:
         where_clauses.append("(LOWER(nom) LIKE ? OR LOWER(prenom) LIKE ? OR LOWER(email) LIKE ?)")
         like_value = f"%{clean_search}%"
         params.extend([like_value, like_value, like_value])
 
+    # NOUVELLE LOGIQUE DE FILTRE : Correspondance exacte
     if clean_statut and clean_statut != "all":
-        if clean_statut == "etudiants":
-            where_clauses.append("LOWER(statut) LIKE '%etudiant%'")
-        elif clean_statut == "personnel":
-            where_clauses.append("LOWER(statut) LIKE '%personnel%'")
-        elif clean_statut == "externes":
-            where_clauses.append("LOWER(statut) LIKE '%externe%'")
+        where_clauses.append("statut = ?")
+        params.append(clean_statut)
 
     where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
 
@@ -631,11 +634,13 @@ def to_excel():
     pass
 
 def get_user_by_scan_id(scan_id):
-    """Trouve un utilisateur via son ID ou sa carte RFID, et renvoie ses infos"""
+    """Trouve un utilisateur via son ID ou sa carte RFID, et renvoie TOUTES ses infos"""
     conn = get_connection()
     cursor = conn.cursor()
+    
+    # On demande les 3 colonnes de formation à la base
     cursor.execute("""
-        SELECT id, nom, prenom, statut, email, id_carte
+        SELECT id, nom, prenom, statut, email, id_carte, formation_3d, formation_laser, formation_brodeuse
         FROM UTILISATEURS
         WHERE id = ? OR id_carte = ?
     """, (scan_id, scan_id))
@@ -649,6 +654,10 @@ def get_user_by_scan_id(scan_id):
             "prenom": row[2],
             "statut": row[3],
             "email": row[4],
-            "has_rfid": bool(row[5])
+            "has_rfid": bool(row[5]),
+            "id_carte": row[5] or "",
+            "formation_3d": bool(row[6]),
+            "formation_laser": bool(row[7]),
+            "formation_brodeuse": bool(row[8])
         }
     return None
