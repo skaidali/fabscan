@@ -108,11 +108,13 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.send_response_json({"success": False, "error": "Fichier config.json introuvable"}, 404)
             
             elif route == "stats":
-                # On cherche si l'URL contient "?period=..." (par défaut, on met "semaine")
+                # On récupère la période et le statut choisis
                 periode_choisie = self.params.get('period', ['semaine'])[0]
+                statut_choisi = self.params.get('statut', ['all'])[0]
                 
-                # On envoie ce choix à la base de données
-                self.send_response_json(db.get_stats(periode_choisie))
+                # On envoie les choix à la base de données
+                self.send_response_json(db.get_stats(periode_choisie, statut_choisi))
+            
             elif route == "users":
                 self.send_users()
             elif route == "entries":

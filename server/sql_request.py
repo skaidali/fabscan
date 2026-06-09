@@ -384,73 +384,86 @@ def get_all_entries(limit=50):
     return rows
 
 
-def get_stats(periode="semaine"):
-    """Récupérer les statistiques générales filtrées par période"""
+def get_stats(periode="semaine", statut="all"):
+    """Récupère les statistiques générales filtrées par période et par profil"""
     import datetime
     conn = get_connection()
     cursor = conn.cursor()
 
-    # 1. Chiffres globaux fixes
-    cursor.execute("SELECT COUNT(*) FROM UTILISATEURS")
+    # Base de la requête : On croise les Entrées avec les Utilisateurs pour avoir le statut
+    base_join = "FROM ENTREE e JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
+    where_clauses = []
+    params = []
+
+    # Si on a sélectionné un profil spécifique
+    if statut and statut != "all":
+        where_clauses.append("u.statut = ?")
+        params.append(statut)
+
+    statut_filter = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+    and_statut_filter = f"AND {' AND '.join(where_clauses)}" if where_clauses else ""
+
+    # 1. Chiffres globaux
+    cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {statut_filter}", params)
     total_users = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM ENTREE")
+    cursor.execute(f"SELECT COUNT(*) {base_join} {statut_filter}", params)
     total_entries = cursor.fetchone()[0]
 
     now = datetime.datetime.now()
     today_str = now.strftime("%Y-%m-%d")
-    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date LIKE ?", (today_str + "%",))
+    
+    today_params = [today_str + "%"] + params
+    cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date LIKE ? {and_statut_filter}", today_params)
     today_entries = cursor.fetchone()[0]
 
     # 2. Logique de calcul selon la période demandée
     if periode == "jour":
-        # 24 dernières heures -> on groupe par heure
         start_date = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
-        group_by = "strftime('%Y-%m-%d %H:00', date)" 
+        group_by = "strftime('%Y-%m-%d %H:00', e.date)" 
     elif periode == "mois":
-        # 30 derniers jours -> on groupe par jour
         start_date = (now - datetime.timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
-        group_by = "strftime('%Y-%m-%d', date)"
+        group_by = "strftime('%Y-%m-%d', e.date)"
     elif periode == "annee":
-        # 365 derniers jours -> on groupe par mois
         start_date = (now - datetime.timedelta(days=365)).strftime("%Y-%m-%d %H:%M:%S")
-        group_by = "strftime('%Y-%m', date)"
+        group_by = "strftime('%Y-%m', e.date)"
     else:
-        # Par défaut : "semaine" (7 derniers jours) -> on groupe par jour
         start_date = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
-        group_by = "strftime('%Y-%m-%d', date)"
+        group_by = "strftime('%Y-%m-%d', e.date)"
 
-    # Nombre d'entrées sur la période choisie
-    cursor.execute("SELECT COUNT(*) FROM ENTREE WHERE date >= ?", (start_date,))
+    # Nombre d'entrées sur la période
+    period_params = [start_date] + params
+    cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter}", period_params)
     period_entries = cursor.fetchone()[0]
 
     # 3. Données pour le Graphique dynamique
     cursor.execute(f"""
         SELECT {group_by} as d, COUNT(*)
-        FROM ENTREE
-        WHERE date >= ?
+        {base_join}
+        WHERE e.date >= ? {and_statut_filter}
         GROUP BY d ORDER BY d
-    """, (start_date,))
+    """, period_params)
     chart_data = {row[0]: row[1] for row in cursor.fetchall()}
 
-    # 4. Répartition par Zone (filtrée sur la période pour plus de pertinence)
-    cursor.execute("""
-        SELECT zone_travail, COUNT(*)
-        FROM ENTREE
-        WHERE zone_travail IS NOT NULL AND zone_travail != '' AND date >= ?
-        GROUP BY zone_travail
-    """, (start_date,))
-    zones = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
+    # 4. NOUVEAU : Répartition par PROFIL (Statut)
+    cursor.execute(f"""
+        SELECT u.statut, COUNT(*)
+        {base_join}
+        WHERE e.date >= ? {and_statut_filter}
+        GROUP BY u.statut
+        ORDER BY COUNT(*) DESC
+    """, period_params)
+    profiles = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
 
-    # 5. Les 5 dernières entrées
-    cursor.execute("""
-        SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, e.zone_travail, e.type_projet
-        FROM ENTREE e
-        JOIN UTILISATEURS u ON e.id_utilisateur = u.id
+    # 5. Dernières entrées (augmenté à 20 résultats et incluant le statut)
+    cursor.execute(f"""
+        SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet
+        {base_join}
+        {statut_filter}
         ORDER BY e.date DESC
-        LIMIT 5
-    """)
-    recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}", "zone": r[3], "projet": r[4]} for r in cursor.fetchall()]
+        LIMIT 20
+    """, params)
+    recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}", "statut": r[3], "zone": r[4], "projet": r[5]} for r in cursor.fetchall()]
 
     conn.close()
     
@@ -458,9 +471,9 @@ def get_stats(periode="semaine"):
         "total_users": total_users,
         "total_entries": total_entries,
         "today_entries": today_entries,
-        "period_entries": period_entries, # La valeur dynamique
+        "period_entries": period_entries,
         "chart_data": chart_data,
-        "zones": zones,
+        "profiles": profiles,
         "recent_entries": recent
     }
 

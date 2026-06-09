@@ -6,6 +6,9 @@
         </div>
 
         <div class="flex-row">
+            <select id="filter-statut" class="form-control w-auto">
+                <option value="all">Tous les profils</option>
+                </select>
             <button class="btn btn-outline" id="export-btn"><i class="fa-solid fa-file-excel"></i> Exporter</button>
             <button class="btn btn-outline" id="refresh-btn"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
             <button class="btn btn-primary" id="toggle-range">Afficher: Semaine</button>
@@ -18,11 +21,11 @@
             <div id="today-count" class="val">—</div>
         </div>
         <div class="card kpi-box">
-            <div class="muted">Activité (7 jours)</div>
+            <div class="muted">Activité sur la période</div>
             <div id="week-count" class="val">—</div>
         </div>
         <div class="card kpi-box">
-            <div class="muted">Entrées totales</div>
+            <div class="muted">Entrées totales historiques</div>
             <div id="total-count" class="val">—</div>
         </div>
     </div>
@@ -43,18 +46,18 @@
         <div class="card">
             <div class="card-header">
                 <div>
-                    <strong>Utilisation par zone</strong>
-                    <div class="muted">Répartition par zone de travail</div>
+                    <strong>Visiteurs par profil</strong>
+                    <div class="muted">Répartition sur la période</div>
                 </div>
-                <div class="muted">Total: <span id="zone-total">—</span></div>
+                <div class="muted">Total: <span id="profile-total">—</span></div>
             </div>
-            <div id="zone-list"></div>
+            <div id="profile-list"></div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-header">
-            <strong>Dernières entrées</strong> 
+            <strong>Dernières entrées (Top 20)</strong> 
             <span class="muted" id="entries-note"></span>
         </div>
         <table id="entries-table" class="data-table">
@@ -62,6 +65,7 @@
                 <tr>
                     <th>Date</th>
                     <th>Nom</th>
+                    <th>Profil</th>
                     <th>Zone</th>
                     <th>Projet</th>
                 </tr>
