@@ -1,31 +1,75 @@
 <div class="container">
     <header class="page-header flex-between">
         <div>
-            <h1>Statistiques</h1>
-            <p class="muted">Agrégation de différentes statistiques sur l'utilisation du FabLab.</p>
+            <h1>Statistiques Détaillées</h1>
+            <p class="muted">Croisez les données pour analyser l'utilisation du FabLab.</p>
         </div>
-
         <div class="flex-row">
-            <select id="filter-statut" class="form-control w-auto">
-                <option value="all">Tous les profils</option>
-                </select>
-            <button class="btn btn-outline" id="export-btn"><i class="fa-solid fa-file-excel"></i> Exporter</button>
-            <button class="btn btn-outline" id="refresh-btn"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
-            <button class="btn btn-primary" id="toggle-range">Afficher: Semaine</button>
+            <button class="btn btn-outline" id="export-btn"><i class="fa-solid fa-file-excel"></i> Exporter Historique</button>
+            <button class="btn btn-primary" id="refresh-btn"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
         </div>
     </header>
 
+    <div class="card form-group" style="border-top: 4px solid var(--primary);">
+        <div class="flex-between" id="filter-header" style="cursor: pointer; padding-bottom: 0.5rem;">
+            <strong><i class="fa-solid fa-filter"></i> Filtres d'Analyse (Cliquer pour dérouler)</strong>
+            <i class="fa-solid fa-chevron-down" id="filter-chevron"></i>
+        </div>
+        
+        <div id="filter-body" style="display: none; margin-top: 1rem;">
+            <div class="grid-2">
+                <div class="highlight-box">
+                    <strong style="margin-bottom: 0.5rem; display: block;"><i class="fa-solid fa-door-open"></i> Liés à la visite</strong>
+                    <div class="form-group">
+                        <label>Période d'activité</label>
+                        <select id="filter-periode" class="form-control">
+                            <option value="jour">Aujourd'hui (24h)</option>
+                            <option value="semaine" selected>7 derniers jours</option>
+                            <option value="mois">30 derniers jours</option>
+                            <option value="annee">12 derniers mois</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Zone de travail utilisée</label>
+                        <select id="filter-zone" class="form-control"><option value="all">Toutes les zones</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Motif de la visite</label>
+                        <select id="filter-motif" class="form-control"><option value="all">Tous les motifs</option></select>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <strong style="margin-bottom: 0.5rem; display: block;"><i class="fa-solid fa-user"></i> Liés au profil utilisateur</strong>
+                    <div class="form-group">
+                        <label>Statut / Année d'études</label>
+                        <select id="filter-statut" class="form-control"><option value="all">Tous les profils</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Détenteur de la certification...</label>
+                        <select id="filter-certif" class="form-control"><option value="all">Toutes certifications</option></select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-row flex-end mt-1">
+                <button class="btn btn-outline" id="reset-filters-btn">Réinitialiser</button>
+                <button class="btn btn-primary" id="apply-filters-btn"><i class="fa-solid fa-check"></i> Appliquer les filtres</button>
+            </div>
+        </div>
+    </div>
+
     <div class="grid-3 form-group">
         <div class="card kpi-box">
-            <div class="muted">Nouveaux arrivants (aujourd'hui)</div>
-            <div id="today-count" class="val">—</div>
+            <div class="muted">Entrées aujourd'hui (Filtres inclus)</div>
+            <div id="today-count" class="val text-success">—</div>
         </div>
         <div class="card kpi-box">
-            <div class="muted">Activité sur la période</div>
-            <div id="week-count" class="val">—</div>
+            <div class="muted">Entrées sur la période</div>
+            <div id="week-count" class="val text-primary">—</div>
         </div>
         <div class="card kpi-box">
-            <div class="muted">Entrées totales historiques</div>
+            <div class="muted">Membres totaux correspondants</div>
             <div id="total-count" class="val">—</div>
         </div>
     </div>
@@ -34,10 +78,10 @@
         <div class="card">
             <div class="card-header">
                 <div>
-                    <strong>Activité</strong>
-                    <div class="muted">Nombre d'entrées par jour</div>
+                    <strong>Activité Temporelle</strong>
+                    <div class="muted">Nombre d'entrées filtrées par date</div>
                 </div>
-                <div class="muted">Période: <span id="range-label">7 derniers jours</span></div>
+                <div class="muted" id="range-label">7 derniers jours</div>
             </div>
             <div id="activity-chart"></div>
             <div id="activity-xlabels"></div>
@@ -46,10 +90,10 @@
         <div class="card">
             <div class="card-header">
                 <div>
-                    <strong>Visiteurs par profil</strong>
-                    <div class="muted">Répartition sur la période</div>
+                    <strong>Répartition par Profils</strong>
+                    <div class="muted">Visiteurs uniques sur la période</div>
                 </div>
-                <div class="muted">Total: <span id="profile-total">—</span></div>
+                <div class="muted">Total passages: <span id="profile-total">—</span></div>
             </div>
             <div id="profile-list"></div>
         </div>
@@ -57,8 +101,7 @@
 
     <div class="card">
         <div class="card-header">
-            <strong>Dernières entrées (Top 20)</strong> 
-            <span class="muted" id="entries-note"></span>
+            <strong>Dernières entrées filtrées (Top 20)</strong> 
         </div>
         <table id="entries-table" class="data-table">
             <thead>

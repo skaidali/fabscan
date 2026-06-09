@@ -404,40 +404,64 @@ def get_all_entries(limit=50):
     return rows
 
 
-def get_stats(periode="semaine", statut="all"):
-    """Récupère les statistiques générales filtrées par période et par profil"""
+def get_stats(periode="semaine", statut="all", certif="all", zone="all", motif="all"):
+    """Récupère les statistiques filtrées dynamiquement par profil, visite et période"""
     import datetime
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Base de la requête : On croise les Entrées avec les Utilisateurs pour avoir le statut
     base_join = "FROM ENTREE e JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
-    where_clauses = []
-    params = []
-
-    # Si on a sélectionné un profil spécifique
+    
+    # 1. Construction dynamique des requêtes SQL selon les filtres choisis
+    user_where = []
+    user_params = []
     if statut and statut != "all":
-        where_clauses.append("u.statut = ?")
-        params.append(statut)
+        user_where.append("u.statut = ?")
+        user_params.append(statut)
+    if certif and certif != "all":
+        # Le JSON ressemble à '["Impression 3D", "Laser"]', on cherche donc la chaîne exacte
+        user_where.append("u.certifications LIKE ?")
+        user_params.append(f'%"{certif}"%')
+        
+    entry_where = []
+    entry_params = []
+    if zone and zone != "all":
+        entry_where.append("e.zone_travail = ?")
+        entry_params.append(zone)
+    if motif and motif != "all":
+        entry_where.append("e.type_projet = ?")
+        entry_params.append(motif)
 
-    statut_filter = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
-    and_statut_filter = f"AND {' AND '.join(where_clauses)}" if where_clauses else ""
+    # Fusion des filtres
+    all_where = user_where + entry_where
+    all_params = user_params + entry_params
 
-    # 1. Chiffres globaux
-    cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {statut_filter}", params)
+    # Création des clauses WHERE intelligentes
+    statut_filter = f"WHERE {' AND '.join(all_where)}" if all_where else ""
+    and_statut_filter = f"AND {' AND '.join(all_where)}" if all_where else ""
+
+    # ==================================
+    # REQUÊTES
+    # ==================================
+    
+    # Total Utilisateurs (on n'applique que les filtres "Utilisateur" ici)
+    u_where_sql = f"WHERE {' AND '.join(user_where)}" if user_where else ""
+    cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {u_where_sql}", user_params)
     total_users = cursor.fetchone()[0]
 
-    cursor.execute(f"SELECT COUNT(*) {base_join} {statut_filter}", params)
+    # Total Entrées (Tout confondu)
+    cursor.execute(f"SELECT COUNT(*) {base_join} {statut_filter}", all_params)
     total_entries = cursor.fetchone()[0]
 
     now = datetime.datetime.now()
     today_str = now.strftime("%Y-%m-%d")
     
-    today_params = [today_str + "%"] + params
+    # Entrées du jour
+    today_params = [today_str + "%"] + all_params
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date LIKE ? {and_statut_filter}", today_params)
     today_entries = cursor.fetchone()[0]
 
-    # 2. Logique de calcul selon la période demandée
+    # Logique temporelle pour les graphiques
     if periode == "jour":
         start_date = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
         group_by = "strftime('%Y-%m-%d %H:00', e.date)" 
@@ -451,12 +475,12 @@ def get_stats(periode="semaine", statut="all"):
         start_date = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
         group_by = "strftime('%Y-%m-%d', e.date)"
 
-    # Nombre d'entrées sur la période
-    period_params = [start_date] + params
+    # Entrées sur la période dynamique
+    period_params = [start_date] + all_params
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter}", period_params)
     period_entries = cursor.fetchone()[0]
 
-    # 3. Données pour le Graphique dynamique
+    # Données pour le Graphique en barres
     cursor.execute(f"""
         SELECT {group_by} as d, COUNT(*)
         {base_join}
@@ -465,7 +489,7 @@ def get_stats(periode="semaine", statut="all"):
     """, period_params)
     chart_data = {row[0]: row[1] for row in cursor.fetchall()}
 
-    # 4. NOUVEAU : Répartition par PROFIL (Statut)
+    # Répartition par PROFIL (1A, 2A...)
     cursor.execute(f"""
         SELECT u.statut, COUNT(*)
         {base_join}
@@ -475,14 +499,14 @@ def get_stats(periode="semaine", statut="all"):
     """, period_params)
     profiles = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
 
-    # 5. Dernières entrées (augmenté à 20 résultats et incluant le statut)
+    # Dernières entrées détaillées (Filtres appliqués !)
     cursor.execute(f"""
         SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet
         {base_join}
         {statut_filter}
         ORDER BY e.date DESC
         LIMIT 20
-    """, params)
+    """, all_params)
     recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}", "statut": r[3], "zone": r[4], "projet": r[5]} for r in cursor.fetchall()]
 
     conn.close()

@@ -1,160 +1,174 @@
 function initStatsPage() {
-    // 1. Définition de nos 4 périodes possibles
-    var periodes = [
-        { id: 'jour', label: 'Afficher: Jour', subtitle: 'Activité (24h)', rangeLabel: '24 dernières heures' },
-        { id: 'semaine', label: 'Afficher: Semaine', subtitle: 'Activité (7 jours)', rangeLabel: '7 derniers jours' },
-        { id: 'mois', label: 'Afficher: Mois', subtitle: 'Activité (30 jours)', rangeLabel: '30 derniers jours' },
-        { id: 'annee', label: 'Afficher: Année', subtitle: 'Activité (12 mois)', rangeLabel: '12 derniers mois' }
-    ];
-    var indexPeriode = 1; 
+    
+    // 1. Définitions du texte pour les périodes
+    var labelsPeriode = {
+        'jour': '24 dernières heures',
+        'semaine': '7 derniers jours',
+        'mois': '30 derniers jours',
+        'annee': '12 derniers mois'
+    };
 
-    // 2. Récupération des éléments HTML
+    // 2. Éléments du DOM (Filtres)
+    var selPeriode = document.getElementById('filter-periode');
+    var selZone = document.getElementById('filter-zone');
+    var selMotif = document.getElementById('filter-motif');
+    var selStatut = document.getElementById('filter-statut');
+    var selCertif = document.getElementById('filter-certif');
+    
+    var filterHeader = document.getElementById('filter-header');
+    var filterBody = document.getElementById('filter-body');
+    var filterChevron = document.getElementById('filter-chevron');
+
+    // Éléments du DOM (Affichage)
     var btnActualiser = document.getElementById('refresh-btn');
-    var btnExport = document.getElementById('export-btn');
-    var btnToggle = document.getElementById('toggle-range');
-    var filtreStatut = document.getElementById('filter-statut'); // NOUVEAU
-
+    var btnAppliquer = document.getElementById('apply-filters-btn');
+    var btnReset = document.getElementById('reset-filters-btn');
+    
     var boiteAujourdhui = document.getElementById('today-count');
     var boitePeriode = document.getElementById('week-count'); 
     var boiteTotal = document.getElementById('total-count');
-    
-    var titreBoitePeriode = boitePeriode.previousElementSibling;
     var rangeLabel = document.getElementById('range-label');
 
     // ==========================================
-    // CHARGEMENT DE LA CONFIG (Pour le menu Profil)
+    // ACCORDÉON DES FILTRES
     // ==========================================
-    fetch('/api/config').then(res => res.json()).then(res => {
-        if (res.success && res.data.statuts) {
-            res.data.statuts.forEach(function(s) {
-                var option = document.createElement('option');
-                option.value = s;
-                option.textContent = s;
-                filtreStatut.appendChild(option);
-            });
+    filterHeader.addEventListener('click', function() {
+        if (filterBody.style.display === 'none') {
+            filterBody.style.display = 'block';
+            filterChevron.classList.remove('fa-chevron-down');
+            filterChevron.classList.add('fa-chevron-up');
+        } else {
+            filterBody.style.display = 'none';
+            filterChevron.classList.remove('fa-chevron-up');
+            filterChevron.classList.add('fa-chevron-down');
         }
     });
 
     // ==========================================
-    // FONCTION PRINCIPALE DE CHARGEMENT
+    // CHARGEMENT DE LA CONFIG (config.json)
+    // ==========================================
+    fetch('/api/config').then(res => res.json()).then(res => {
+        if (res.success) {
+            var conf = res.data;
+            conf.zones.forEach(z => selZone.innerHTML += `<option value="${z}">${z}</option>`);
+            conf.motifs.forEach(m => selMotif.innerHTML += `<option value="${m}">${m}</option>`);
+            conf.statuts.forEach(s => selStatut.innerHTML += `<option value="${s}">${s}</option>`);
+            conf.certifications.forEach(c => selCertif.innerHTML += `<option value="${c}">${c}</option>`);
+        }
+    });
+
+    // ==========================================
+    // MOTEUR DE RECHERCHE PRINCIPAL
     // ==========================================
     function chargerStatistiques() {
         btnActualiser.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
+        btnAppliquer.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
 
-        var periodeChoisie = periodes[indexPeriode].id;
-        // On construit l'URL avec les deux filtres !
-        var url = '/api/stats?period=' + periodeChoisie + '&statut=' + encodeURIComponent(filtreStatut.value);
+        // On construit l'URL avec TOUS les filtres !
+        var url = `/api/stats?period=${selPeriode.value}&statut=${encodeURIComponent(selStatut.value)}&certif=${encodeURIComponent(selCertif.value)}&zone=${encodeURIComponent(selZone.value)}&motif=${encodeURIComponent(selMotif.value)}`;
 
         fetch(url)
-        .then(function(res) { return res.json(); })
-        .then(function(donnees) {
-            // 1. Mise à jour des KPI en haut
+        .then(res => res.json())
+        .then(donnees => {
+            // 1. KPI
             boiteAujourdhui.textContent = donnees.today_entries;
             boitePeriode.textContent = donnees.period_entries;
-            boiteTotal.textContent = donnees.total_entries;
+            boiteTotal.textContent = donnees.total_users; // Affiche nb d'users inscrits correspondants !
+            rangeLabel.textContent = labelsPeriode[selPeriode.value];
 
-            // 2. Mise à jour des textes
-            btnToggle.textContent = periodes[indexPeriode].label;
-            titreBoitePeriode.textContent = periodes[indexPeriode].subtitle;
-            rangeLabel.textContent = periodes[indexPeriode].rangeLabel;
-
-            // 3. Dessin du Graphique
+            // 2. Graphique
             dessinerGraphique(donnees.chart_data);
 
-            // 4. Liste par profil 
+            // 3. Répartition des profils
             var listeProfils = document.getElementById('profile-list');
             listeProfils.innerHTML = "";
-            var totalProfils = 0;
+            var totalPassages = 0;
             
-            if (donnees.profiles && donnees.profiles.length > 0) {
-                donnees.profiles.forEach(function(p) {
-                    var div = document.createElement('div');
-                    div.className = "flex-between mt-1";
-                    div.innerHTML = "<span>" + p.name + "</span><strong>" + p.count + "</strong>";
-                    listeProfils.appendChild(div);
-                    totalProfils += p.count;
+            if (donnees.profiles.length > 0) {
+                donnees.profiles.forEach(p => {
+                    listeProfils.innerHTML += `<div class="flex-between mt-1"><span>${p.name}</span><strong>${p.count}</strong></div>`;
+                    totalPassages += p.count;
                 });
-                document.getElementById('profile-total').textContent = totalProfils;
+                document.getElementById('profile-total').textContent = totalPassages;
             } else {
                 listeProfils.innerHTML = "<p class='muted'>Aucune donnée.</p>";
                 document.getElementById('profile-total').textContent = "0";
             }
 
-            // 5. Tableau des entrées mis à jour
+            // 4. Tableau d'historique en bas
             var corpsTableau = document.querySelector('#entries-table tbody');
             corpsTableau.innerHTML = "";
 
-            if (donnees.recent_entries && donnees.recent_entries.length > 0) {
-                donnees.recent_entries.forEach(function(entree) {
-                    var ligne = document.createElement('tr');
+            if (donnees.recent_entries.length > 0) {
+                donnees.recent_entries.forEach(entree => {
+                    var dateS = entree.date.split(" ")[0];
+                    var heureS = entree.date.split(" ")[1] ? entree.date.split(" ")[1].substring(0, 5) : "";
                     
-                    var dateSeule = entree.date.split(" ")[0];
-                    var heureSeule = entree.date.split(" ")[1] ? entree.date.split(" ")[1].substring(0, 5) : "";
-                    
-                    ligne.innerHTML = 
-                        "<td><strong>" + dateSeule + "</strong> <span class='muted'>" + heureSeule + "</span></td>" +
-                        "<td>" + entree.nom + "</td>" +
-                        "<td><span class='pill'>" + entree.statut + "</span></td>" +
-                        "<td>" + (entree.zone || "-") + "</td>" +
-                        "<td>" + (entree.projet || "-") + "</td>";
-                    corpsTableau.appendChild(ligne);
+                    corpsTableau.innerHTML += `<tr>
+                        <td><strong>${dateS}</strong> <span class="muted">${heureS}</span></td>
+                        <td class="font-bold">${entree.nom}</td>
+                        <td><span class="pill">${entree.statut}</span></td>
+                        <td>${entree.zone || "-"}</td>
+                        <td>${entree.projet || "-"}</td>
+                    </tr>`;
                 });
             } else {
-                corpsTableau.innerHTML = "<tr><td colspan='5' class='text-center muted py-2'>Aucune entrée correspondante sur cette période.</td></tr>";
+                corpsTableau.innerHTML = "<tr><td colspan='5' class='text-center muted py-2'>Aucune entrée correspondante trouvée.</td></tr>";
             }
 
             btnActualiser.innerHTML = "<i class='fa-solid fa-rotate-right'></i> Actualiser";
+            btnAppliquer.innerHTML = "<i class='fa-solid fa-check'></i> Appliquer les filtres";
+            
+            // On replie le menu après la recherche pour gagner de la place
+            filterBody.style.display = 'none';
+            filterChevron.classList.remove('fa-chevron-up');
+            filterChevron.classList.add('fa-chevron-down');
         });
     }
 
-    // Le dessin du graphique reste inchangé
     function dessinerGraphique(donneesGraphique) {
-        var conteneurGraphique = document.getElementById('activity-chart');
-        var conteneurLabels = document.getElementById('activity-xlabels');
-        
-        conteneurGraphique.innerHTML = "";
-        conteneurLabels.innerHTML = "";
-
+        var conteneur = document.getElementById('activity-chart');
+        conteneur.innerHTML = "";
         var maxValeur = 1;
+        
         for (var date in donneesGraphique) {
             if (donneesGraphique[date] > maxValeur) maxValeur = donneesGraphique[date];
         }
 
         for (var date in donneesGraphique) {
-            var valeur = donneesGraphique[date];
-            var pourcentageHauteur = (valeur / maxValeur) * 100;
-
+            var pct = (donneesGraphique[date] / maxValeur) * 100;
             var barre = document.createElement('div');
             barre.className = "chart-bar";
-            barre.style.height = Math.max(pourcentageHauteur, 15) + "%"; 
-            barre.title = date + " : " + valeur + " entrées";
-            barre.textContent = valeur;
-            conteneurGraphique.appendChild(barre);
+            barre.style.height = Math.max(pct, 15) + "%"; 
+            barre.title = date + " : " + donneesGraphique[date] + " entrées";
+            barre.textContent = donneesGraphique[date];
+            conteneur.appendChild(barre);
         }
 
         if (Object.keys(donneesGraphique).length === 0) {
-            conteneurGraphique.innerHTML = "<p class='muted'>Aucune donnée sur cette période.</p>";
+            conteneur.innerHTML = "<p class='muted'>Aucune donnée sur cette période.</p>";
         }
     }
 
     // ==========================================
-    // ACTIONS DES BOUTONS ET FILTRES
+    // ACTIONS BOUTONS
     // ==========================================
+    btnAppliquer.addEventListener('click', chargerStatistiques);
     btnActualiser.addEventListener('click', chargerStatistiques);
-    filtreStatut.addEventListener('change', chargerStatistiques); // Recharge auto si on change le profil
-
-    btnToggle.addEventListener('click', function() {
-        indexPeriode++;
-        if (indexPeriode >= periodes.length) {
-            indexPeriode = 0;
-        }
+    
+    btnReset.addEventListener('click', function() {
+        selPeriode.value = "semaine";
+        selZone.value = "all";
+        selMotif.value = "all";
+        selStatut.value = "all";
+        selCertif.value = "all";
         chargerStatistiques();
     });
 
-    btnExport.addEventListener('click', function() {
+    document.getElementById('export-btn').addEventListener('click', function() {
         window.location.href = '/api/export_csv';
     });
 
-    // Chargement initial
+    // On lance la première recherche par défaut !
     chargerStatistiques();
 }
