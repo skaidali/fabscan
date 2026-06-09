@@ -12,17 +12,10 @@
                 <label for="statut">Année d'études / Statut *</label>
                 <select id="statut" name="statut" class="form-control" required>
                     <option value="" disabled selected>Sélectionnez une option</option>
-                    <option value="1A">1A</option>
-                    <option value="2A">2A</option>
-                    <option value="3A">3A</option>
-                    <option value="Master">Master</option>
-                    <option value="Alternant·e">Alternant·e</option>
-                    <option value="Doctorant·e">Doctorant·e</option>
-                    <option value="Enseignant·e/Chercheur·se">Enseignant·e/Chercheur·se</option>
-                    <option value="Personnel">Personnel</option>
-                    <option value="Extérieur">Extérieur</option>
-                </select>
+                    </select>
             </div>
+
+   
 
             <div class="grid-2 form-group">
                 <div>
@@ -42,19 +35,8 @@
 
             <div class="form-group">
                 <label>Motif de la visite *</label>
-                <div class="pill-group" role="radiogroup" aria-label="Motif de la visite">
-                    <input type="radio" id="motif_etudes" name="motif" value="Projet d'Études" required>
-                    <label class="pill" for="motif_etudes">Projet d'Études</label>
-
-                    <input type="radio" id="motif_perso" name="motif" value="Projet Personnel">
-                    <label class="pill" for="motif_perso">Projet Personnel</label>
-
-                    <input type="radio" id="motif_formation" name="motif" value="Visite">
-                    <label class="pill" for="motif_formation">Visite</label>
-
-                    <input type="radio" id="motif_autre" name="motif" value="Autre">
-                    <label class="pill" for="motif_autre">Autre</label>
-                </div>
+                <div id="motif-container" class="pill-group" role="radiogroup" aria-label="Motif de la visite">
+                    </div>
             </div>
 
             <div class="form-group highlight-box flex-between">

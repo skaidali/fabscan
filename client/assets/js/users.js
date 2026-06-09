@@ -13,6 +13,45 @@ function initUsersPage() {
 
     var pagination = { pageActuelle: 1, utilisateursParPage: 12 };
 
+    // ==========================================
+    // 0. CHARGEMENT DE LA CONFIGURATION (JSON)
+    // ==========================================
+    fetch('/api/config')
+        .then(function(res) { return res.json(); })
+        .then(function(resultat) {
+            if (resultat.success) {
+                var config = resultat.data;
+                var editStatut = document.getElementById('edit-statut');
+                var certifsContainer = document.getElementById('certifications-container');
+                
+                config.statuts.forEach(function(s) {
+                    // 1. Ajout dans le filtre de recherche
+                    var optRecherche = document.createElement('option');
+                    optRecherche.value = s;
+                    optRecherche.textContent = s;
+                    filtreStatut.appendChild(optRecherche);
+
+                    // 2. Ajout dans le panneau de modification
+                    var optEdition = document.createElement('option');
+                    optEdition.value = s;
+                    optEdition.textContent = s;
+                    editStatut.appendChild(optEdition);
+                });
+                // NOUVEAU : Création des cases à cocher des certifications (100% Robuste)
+                if (certifsContainer && config.certifications) {
+                    certifsContainer.innerHTML = "";
+                    config.certifications.forEach(function(c, index) {
+                        var div = document.createElement('div');
+                        div.className = "mt-1 flex-row";
+                        // L'attribut value est essentiel ici pour faire le lien avec la base de données !
+                        div.innerHTML = '<input type="checkbox" id="certif-' + index + '" class="auto-mode-checkbox certif-checkbox" value="' + c + '">' +
+                                        '<label for="certif-' + index + '">' + c + '</label>';
+                        certifsContainer.appendChild(div);
+                    });
+                }
+            }
+        });
+
     if (!corpsDuTableau) return;
 
     // ==========================================
@@ -67,17 +106,28 @@ function initUsersPage() {
                     document.getElementById('edit-nom').value = u.nom;
                     document.getElementById('edit-email').value = u.email;
                     document.getElementById('edit-statut').value = u.statut;
-
+                    
                     // On remplit le RFID
                     document.getElementById('edit-rfid-id').value = u.id_carte;
                     document.getElementById('edit-rfid-display').textContent = u.id_carte || "Aucune";
                     document.getElementById('edit-rfid-btn').textContent = "Modifier la carte";
-
-                    // On coche les certifications
-                    document.getElementById('certif-3d').checked = u.formation_3d;
-                    document.getElementById('certif-laser').checked = u.formation_laser;
-                    document.getElementById('certif-brodeuse').checked = u.formation_brodeuse;
                     
+                    // 1. On décoche toutes les cases par précaution
+                    var toutesLesCases = document.querySelectorAll('.certif-checkbox');
+                    toutesLesCases.forEach(function(caseAcocher) {
+                        caseAcocher.checked = false;
+                    });
+                    
+                    // 2. On coche uniquement celles que l'utilisateur possède
+                    if (u.certifications) {
+                        toutesLesCases.forEach(function(caseAcocher) {
+                            // On vérifie si la valeur de la case ("Impression 3D") est dans la liste de l'étudiant
+                            if (u.certifications.includes(caseAcocher.value)) {
+                                caseAcocher.checked = true;
+                            }
+                        });
+                    }
+
                     msgBox.innerHTML = "";
                 }
             });
@@ -93,7 +143,14 @@ function initUsersPage() {
     // ==========================================
     formEdit.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
+        // On récolte toutes les cases cochées
+        var certifsCochees = [];
+        document.querySelectorAll('.certif-checkbox:checked').forEach(function(cb) {
+            certifsCochees.push(cb.value);
+        });
+
+
         var donneesAEnvoyer = {
             id: document.getElementById('edit-user-id').value,
             prenom: document.getElementById('edit-prenom').value,
@@ -101,9 +158,7 @@ function initUsersPage() {
             email: document.getElementById('edit-email').value,
             statut: document.getElementById('edit-statut').value,
             id_carte: document.getElementById('edit-rfid-id').value,
-            formation_3d: document.getElementById('certif-3d').checked,
-            formation_laser: document.getElementById('certif-laser').checked,
-            formation_brodeuse: document.getElementById('certif-brodeuse').checked
+            certifications: certifsCochees
         };
 
         fetch('/api/update_user', {

@@ -1,7 +1,7 @@
 // ./js/scan.js
 
 function initScanPage() {
-    console.log("Page Scanner chargée !");
+    console.log("Page Scanner chargée");
 
     // Éléments HTML
     var form = document.getElementById('entry-form');
@@ -18,12 +18,48 @@ function initScanPage() {
     var panelStatus = document.getElementById('panel-status');
     var panelEmail = document.getElementById('panel-email');
     var panelRfid = document.getElementById('panel-rfid');
+    var listeCertificationsConfig = [];
 
     // Chronomètre pour le scan
     var chronometreScan = null;
     
+    // ==========================================
+    // 0. CHARGEMENT DE LA CONFIGURATION (Fichier JSON)
+    // ==========================================
+    fetch('/api/config')
+        .then(function(res) { return res.json(); })
+        .then(function(resultat) {
+            if (resultat.success) {
+                var config = resultat.data;
+                var selectMotif = document.getElementById('motif');
+                var selectZone = document.getElementById('zone');
+                listeCertificationsConfig = config.certifications || [];
+
+                // Remplissage des Motifs
+                selectMotif.innerHTML = "";
+                config.motifs.forEach(function(m) {
+                    var option = document.createElement('option');
+                    option.value = m;
+                    option.textContent = m;
+                    selectMotif.appendChild(option);
+                });
+
+                // Remplissage des Zones
+                selectZone.innerHTML = "";
+                config.zones.forEach(function(z) {
+                    var option = document.createElement('option');
+                    option.value = z;
+                    option.textContent = z;
+                    selectZone.appendChild(option);
+                });
+            } else {
+                console.error("Impossible de charger la configuration");
+            }
+        });
+
+
 	// ==========================================
-    // 0. GESTION VISUELLE DU MODE AUTOMATIQUE
+    // 1. GESTION VISUELLE DU MODE AUTOMATIQUE
     // ==========================================
     autoModeToggle.addEventListener('change', function() {
         var champCommentaire = document.getElementById('commentaire');
@@ -58,7 +94,7 @@ function initScanPage() {
     });
 
     // ==========================================
-    // 1. AFFICHAGE DES INFOS UTILISATEUR
+    // 2. AFFICHAGE DES INFOS UTILISATEUR
     // ==========================================
     function afficherProfil(user) {
         userIdInput.value = user.id;
@@ -72,12 +108,24 @@ function initScanPage() {
         } else {
             panelRfid.innerHTML = "<span style='color:var(--danger);'><i class='fa-solid fa-xmark'></i> Non</span>";
         }
-         var valid = "<span style='color:var(--success);'><i class='fa-solid fa-check'></i></span>";
+        var valid = "<span style='color:var(--success);'><i class='fa-solid fa-check'></i></span>";
         var invalid = "<span style='color:var(--danger);'><i class='fa-solid fa-xmark'></i></span>";
         
-        document.getElementById('panel-form-3d').innerHTML = user.formation_3d ? valid : invalid;
-        document.getElementById('panel-form-laser').innerHTML = user.formation_laser ? valid : invalid;
-        document.getElementById('panel-form-brodeuse').innerHTML = user.formation_brodeuse ? valid : invalid;
+        var panelCertifList = document.getElementById('panel-certifications-list');
+        panelCertifList.innerHTML = "";
+        
+        // On génère la liste en fonction de ce qui existe dans la config
+        listeCertificationsConfig.forEach(function(certifName) {
+            var aLeDroit = user.certifications && user.certifications.includes(certifName);
+            var icone = aLeDroit ? valid : invalid;
+            
+            var div = document.createElement('div');
+            div.className = "flex-between";
+            // On affiche le nom de la machine et l'icône V ou X
+            div.innerHTML = `<span><i class="fa-solid fa-certificate"></i> ${certifName}</span>
+                             <strong>${icone}</strong>`;
+            panelCertifList.appendChild(div);
+        });
         
         // On change la couleur de la bordure du haut pour faire joli
         panelCard.style.borderTopColor = "var(--primary)";
@@ -88,7 +136,7 @@ function initScanPage() {
     }
 
     // ==========================================
-    // 2. SOUMISSION DE L'ENTRÉE (Manuel ou Auto)
+    // 3. SOUMISSION DE L'ENTRÉE (Manuel ou Auto)
     // ==========================================
     function enregistrerEntree(motif, zone, commentaire) {
         var id = userIdInput.value;
@@ -137,7 +185,7 @@ function initScanPage() {
 
 
     // ==========================================
-    // 3. ÉCOUTE PERMANENTE DU LECTEUR RFID/QR
+    // 4. ÉCOUTE PERMANENTE DU LECTEUR RFID/QR
     // ==========================================
     function verifierDernierScan() {
         // Si on a changé de page, on coupe l'écoute (Kill Switch)
@@ -179,14 +227,14 @@ function initScanPage() {
     chronometreScan = setInterval(verifierDernierScan, 1000);
 
     // ==========================================
-    // 4. RECHERCHE MANUELLE (Sans badge)
+    // 5. RECHERCHE MANUELLE (Sans badge)
     // ==========================================
     // Quand on tape dans la barre de recherche
     manualSearch.addEventListener('input', function(e) {
         var texte = e.target.value;
         
-        // On demande au serveur uniquement si on a tapé au moins 3 lettres
-        if (texte.length >= 3) {
+        // On demande au serveur uniquement si on a tapé au moins 2 lettres
+        if (texte.length >= 2) {
             fetch('/api/search_users?q=' + encodeURIComponent(texte))
             .then(function(res) { return res.json(); })
             .then(function(data) {

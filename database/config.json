@@ -1,0 +1,35 @@
+{
+  "statuts": [
+    "1A", "2A", "3A", "Alternant·e", "Doctorant·e", 
+    "Enseignant·e/Chercheur·se", "Extérieur", "Master", "Personnel"
+  ],
+  "motifs": [
+    "Projet d'Études", "Projet Personnel", "Visite", "Autre"
+  ],
+  "zones": [
+    "Impression 3D", "Découpe Laser", "Électronique", 
+    "Broderie / Couture", "Outils manuels", "Coworking"
+  ],
+  "departements": [
+    "Génie Mécanique", "Informatique", "Génie Électrique"
+  ],
+  "certifications": [
+    "Impression 3D",
+    "Découpe Laser",
+    "Brodeuse Numérique"
+  ],
+  "paiements": [
+    "TPE", "Refacturation Dpt", "Rachat matériel", "Facture", "Opération", "Pris en charge par DF"
+  ],
+  "materiaux": [
+    {"nom": "PLA Ultimaker", "unite": "g", "prix": 0.05},
+    {"nom": "PLA Prusa", "unite": "g", "prix": 0.02},
+    {"nom": "ABS Ultimaker", "unite": "g", "prix": 0.06},
+    {"nom": "TPU 95A Ultimaker", "unite": "g", "prix": 0.10},
+    {"nom": "Résine classique", "unite": "ml", "prix": 0.10},
+    {"nom": "Medium 3mm", "unite": "plaque·s", "prix": 5.10},
+    {"nom": "PMMA transparent 3mm", "unite": "plaque·s", "prix": 18.57},
+    {"nom": "Brodeuse CNC", "unite": "minute", "prix": 0.15},
+    {"nom": "Fraiseuse CNC", "unite": "heure", "prix": 5.00}
+  ]
+}

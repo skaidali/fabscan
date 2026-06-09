@@ -7,12 +7,55 @@ function initRegistrationPage() {
     var champNom = document.getElementById('nom');
     var champEmail = document.getElementById('email');
     
-    // NOUVEAU : On récupère le menu déroulant
+    // On récupère le menu déroulant
     var champStatut = document.getElementById('statut'); 
     
     var boutonRfid = document.getElementById('rfid-associate-btn');
     var champRfidCache = document.getElementById('rfid_card_id');
     var boiteMessage = document.getElementById('registration-message');
+
+    // ==========================================
+    // 1.1 CHARGEMENT DE LA CONFIGURATION (JSON)
+    // ==========================================
+    fetch('/api/config')
+        .then(function(res) { return res.json(); })
+        .then(function(resultat) {
+            if (resultat.success) {
+                var config = resultat.data;
+                
+                // A. Remplissage du menu déroulant des Statuts
+                config.statuts.forEach(function(s) {
+                    var option = document.createElement('option');
+                    option.value = s;
+                    option.textContent = s;
+                    champStatut.appendChild(option);
+                });
+
+                // B. Remplissage des boutons radio des Motifs
+                var containerMotif = document.getElementById('motif-container');
+                if (containerMotif) {
+                    containerMotif.innerHTML = "";
+                    config.motifs.forEach(function(m, index) {
+                        // Création de l'input caché (le vrai bouton radio)
+                        var input = document.createElement('input');
+                        input.type = "radio";
+                        input.id = "motif_" + index;
+                        input.name = "motif";
+                        input.value = m;
+                        if (index === 0) input.required = true; // Rend le 1er choix obligatoire
+
+                        // Création du label visible (la petite bulle "pill")
+                        var label = document.createElement('label');
+                        label.className = "pill";
+                        label.setAttribute("for", "motif_" + index);
+                        label.textContent = m;
+
+                        containerMotif.appendChild(input);
+                        containerMotif.appendChild(label);
+                    });
+                }
+            }
+        });
 
     // Sécurité : On s'arrête là si la page est mal chargée
     if (!formulaire || !champPrenom || !champNom) {

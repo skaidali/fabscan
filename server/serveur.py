@@ -96,6 +96,17 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                     return
                 else:
                     self.send_response_json({"error": "QR Code introuvable"}, 404)
+
+            elif route == "config":
+                # Route pour distribuer les listes déroulantes
+                config_path = self.root / "database" / "config.json"
+                if config_path.exists():
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        config_data = json.load(f)
+                    self.send_response_json({"success": True, "data": config_data})
+                else:
+                    self.send_response_json({"success": False, "error": "Fichier config.json introuvable"}, 404)
+            
             elif route == "stats":
                 # On cherche si l'URL contient "?period=..." (par défaut, on met "semaine")
                 periode_choisie = self.params.get('period', ['semaine'])[0]
@@ -297,13 +308,9 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             if 'id_carte' in data:
                 db.link_id_carte(user_id, data.get('id_carte'))
                 
-            # 3. Mise à jour des certifications
-            db.add_formation(
-                user_id, 
-                bool(data.get('formation_3d', False)), 
-                bool(data.get('formation_laser', False)), 
-                bool(data.get('formation_brodeuse', False))
-            )
+            # 3. Mise à jour des certifications DYNAMIQUES
+            if 'certifications' in data:
+                db.update_certifications(user_id, data.get('certifications'))
             
             self.send_response_json({"success": True, "message": "Utilisateur mis à jour !"})
         except Exception as e:
@@ -346,12 +353,25 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             # On utilise le point-virgule comme séparateur pour Excel en français
             writer = csv.writer(output, delimiter=';') 
             
-            # 1. On écrit l'en-tête des colonnes
-            writer.writerow(['Date', 'Statut', 'Nom', 'Prenom', 'Type Projet', 'Zone', 'Commentaire'])
+            # 1. On écrit en-tête des colonnes (Date et Heure séparées)
+            writer.writerow(['Date', 'Heure', 'Statut', 'Nom', 'Prenom', 'Type Projet', 'Zone', 'Commentaire'])
             
             # 2. On écrit toutes les lignes de la base de données
             for row in rows:
-                writer.writerow(row)
+                date_complete = str(row[0]) if row[0] else ""
+                
+                # On sépare "AAAA-MM-JJ" et "HH:MM:SS" grâce à l'espace
+                if " " in date_complete:
+                    date_seule, heure_seule = date_complete.split(" ", 1)
+                else:
+                    date_seule = date_complete
+                    heure_seule = ""
+                
+                # On fabrique la nouvelle ligne avec les 2 nouvelles colonnes
+                # row[1:] permet de récupérer tout le reste (Statut, Nom, etc.)
+                nouvelle_ligne = [date_seule, heure_seule] + list(row[1:])
+                
+                writer.writerow(nouvelle_ligne)
 
             csv_content = output.getvalue()
             
@@ -363,10 +383,12 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             
             self.wfile.write(csv_content.encode('utf-8-sig'))
-            
+    
         except Exception as e:
             print(f"Erreur Export CSV: {e}")
             self.send_response_json({"error": str(e)}, 500)
+
+            
 # ==========================================
 # DÉMARRAGE DU SERVEUR
 # ==========================================

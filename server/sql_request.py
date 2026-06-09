@@ -34,17 +34,47 @@ def _migrate_legacy_users_table(cursor):
         ("formation_laser",   "INTEGER DEFAULT 0"),
         ("formation_brodeuse","INTEGER DEFAULT 0"),
         ("montant",           "REAL DEFAULT 0.0"),
+        ("certifications",    "TEXT DEFAULT '[]'"),
     ]
 
     for col_name, col_def in migrations:
         if col_name not in existing_cols:
             cursor.execute(f"ALTER TABLE UTILISATEURS ADD COLUMN {col_name} {col_def}")
 
-    # Index unique sur id_carte (exclut les NULL pour autoriser plusieurs utilisateurs sans carte)
+    # Index unique sur id_carte
     cursor.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS idx_utilisateurs_id_carte
         ON UTILISATEURS(id_carte) WHERE id_carte IS NOT NULL
     """)
+
+    # =========================================================
+    # SAUVETAGE DES ANCIENNES DONNÉES (Migration vers JSON)
+    # =========================================================
+    import json
+    # On récupère tous les utilisateurs avec leurs anciennes colonnes
+    cursor.execute("SELECT id, formation_3d, formation_laser, formation_brodeuse, certifications FROM UTILISATEURS")
+    utilisateurs = cursor.fetchall()
+    
+    for u in utilisateurs:
+        uid = u[0]
+        f_3d = u[1]
+        f_laser = u[2]
+        f_brod = u[3]
+        certifs_actuelles = u[4]
+        
+        # Si le nouveau tiroir "certifications" est vide ou vierge ('[]')
+        if not certifs_actuelles or certifs_actuelles == '[]':
+            anciennes_certifs = []
+            
+            # On recrée la liste en lisant les anciennes cases
+            if f_3d: anciennes_certifs.append("Impression 3D")
+            if f_laser: anciennes_certifs.append("Découpe Laser")
+            if f_brod: anciennes_certifs.append("Brodeuse Numérique")
+            
+            # Si on a trouvé des anciennes certifs, on les injecte dans le nouveau tiroir !
+            if anciennes_certifs:
+                nouveau_json = json.dumps(anciennes_certifs)
+                cursor.execute("UPDATE UTILISATEURS SET certifications = ? WHERE id = ?", (nouveau_json, uid))
 
 
 def init_database():
@@ -80,7 +110,6 @@ def init_database():
         )
     """)
 
-    # Machines table: id, name, type, slots (JSON array of times)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS MACHINES (
             id TEXT PRIMARY KEY,
@@ -88,7 +117,8 @@ def init_database():
             type TEXT
         )
     """)
-
+    
+    # Migration des utilisateurs (pour les certifications dynamiques)
     _migrate_legacy_users_table(cursor)
 
     conn.commit()
@@ -633,14 +663,25 @@ def to_excel():
     """Placeholder export Excel"""
     pass
 
+def update_certifications(id_user, certifications_list):
+    """Met à jour la liste des certifications d'un utilisateur"""
+    import json
+    conn = get_connection()
+    cursor = conn.cursor()
+    # Transforme la liste Python en texte JSON
+    certifs_json = json.dumps(certifications_list)
+    cursor.execute("UPDATE UTILISATEURS SET certifications = ? WHERE id = ?", (certifs_json, id_user))
+    conn.commit()
+    conn.close()
+
 def get_user_by_scan_id(scan_id):
-    """Trouve un utilisateur via son ID ou sa carte RFID, et renvoie TOUTES ses infos"""
+    """Trouve un utilisateur et renvoie ses infos avec ses certifications dynamiques"""
     conn = get_connection()
     cursor = conn.cursor()
     
-    # On demande les 3 colonnes de formation à la base
+    # On ajoute "certifications" au SELECT
     cursor.execute("""
-        SELECT id, nom, prenom, statut, email, id_carte, formation_3d, formation_laser, formation_brodeuse
+        SELECT id, nom, prenom, statut, email, id_carte, certifications
         FROM UTILISATEURS
         WHERE id = ? OR id_carte = ?
     """, (scan_id, scan_id))
@@ -648,6 +689,10 @@ def get_user_by_scan_id(scan_id):
     conn.close()
     
     if row:
+        import json
+        # Si la colonne est vide, on renvoie une liste vide []
+        certifs = json.loads(row[6]) if row[6] else []
+        
         return {
             "id": row[0],
             "nom": row[1],
@@ -656,8 +701,7 @@ def get_user_by_scan_id(scan_id):
             "email": row[4],
             "has_rfid": bool(row[5]),
             "id_carte": row[5] or "",
-            "formation_3d": bool(row[6]),
-            "formation_laser": bool(row[7]),
-            "formation_brodeuse": bool(row[8])
+            "certifications": certifs
         }
     return None
+

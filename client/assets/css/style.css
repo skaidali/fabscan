@@ -273,6 +273,73 @@ body {
 }
 
 /* ==========================================
+   UTILITAIRES SUPPLÉMENTAIRES
+   ========================================== */
+.d-none { display: none !important; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-sm { font-size: 0.8rem; }
+.text-lg { font-size: 1.2rem; }
+.font-bold { font-weight: bold; }
+.mb-1 { margin-bottom: 1rem; }
+.my-1-5 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+
+/* Nouveaux boutons de couleurs */
+.btn-success { background-color: var(--success); color: white; }
+.btn-success:hover { background-color: #218838; }
+
+.btn-outline-success { border-color: var(--success); color: var(--success); }
+.btn-outline-success:hover { background-color: var(--gray-light); }
+
+.btn-outline-danger { border-color: var(--danger); color: var(--danger); }
+.btn-outline-danger:hover { background-color: var(--gray-light); }
+
+/* ==========================================
+   ONGLETS (TABS) - COMPTABILITÉ
+   ========================================== */
+.bills-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--gray-light);
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: var(--gray);
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.tab-btn:hover {
+    background: var(--light);
+    color: var(--dark);
+}
+
+.tab-btn.active {
+    background: var(--success);
+    color: white;
+}
+
+/* Utilitaires pour masquer/afficher le contenu des onglets */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+
+/* ==========================================
    PAGE SCANNER 
    ========================================== */
 .auto-mode-label {
