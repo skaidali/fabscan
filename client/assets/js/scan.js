@@ -58,35 +58,36 @@ function initScanPage() {
         });
 
 
-	// ==========================================
+    // ==========================================
     // 1. GESTION VISUELLE DU MODE AUTOMATIQUE
     // ==========================================
     autoModeToggle.addEventListener('change', function() {
         var champCommentaire = document.getElementById('commentaire');
+        var champMotif = document.getElementById('motif'); // NOUVEAU
+        var champZone = document.getElementById('zone');   // NOUVEAU
         
         if (this.checked) {
             // MODE AUTO ACTIVÉ
-            
-            // On grise l'opacité de tout le formulaire
             form.style.opacity = "0.5";
             
-            // On désactive les champs inutiles en mode auto
+            // On désactive TOUS les champs manuels
             manualSearch.disabled = true;
             champCommentaire.disabled = true;
+            champMotif.disabled = true; // NOUVEAU
+            champZone.disabled = true;  // NOUVEAU
             
-            // On cache le bouton de validation manuel
             btnValider.style.display = "none"; 
             
-            // On affiche un petit message rassurant
             msgBox.style.color = "var(--primary)";
             msgBox.innerHTML = "<i class='fa-solid fa-robot'></i> Mode Automatique en cours d'écoute...";
         } else {
             // MODE AUTO DÉSACTIVÉ (Retour à la normale)
-            
             form.style.opacity = "1";
             
             manualSearch.disabled = false;
             champCommentaire.disabled = false;
+            champMotif.disabled = false; // NOUVEAU
+            champZone.disabled = false;  // NOUVEAU
             btnValider.style.display = "flex"; 
             
             msgBox.innerHTML = "";
@@ -207,11 +208,10 @@ function initScanPage() {
                     if (userData.success) {
                         afficherProfil(userData.data);
 
-                        // MAGIE DU MODE AUTO : On valide direct sans cliquer !
+                        // On valide directement l'entrée en mode auto
                         if (autoModeToggle.checked) {
-                            var motifAuto = document.getElementById('motif').value;
-                            var zoneAuto = document.getElementById('zone').value;
-                            enregistrerEntree(motifAuto, zoneAuto, "Mode Auto");
+                            // Au lieu de lire les menus, on envoie directement "N/A"
+                            enregistrerEntree("N/A", "N/A", "Mode Auto");
                         }
                     } else {
                         // Carte inconnue
