@@ -128,7 +128,41 @@ function initUsersPage() {
                         });
                     }
 
+                    // Charger les paiements de l'utilisateur
+                    chargerPaiementsDetails(u.id);
+
                     msgBox.innerHTML = "";
+                }
+            });
+    }
+
+    function chargerPaiementsDetails(userId) {
+        var listDiv = document.getElementById('user-details-payments-list');
+        if (!listDiv) return;
+
+        fetch('/api/payments?user_id=' + userId + '&limit=10')
+            .then(function(res) { return res.json(); })
+            .then(function(resultat) {
+                if (resultat.success) {
+                    var payments = resultat.data;
+                    listDiv.innerHTML = "";
+                    if (payments.length === 0) {
+                        listDiv.innerHTML = '<p class="muted text-center">Aucune transaction trouvée</p>';
+                    } else {
+                        payments.forEach(function(p) {
+                            var div = document.createElement('div');
+                            div.className = "flex-between mb-05 p-05";
+                            div.style.borderBottom = "1px solid var(--border-color)";
+                            var date = new Date(p.date).toLocaleDateString('fr-FR');
+                            var color = p.type_mouvement === 'CREDIT' ? 'var(--success-color)' : 'var(--danger-color)';
+                            div.innerHTML = '<div>' +
+                                '<div style="font-size: 0.9rem; font-weight: bold;">' + p.nom + '</div>' +
+                                '<div style="font-size: 0.7rem;" class="muted">' + date + ' - ' + (p.projet_nom || "Sans projet") + '</div>' +
+                                '</div>' +
+                                '<div style="color: ' + color + '; font-weight: bold;">' + (p.type_mouvement === 'CREDIT' ? '+' : '-') + p.montant + '€</div>';
+                            listDiv.appendChild(div);
+                        });
+                    }
                 }
             });
     }

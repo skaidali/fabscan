@@ -137,6 +137,18 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             elif route == "export_csv":
                 self.export_csv()
             
+            elif route == "payments":
+                user_id = self.params.get('user_id', [None])[0]
+                project = self.params.get('project', [None])[0]
+                limit = int(self.params.get('limit', [50])[0])
+                payments = db.get_payments(id_user=user_id, project_name=project, limit=limit)
+                self.send_response_json({"success": True, "data": payments})
+
+            elif route == "search_projects":
+                query = self.params.get('q', [''])[0]
+                projects = db.search_projects(query)
+                self.send_response_json({"success": True, "items": projects})
+
             else:
                 self.send_response_json({"error": "Route API inconnue"}, 404)
         else:
@@ -160,6 +172,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.add_entry(data)
             elif route == "update_user":
                 self.update_user(data)
+            elif route == "add_payment":
+                self.add_payment(data)
             else:
                 self.send_response_json({"error": "Route POST inconnue"}, 404)
         else:
@@ -317,6 +331,33 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Erreur update_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
             
+    def add_payment(self, data):
+        """Ajoute un paiement à la base de données"""
+        try:
+            user_id = data.get('user_id')
+            if not user_id:
+                self.send_response_json({"success": False, "error": "ID utilisateur manquant"}, 400)
+                return
+
+            db.add_payment(
+                id_utilisateur=user_id,
+                nom=data.get('nom'),
+                description=data.get('description'),
+                commentaire=data.get('commentaire'),
+                projet_nom=data.get('projet_nom'),
+                projet_type=data.get('projet_type'),
+                projet_tuteur=data.get('projet_tuteur'),
+                numero_operation=data.get('numero_operation'),
+                type_mouvement=data.get('type_mouvement'),
+                montant=data.get('montant'),
+                materiau=data.get('materiau'),
+                poids=data.get('poids')
+            )
+            self.send_response_json({"success": True, "message": "Paiement enregistré !"})
+        except Exception as e:
+            print(f"Erreur add_payment: {e}")
+            self.send_response_json({"success": False, "error": str(e)}, 500)
+
     def delete_user(self, user_id):
         """Fonction métier pour supprimer un utilisateur de la base de données"""
         try:

@@ -117,6 +117,26 @@ def init_database():
             type TEXT
         )
     """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PAIEMENTS (
+            id_paiement INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_utilisateur TEXT NOT NULL,
+            date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            nom TEXT,
+            description TEXT,
+            commentaire TEXT,
+            projet_nom TEXT,
+            projet_type TEXT,
+            projet_tuteur TEXT,
+            numero_operation TEXT,
+            type_mouvement TEXT, -- 'CREDIT' ou 'DEBIT'
+            montant REAL,
+            materiau TEXT,
+            poids REAL,
+            FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE CASCADE
+        )
+    """)
     
     # Migration des utilisateurs (pour les certifications dynamiques)
     _migrate_legacy_users_table(cursor)
@@ -704,4 +724,85 @@ def get_user_by_scan_id(scan_id):
             "certifications": certifs
         }
     return None
+
+def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau=None, poids=None):
+    """Ajouter un paiement"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO PAIEMENTS (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids),
+    )
+    conn.commit()
+    conn.close()
+
+def get_payments(id_user=None, project_name=None, limit=100):
+    """Récupérer les paiements avec filtres optionnels"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    query = """
+        SELECT p.id_paiement, p.id_utilisateur, p.date, p.nom, p.description, p.commentaire, 
+               p.projet_nom, p.projet_type, p.projet_tuteur, p.numero_operation, p.type_mouvement, p.montant, p.materiau, p.poids,
+               u.nom, u.prenom
+        FROM PAIEMENTS p
+        JOIN UTILISATEURS u ON p.id_utilisateur = u.id
+    """
+    params = []
+    where_clauses = []
+    
+    if id_user:
+        where_clauses.append("p.id_utilisateur = ?")
+        params.append(id_user)
+    
+    if project_name:
+        where_clauses.append("p.projet_nom LIKE ?")
+        params.append(f"%{project_name}%")
+        
+    if where_clauses:
+        query += " WHERE " + " AND ".join(where_clauses)
+        
+    query += " ORDER BY p.date DESC LIMIT ?"
+    params.append(limit)
+    
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    payments = []
+    for r in rows:
+        payments.append({
+            "id": r[0],
+            "user_id": r[1],
+            "date": r[2],
+            "nom": r[3],
+            "description": r[4],
+            "commentaire": r[5],
+            "projet_nom": r[6],
+            "projet_type": r[7],
+            "projet_tuteur": r[8],
+            "numero_operation": r[9],
+            "type_mouvement": r[10],
+            "montant": r[11],
+            "materiau": r[12],
+            "poids": r[13],
+            "user_nom": r[14],
+            "user_prenom": r[15]
+        })
+    return payments
+
+def search_projects(query, limit=10):
+    """Rechercher des noms de projets existants"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT DISTINCT projet_nom FROM PAIEMENTS WHERE projet_nom LIKE ? LIMIT ?",
+        (f"%{query}%", limit)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [r[0] for r in rows if r[0]]
 
