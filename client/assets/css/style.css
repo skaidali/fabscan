@@ -382,3 +382,27 @@ body {
   display: inline-block;
   margin-top: 0.5rem;
 }
+
+/* ==========================================
+   CORRECTION DES POLICES (FORMULAIRES)
+   ========================================== */
+/* Force tous les champs à hériter de la police de l'application */
+input, select, textarea, button {
+    font-family: inherit;
+}
+
+/* ==========================================
+   NOUVELLES CLASSES UTILITAIRES
+   ========================================== */
+.mb-0 { margin-bottom: 0 !important; }
+.mt-05 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 2rem; }
+.py-05 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-1 { padding-left: 1rem; padding-right: 1rem; }
+.p-05 { padding: 0.5rem; }
+.p-sm { padding: 0.3rem; }
+.gap-1 { gap: 1rem; }
+.gap-05 { gap: 0.5rem; }
+.align-center { align-items: center; }
+.cursor-pointer { cursor: pointer; }
+.scrollable-list-sm { max-height: 200px; overflow-y: auto; }

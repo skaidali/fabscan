@@ -76,6 +76,12 @@ def _migrate_legacy_users_table(cursor):
                 nouveau_json = json.dumps(anciennes_certifs)
                 cursor.execute("UPDATE UTILISATEURS SET certifications = ? WHERE id = ?", (nouveau_json, uid))
 
+def _migrate_paiements_table(cursor):
+    """Ajoute la colonne moyen_paiement si elle n'existe pas"""
+    cursor.execute("PRAGMA table_info(PAIEMENTS)")
+    existing_cols = {row[1] for row in cursor.fetchall()}
+    if "moyen_paiement" not in existing_cols:
+        cursor.execute("ALTER TABLE PAIEMENTS ADD COLUMN moyen_paiement TEXT")
 
 def init_database():
     """Initialiser la base de données avec les tables nécessaires"""
@@ -140,6 +146,7 @@ def init_database():
     
     # Migration des utilisateurs (pour les certifications dynamiques)
     _migrate_legacy_users_table(cursor)
+    _migrate_paiements_table(cursor)
 
     conn.commit()
     conn.close()
@@ -732,13 +739,13 @@ def update_certifications(id_user, certifications_list):
     conn.close()
 
 def get_user_by_scan_id(scan_id):
-    """Trouve un utilisateur et renvoie ses infos avec ses certifications dynamiques"""
+    """Trouve un utilisateur via son ID ou sa carte RFID, et renvoie TOUTES ses infos"""
     conn = get_connection()
     cursor = conn.cursor()
     
-    # On ajoute "certifications" au SELECT
+    # LE FIX EST ICI : On a ajouté "montant" à la liste du SELECT
     cursor.execute("""
-        SELECT id, nom, prenom, statut, email, id_carte, certifications
+        SELECT id, nom, prenom, statut, email, id_carte, formation_3d, formation_laser, formation_brodeuse, montant
         FROM UTILISATEURS
         WHERE id = ? OR id_carte = ?
     """, (scan_id, scan_id))
@@ -746,58 +753,71 @@ def get_user_by_scan_id(scan_id):
     conn.close()
     
     if row:
-        import json
-        # Si la colonne est vide, on renvoie une liste vide []
-        certifs = json.loads(row[6]) if row[6] else []
-        
         return {
             "id": row[0],
             "nom": row[1],
             "prenom": row[2],
             "statut": row[3],
             "email": row[4],
-            "has_rfid": bool(row[5]),
             "id_carte": row[5] or "",
-            "certifications": certifs
+            "formation_3d": row[6],
+            "formation_laser": row[7],
+            "formation_brodeuse": row[8],
+            "montant": row[9] or 0.0 
         }
     return None
 
-def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau=None, poids=None):
-    """Ajouter un paiement"""
+def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau=None, poids=None, moyen_paiement=None):
+    """Ajoute un paiement et modifie le solde de manière sécurisée"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
         """
-        INSERT INTO PAIEMENTS (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO PAIEMENTS (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids),
+        (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement),
     )
+    
+    # 1. Si c'est un apport de matériel (Crédit), on ajoute l'argent au solde
+    if type_mouvement == "CREDIT" or moyen_paiement == "Rechargement Solde":
+        cursor.execute("UPDATE UTILISATEURS SET montant = montant + ? WHERE id = ?", (montant, id_utilisateur))
+        
+    # 2. Si c'est une facturation (Débit), on ne touche au solde QUE SI le mot "Solde" est dans le moyen de paiement
+    elif type_mouvement == "DEBIT" and moyen_paiement and "Solde" in moyen_paiement:
+        cursor.execute("UPDATE UTILISATEURS SET montant = montant - ? WHERE id = ?", (montant, id_utilisateur))
+        
     conn.commit()
     conn.close()
 
-def get_payments(id_user=None, project_name=None, limit=100):
-    """Récupérer les paiements avec filtres optionnels"""
+
+def get_payments(id_user=None, project_name=None, limit=50, search_user=None):
+    """Récupère l'historique des paiements avec recherche par nom/prénom et filtres"""
     conn = get_connection()
     cursor = conn.cursor()
-    
     query = """
         SELECT p.id_paiement, p.id_utilisateur, p.date, p.nom, p.description, p.commentaire, 
                p.projet_nom, p.projet_type, p.projet_tuteur, p.numero_operation, p.type_mouvement, p.montant, p.materiau, p.poids,
-               u.nom, u.prenom
+               u.nom, u.prenom, p.moyen_paiement
         FROM PAIEMENTS p
         JOIN UTILISATEURS u ON p.id_utilisateur = u.id
     """
-    params = []
+    
     where_clauses = []
+    params = []
     
     if id_user:
         where_clauses.append("p.id_utilisateur = ?")
         params.append(id_user)
-    
+        
     if project_name:
         where_clauses.append("p.projet_nom LIKE ?")
         params.append(f"%{project_name}%")
+        
+    if search_user:
+        # NOUVEAU : Recherche par Nom OU Prénom
+        where_clauses.append("(u.nom LIKE ? OR u.prenom LIKE ?)")
+        params.extend([f"%{search_user}%", f"%{search_user}%"])
         
     if where_clauses:
         query += " WHERE " + " AND ".join(where_clauses)
@@ -812,24 +832,14 @@ def get_payments(id_user=None, project_name=None, limit=100):
     payments = []
     for r in rows:
         payments.append({
-            "id": r[0],
-            "user_id": r[1],
-            "date": r[2],
-            "nom": r[3],
-            "description": r[4],
-            "commentaire": r[5],
-            "projet_nom": r[6],
-            "projet_type": r[7],
-            "projet_tuteur": r[8],
-            "numero_operation": r[9],
-            "type_mouvement": r[10],
-            "montant": r[11],
-            "materiau": r[12],
-            "poids": r[13],
-            "user_nom": r[14],
-            "user_prenom": r[15]
+            "id": r[0], "user_id": r[1], "date": r[2], "nom": r[3], "description": r[4], 
+            "commentaire": r[5], "projet_nom": r[6], "projet_type": r[7], "projet_tuteur": r[8], 
+            "numero_operation": r[9], "type_mouvement": r[10], "montant": r[11], 
+            "materiau": r[12], "poids": r[13], "user_nom": r[14], "user_prenom": r[15],
+            "moyen_paiement": r[16]
         })
     return payments
+
 
 def search_projects(query, limit=10):
     """Rechercher des noms de projets existants"""

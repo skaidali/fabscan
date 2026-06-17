@@ -19,7 +19,7 @@
     "Brodeuse Numérique"
   ],
   "paiements": [
-    "TPE", "Refacturation Dpt", "Rachat matériel", "Facture", "Opération", "Pris en charge par DF"
+    "TPE", "Refacturation Dpt", "Rachat matériel", "Facture", "Opération", "Pris en charge par DF", "Déduction Solde"
   ],
   "materiaux": [
     {"nom": "PLA Ultimaker", "unite": "g", "prix": 0.05},

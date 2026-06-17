@@ -4,24 +4,17 @@
             <h1>Comptabilité</h1>
             <p class="muted">Gérez les paiements, crédits et débits des utilisateurs.</p>
         </div>
-        <div class="flex-row">
-            <div class="card form-group" style="margin-bottom: 0; padding: 0.5rem 1rem;">
-                <label for="project-search" style="font-size: 0.8rem;"><i class="fa-solid fa-folder-open"></i> Recherche Projet</label>
-                <input type="text" id="project-search" class="form-control" list="projects-list" placeholder="Nom du projet..." autocomplete="off" style="padding: 0.3rem;">
-                <datalist id="projects-list"></datalist>
-            </div>
-        </div>
     </header>
 
-    <div class="grid-2">
-        <div>
-            <div class="card form-group">
-                <label for="manual-search"><i class="fa-solid fa-magnifying-glass"></i> Recherche utilisateur (Nom ou Carte)</label>
-                <input type="text" id="manual-search" class="form-control" list="users-list" placeholder="Taper un nom ou scanner..." autocomplete="off">
+    <div class="grid-2 gap-1">
+        <div class="flex-column gap-1">
+            <div class="card form-group mb-0">
+                <label for="manual-search"><i class="fa-solid fa-magnifying-glass"></i> Recherche utilisateur</label>
+                <input type="text" id="manual-search" class="form-control" list="users-list" placeholder="Taper un nom ou scanner une carte..." autocomplete="off">
                 <datalist id="users-list"></datalist>
             </div>
 
-            <div class="card" id="user-panel">
+            <div class="card mb-0" id="user-panel">
                 <div class="card-header">
                     <strong>Profil sélectionné</strong>
                 </div>
@@ -34,6 +27,11 @@
 
                 <div class="form-group highlight-box">
                     <div class="flex-between">
+                        <span><i class="fa-solid fa-coins"></i> Solde actuel</span>
+                        <strong id="panel-solde" class="text-primary">-</strong>
+                    </div>
+                    <hr class="divider">
+                    <div class="flex-between">
                         <span><i class="fa-solid fa-envelope"></i> Email</span>
                         <strong id="panel-email">-</strong>
                     </div>
@@ -44,23 +42,23 @@
                     </div>
                 </div>
 
-                <div class="card-header" style="margin-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div class="card-header mt-1" style="border-top: 1px solid var(--border-color);">
                     <strong>Dernières transactions</strong>
                 </div>
-                <div id="user-payments-list" style="max-height: 200px; overflow-y: auto; padding: 0.5rem;">
+                <div id="user-payments-list" class="scrollable-list-sm p-05">
                     <p class="muted text-center">Aucun utilisateur sélectionné</p>
                 </div>
             </div>
         </div>
 
-        <div class="card">
+        <div class="card mb-0">
             <div class="card-header">
                 <strong>Nouvelle opération</strong>
             </div>
             <form id="payment-form">
                 <input type="hidden" id="current-user-id" required>
 
-                <div class="grid-2" style="gap: 1rem;">
+                <div class="grid-2 gap-1">
                     <div class="form-group">
                         <label for="payment-name">Nom de l'opération *</label>
                         <input type="text" id="payment-name" class="form-control" placeholder="Ex: Achat PLA..." required>
@@ -87,76 +85,85 @@
                     </select>
                 </div>
 
-                <div id="project-details-fields" style="display: none;" class="highlight-box mb-1">
+                <div id="project-details-fields" class="highlight-box mb-1 d-none">
                     <div class="form-group">
                         <label for="project-name-input">Nom du projet *</label>
                         <input type="text" id="project-name-input" class="form-control" list="projects-autocomplete" placeholder="Rechercher ou saisir un nom...">
                         <datalist id="projects-autocomplete"></datalist>
                     </div>
                     <div class="form-group">
-                        <label for="project-tutor">Tuteur / Responsable *</label>
-                        <input type="text" id="project-tutor" class="form-control" placeholder="Nom du tuteur...">
+                        <label for="project-tutor">Tuteur / Responsable</label>
+                        <input type="text" id="project-tutor" class="form-control" placeholder="Nom du tuteur (Optionnel)">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Type de mouvement *</label>
-                    <div class="flex-row" style="gap: 1rem; margin-top: 0.5rem;">
-                        <label class="flex-center" style="gap: 0.5rem; cursor: pointer;">
-                            <input type="radio" name="mouvement-type" value="CREDIT" checked> Crédit (€)
+                    <div class="flex-row gap-1 mt-05">
+                        <label class="flex-center gap-05 cursor-pointer">
+                            <input type="radio" name="mouvement-type" value="CREDIT" checked> Crédit (Apport matériel)
                         </label>
-                        <label class="flex-center" style="gap: 0.5rem; cursor: pointer;">
-                            <input type="radio" name="mouvement-type" value="DEBIT"> Débit (Matériau/Prix)
+                        <label class="flex-center gap-05 cursor-pointer">
+                            <input type="radio" name="mouvement-type" value="DEBIT"> Débit (Facturation)
                         </label>
                     </div>
                 </div>
 
-                <div id="credit-fields">
-                    <div class="form-group">
-                        <label for="amount-credit">Montant (€) *</label>
-                        <input type="number" id="amount-credit" class="form-control" step="0.01" min="0" placeholder="0.00">
-                    </div>
-                </div>
-
-                <div id="debit-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="material-select">Matériau</label>
-                        <select id="material-select" class="form-control">
-                            <option value="">-- Sélectionner un matériau --</option>
-                        </select>
-                    </div>
-                    <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group highlight-box mt-1">
+                    <label style="display: block; margin-bottom: 0.5rem;"><i class="fa-solid fa-box-open"></i> Matériau</label>
+                    <div class="grid-2 gap-1">
+                        <div class="form-group">
+                            <label for="material-select">Type de matériau</label>
+                            <select id="material-select" class="form-control">
+                                <option value="">-- Aucun / Manuel --</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label id="weight-label" for="material-weight">Quantité / Poids</label>
-                            <div class="flex-row" style="gap: 0.5rem; align-items: center;">
+                            <div class="flex-row gap-05 align-center">
                                 <input type="number" id="material-weight" class="form-control" step="0.01" min="0" placeholder="0.00">
                                 <span id="unit-display" class="muted"></span>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="amount-debit">Prix (€) *</label>
-                            <input type="number" id="amount-debit" class="form-control" step="0.01" min="0" placeholder="0.00">
-                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group mt-1">
+                    <label for="amount-final">Montant final de l'opération (€) *</label>
+                    <input type="number" id="amount-final" class="form-control" step="0.01" min="0" placeholder="0.00" required>
+                </div>
+
+                <div class="form-group d-none" id="payment-method-container">
+                    <label for="moyen-paiement-select">Moyen de paiement *</label>
+                    <select id="moyen-paiement-select" class="form-control">
+                        <option value="">-- Sélectionner --</option>
+                    </select>
+                </div>
+
+                <div class="form-group mt-1">
                     <label for="payment-comment">Commentaire (Facultatif)</label>
                     <textarea id="payment-comment" class="form-control" rows="2" placeholder="Détails supplémentaires..."></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100 flex-center" id="btn-valider-payment" disabled>
-                    <i class="fa-solid fa-file-invoice-dollar"></i> Enregistrer l'opération
+                    <i class="fa-solid fa-check"></i> Enregistrer l'opération
                 </button>
             </form>
         </div>
     </div>
 
-    <div class="card" style="margin-top: 2rem;" id="project-results-card">
+    <div class="card mt-2" id="project-results-card">
         <div class="card-header flex-between">
-            <strong>Historique des transactions</strong>
-            <span id="history-title" class="muted">Toutes les transactions</span>
+            <strong><i class="fa-solid fa-clock-rotate-left"></i> Historique des transactions</strong>
+            <button class="btn btn-outline" id="btn-export-history"><i class="fa-solid fa-file-excel"></i> Exporter CSV (Filtres appliqués)</button>
         </div>
+        
+        <div class="flex-row gap-1 p-05 align-center" style="border-bottom: 1px solid var(--border-color); margin-bottom: 1rem;">
+            <input type="text" id="filter-history-project" class="form-control w-auto" placeholder="Rechercher par nom de projet...">
+            <button class="btn btn-primary" id="btn-filter-history"><i class="fa-solid fa-filter"></i> Filtrer</button>
+            <button class="btn btn-outline" id="btn-reset-history">Tout réinitialiser (Voir tout le FabLab)</button>
+        </div>
+
         <div class="table-container">
             <table class="data-table">
                 <thead>
@@ -164,16 +171,13 @@
                         <th>Date</th>
                         <th>Utilisateur</th>
                         <th>Opération</th>
+                        <th>Paiement</th>
                         <th>Projet</th>
-                        <th>Type</th>
                         <th>Valeur</th>
-                        <th>Commentaire</th>
                     </tr>
                 </thead>
                 <tbody id="payments-history-table">
-                    <tr>
-                        <td colspan="7" class="text-center muted">Chargement des données...</td>
-                    </tr>
+                    <tr><td colspan="6" class="text-center muted">Chargement des données...</td></tr>
                 </tbody>
             </table>
         </div>

@@ -166,7 +166,7 @@ function initStatsPage() {
     });
 
     document.getElementById('export-btn').addEventListener('click', function() {
-        window.location.href = '/api/export_csv';
+        window.location.href = '/api/export_stats_csv';
     });
 
     // On lance la première recherche par défaut !

@@ -140,15 +140,18 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 users = [{"id": r[0], "texte": f"{r[3]} {r[2]} ({r[4]})"} for r in rows]
                 self.send_response_json({"success": True, "items": users})
 
-            elif route == "export_csv":
-                self.export_csv()
-            
+            elif route == "export_stats_csv":
+                self.export_stats_csv()
+
+            elif route == "export_transactions_csv":
+                self.export_transactions_csv()
+
             elif route == "payments":
                 user_id = self.params.get('user_id', [None])[0]
                 project = self.params.get('project', [None])[0]
+                search_user = self.params.get('search_user', [None])[0]
                 limit = int(self.params.get('limit', [50])[0])
-                payments = db.get_payments(id_user=user_id, project_name=project, limit=limit)
-                self.send_response_json({"success": True, "data": payments})
+                self.send_response_json({"success": True, "data": db.get_payments(id_user=user_id, project_name=project, limit=limit, search_user=search_user)})
 
             elif route == "search_projects":
                 query = self.params.get('q', [''])[0]
@@ -357,7 +360,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 type_mouvement=data.get('type_mouvement'),
                 montant=data.get('montant'),
                 materiau=data.get('materiau'),
-                poids=data.get('poids')
+                poids=data.get('poids'),
+                moyen_paiement=data.get('moyen_paiement') # NOUVELLE LIGNE !
             )
             self.send_response_json({"success": True, "message": "Paiement enregistré !"})
         except Exception as e:
@@ -388,7 +392,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Erreur delete_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
 
-    def export_csv(self):
+    def export_stats_csv(self):
         """Génère un fichier CSV lisible par Excel avec l'historique du FabLab"""
         import io
         import csv
@@ -435,7 +439,72 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Erreur Export CSV: {e}")
             self.send_response_json({"error": str(e)}, 500)
 
+def export_transactions_csv(self):
+        """Génère un export CSV des transactions avec TOUTES les colonnes (Date et Heure séparées)"""
+        import io
+        import csv
+        try:
+            user_id = self.params.get('user_id', [None])[0]
+            project = self.params.get('project', [None])[0]
+            search_user = self.params.get('search_user', [None])[0]
             
+            # On récupère les paiements filtrés
+            payments = db.get_payments(id_user=user_id, project_name=project, limit=10000, search_user=search_user)
+            
+            output = io.StringIO()
+            writer = csv.writer(output, delimiter=';')
+            
+            # CORRECTION : On sépare les en-têtes 'Date' et 'Heure'
+            writer.writerow([
+                'Date', 'Heure', 'Nom Utilisateur', 'Prénom Utilisateur', 'Nom Opération', 
+                'N° Opération', 'Moyen de paiement', 'Projet Nom', 'Projet Type', 
+                'Tuteur/Resp.', 'Matériau', 'Quantité', 'Type Mouvement', 'Montant (€)', 
+                'Description', 'Commentaire'
+            ])
+            
+            for p in payments:
+                # CORRECTION : On découpe le champ date de la BDD ("AAAA-MM-JJ HH:MM:SS")
+                date_complete = p['date'] if p['date'] else ""
+                if " " in date_complete:
+                    date_seule, heure_seule = date_complete.split(" ", 1)
+                    # On retire les microsecondes si elles existent pour avoir HH:MM:SS
+                    if "." in heure_seule:
+                        heure_seule = heure_seule.split(".", 1)[0]
+                else:
+                    date_seule = date_complete
+                    heure_seule = ""
+
+                writer.writerow([
+                    date_seule,                 # Colonne Date
+                    heure_seule,                # Colonne Heure
+                    p['user_nom'],
+                    p['user_prenom'],
+                    p['nom'],
+                    p.get('numero_operation', ''),
+                    p.get('moyen_paiement', ''),
+                    p.get('projet_nom', ''),
+                    p.get('projet_type', ''),
+                    p.get('projet_tuteur', ''),
+                    p.get('materiau', ''),
+                    p.get('poids', ''),
+                    p['type_mouvement'],
+                    f"{p['montant']:.2f}".replace('.', ','), 
+                    p.get('description', ''),
+                    p.get('commentaire', '')
+                ])
+                
+            csv_content = output.getvalue()
+            self.send_response(200)
+            # utf-8-sig force Excel à décoder directement les accents (é, è, à...) sans afficher de caractères bizarres
+            self.send_header('Content-Type', 'text/csv; charset=utf-8-sig')
+            self.send_header('Content-Disposition', 'attachment; filename="Transactions_FabLab.csv"')
+            self.end_headers()
+            self.wfile.write(csv_content.encode('utf-8-sig'))
+            
+        except Exception as e:
+            print(f"Erreur Export Transactions CSV: {e}")
+            self.send_response_json({"error": str(e)}, 500)
+
 # ==========================================
 # DÉMARRAGE DU SERVEUR
 # ==========================================
