@@ -22,11 +22,11 @@ def send_to_server(card_id):
     try:
         reponse = requests.post(SERVER_URL, json=payload, timeout=0.1)
         if reponse.status_code == 200:
-            print(f"✅ Scan transmis à la mémoire du serveur : {card_id}")
+            print(f"Scan transmis à la mémoire du serveur : {card_id}")
         else:
-            print(f"⚠️ Erreur serveur : Code {reponse.status_code}")
+            print(f"Erreur serveur : Code {reponse.status_code}")
     except requests.exceptions.RequestException:
-        print("🔌 Impossible de joindre le serveur. (Est-il allumé ?)")
+        print("Impossible de joindre le serveur. (Est-il allumé ?)")
 
 def clear_data(byteString):
     return byteString.decode(errors="ignore").strip()
@@ -34,7 +34,7 @@ def clear_data(byteString):
 def data_acquisition():
     port_detecte = find_arduino_port()
     if not port_detecte:
-        print("❌ Erreur : Aucun lecteur RFID trouvé.")
+        print(" Erreur : Aucun lecteur RFID trouvé.")
         return
 
     try:
