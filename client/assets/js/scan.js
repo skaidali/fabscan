@@ -97,12 +97,38 @@ function initScanPage() {
     // ==========================================
     // 2. AFFICHAGE DES INFOS UTILISATEUR
     // ==========================================
+    // ==========================================
+    // 2. AFFICHAGE DES INFOS UTILISATEUR
+    // ==========================================
     function afficherProfil(user) {
         userIdInput.value = user.id;
         
         panelName.textContent = user.prenom + " " + user.nom;
-        panelStatus.textContent = user.statut;
-        panelEmail.textContent = user.email || "Non renseigné";
+        panelStatus.textContent = user.statut; // La pastille sous le nom
+        
+        // --- NOUVEAUTÉS ---
+        
+        // 1. Affichage du statut détaillé
+        var panelStatutDetail = document.getElementById('panel-statut-detail');
+        if (panelStatutDetail) {
+            panelStatutDetail.textContent = user.statut || "Non renseigné";
+        }
+        
+        // 2. Affichage du Solde avec couleurs conditionnelles
+        var panelSolde = document.getElementById('panel-solde');
+        if (panelSolde) {
+            var solde = user.montant || 0.0;
+            panelSolde.textContent = solde.toFixed(2) + " €";
+            
+            // Logique visuelle : Vert si >= 0, Rouge si < 0
+            if (solde >= 0) {
+                panelSolde.className = "text-success"; // Classe CSS pour la couleur verte
+            } else {
+                panelSolde.className = "text-danger"; // Classe CSS pour la couleur rouge
+            }
+        }
+        
+        // ------------------
         
         if (user.has_rfid) {
             panelRfid.innerHTML = "<span style='color:var(--success);'><i class='fa-solid fa-check'></i> Oui</span>";
@@ -166,7 +192,18 @@ function initScanPage() {
                     btnValider.disabled = true;
                     panelName.textContent = "En attente de scan...";
                     panelStatus.textContent = "-";
-                    panelEmail.textContent = "-";
+                    
+                    // --- NOUVEAUX CHAMPS À RÉINITIALISER ---
+                    var panelStatutDetail = document.getElementById('panel-statut-detail');
+                    if (panelStatutDetail) panelStatutDetail.textContent = "-";
+                    
+                    var panelSolde = document.getElementById('panel-solde');
+                    if (panelSolde) {
+                        panelSolde.textContent = "-";
+                        panelSolde.className = ""; // Retirer les couleurs de succès/danger
+                    }
+                    // ----------------------------------------
+                    
                     panelRfid.textContent = "-";
                     panelCard.style.borderTopColor = "var(--gray)";
                     msgBox.innerHTML = "";
