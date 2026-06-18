@@ -59,4 +59,15 @@
             <div id="registration-message" class="muted form-group" role="status" aria-live="polite" style="margin-top: 1rem; text-align: center;"></div>
         </form>
     </div>
+    <div class="text-center mt-2">
+    <hr class="divider">
+    <p class="muted small">
+        <i class="fa-solid fa-file-excel"></i> Une liste importante à intégrer ? 
+        <input type="file" id="excel-file-input" accept=".xlsx" style="display: none;" />
+        <a href="#" onclick="document.getElementById('excel-file-input').click(); return false;">
+            Importer un fichier Excel historique (.xlsx)
+        </a>
+    </p>
+    <div id="import-loading-msg" class="font-bold small mt-05"></div>
+</div>
 </div>

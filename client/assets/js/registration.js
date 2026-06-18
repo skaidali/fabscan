@@ -61,15 +61,21 @@ function initRegistrationPage() {
         return;
     }
 
+    //// ==========================================
+    // 2. LOGIQUE D'AUTO-REMPLISSAGE DE L'EMAIL (SANS ACCENTS)
     // ==========================================
-    // 2. LOGIQUE D'AUTO-REMPLISSAGE DE L'EMAIL
-    // ==========================================
-    function mettreAJourEmail() {
-        var prenom = champPrenom.value.trim().toLowerCase();
-        var nom = champNom.value.trim().toLowerCase();
+    function supprimerAccents(texte) {
+        // Décompose les caractères accentués (ex: 'é' devient 'e' + '´') et supprime les marques d'accent
+        return texte.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
 
-        prenom = prenom.replace(/\s+/g, '-');
-        nom = nom.replace(/\s+/g, '-');
+    function mettreAJourEmail() {
+        var prenomRaw = champPrenom.value.trim().toLowerCase();
+        var nomRaw = champNom.value.trim().toLowerCase();
+
+        // Nettoyage des accents et caractères spéciaux (é->e, ç->c, à->a, etc.)
+        var prenom = supprimerAccents(prenomRaw).replace(/\s+/g, '-');
+        var nom = supprimerAccents(nomRaw).replace(/\s+/g, '-');
 
         var statutChoisi = champStatut.value; 
 
@@ -172,7 +178,7 @@ function initRegistrationPage() {
                 boiteMessage.style.color = "var(--success)";
                 boiteMessage.innerHTML = "<i class='fa-solid fa-check'></i> " + resultat.message;
 
-                // 🚀 APPEL DE LA FONCTION CENTRALISÉE
+                // APPEL DE LA FONCTION CENTRALISÉE
                 if (checkboxMail && checkboxMail.checked && donneesAEnvoyer.email !== "") {
                     MoteurScan.envoyerEmailZimbra({
                         id: resultat.id, // L'ID retourné par le serveur
@@ -198,4 +204,46 @@ function initRegistrationPage() {
             }
         })
     });
+    
+    // ==========================================
+    // GESTION DU TÉLÉVERSEMENT EXCEL DISCRET
+    // ==========================================
+    var fileInput = document.getElementById('excel-file-input');
+    var labelChargement = document.getElementById('import-loading-msg');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            if (!fileInput.files || fileInput.files.length === 0) return;
+
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            labelChargement.style.display = "block";
+            labelChargement.style.color = "var(--primary)";
+            labelChargement.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Extraction et synchronisation de l'historique...";
+
+            fetch('/api/import_users_excel', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    labelChargement.style.color = "var(--success)";
+                    labelChargement.innerHTML = "<i class='fa-solid fa-circle-check'></i> " + data.message;
+                } else {
+                    labelChargement.style.color = "var(--danger)";
+                    labelChargement.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Échec : " + data.error;
+                }
+                fileInput.value = ""; // Reset de l'input
+                setTimeout(function() { labelChargement.style.display = "none"; }, 6000);
+            })
+            .catch(function(err) {
+                labelChargement.style.color = "var(--danger)";
+                labelChargement.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Erreur de connexion avec le serveur.";
+                fileInput.value = "";
+                setTimeout(function() { labelChargement.style.display = "none"; }, 6000);
+            });
+        });
+    }
 }
