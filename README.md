@@ -16,7 +16,7 @@ L'application se présente comme une page web hebergée localement, avec plusieu
 Pour pouvoir installer et utiliser correctement l'ensemble du logiciel, vous allez avoir besoin de :
 - Un Arduino Nano avec un lecteur RFID (dont les branchements sont détaillés par un fichier svg dans le dossier "case")
 - Une scannette de QR codes
-- Un boitier et son support (dont les fichiers sont accessibles dans le dossier "case")
+- Un boitier et son support (dont les fichiers sont accessibles dans le dossier "case", en `.step` et en `.stl`)
 
 > Note : une documentation concernant la fabrication et l'assemblage du boitier peut être trouvée dans le dossier "documentation"
 
