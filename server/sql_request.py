@@ -35,6 +35,7 @@ def _migrate_legacy_users_table(cursor):
         ("formation_brodeuse","INTEGER DEFAULT 0"),
         ("montant",           "REAL DEFAULT 0.0"),
         ("certifications",    "TEXT DEFAULT '[]'"),
+        ("date_inscription",  "TEXT DEFAULT CURRENT_TIMESTAMP"),
     ]
 
     for col_name, col_def in migrations:
@@ -100,7 +101,8 @@ def init_database():
             formation_3d INTEGER DEFAULT 0,
             formation_laser INTEGER DEFAULT 0,
             formation_brodeuse INTEGER DEFAULT 0,
-            montant REAL DEFAULT 0.0
+            montant REAL DEFAULT 0.0,
+            date_inscription TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
 

@@ -287,7 +287,7 @@ function initRegistrationPage() {
     window.declencherMaintenanceRGPD = function() {
         var msgStatus = document.getElementById('rgpd-loading-msg');
         
-        var confirmation1 = confirm("⚠️ ATTENTION : MAINTENANCE ANNUELLE CRITIQUE ⚠️\n\nVous allez lancer le nettoyage réglementaire de la rentrée :\n1. Anonymisation irréversible des accès de plus d'un an.\n2. Suppression définitive des comptes d'étudiants partis depuis plus de 5 ans.\n\nSouhaitez-vous continuer ?");
+        var confirmation1 = confirm("⚠️ ATTENTION : MAINTENANCE ANNUELLE CRITIQUE ⚠️\n\nVous allez lancer le nettoyage réglementaire de la rentrée :\n1. Anonymisation irréversible des accès de plus d'un an.\n2. Suppression définitive des comptes d'utilisateurs partis depuis plus de 5 ans.\n\nSouhaitez-vous continuer ?");
         if (!confirmation1) return;
 
         var confirmation2 = confirm("🛑 CONFIRMATION FINALE REQUISE 🛑\n\nÊtes-vous absolument sûr ? Les données modifiées et effacées ne pourront pas être récupérées.");

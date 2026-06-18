@@ -466,13 +466,13 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             """)
             lignes_anonymisees = cursor.rowcount
 
-            # Action B : Suppression des utilisateurs inactifs depuis plus de 5 ans
+            # Action B : Suppression des utilisateurs inactifs depuis plus de 5 ans (Basé sur la date d'inscription)
             cursor.execute("""
                 DELETE FROM UTILISATEURS 
                 WHERE id NOT IN (
                     SELECT DISTINCT id_utilisateur FROM ENTREE 
                     WHERE datetime(date) >= datetime('now', '-5 years')
-                ) AND datetime(substr(id, 1, 4) || '-' || substr(id, 5, 2) || '-' || substr(id, 7, 2)) < datetime('now', '-5 years')
+                ) AND datetime(date_inscription) < datetime('now', '-5 years')
             """)
             profils_supprimes = cursor.rowcount
             
@@ -490,7 +490,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
 
     def import_users_excel(self):
-        """Lit un fichier Excel pour alimenter la table utilisateurs en filtrant les doublons par e-mail"""
+        """Lit un fichier Excel pour alimenter la table utilisateurs avec blindage anti-corruption et anti-doublons flous"""
+        import difflib  # Intégré nativement dans Python pour calculer les similitudes de textes
         try:
             content_type = self.headers.get('Content-Type', '')
             if 'multipart/form-data' not in content_type:
@@ -539,7 +540,12 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
             total_ajoutes = 0
             total_doublons = 0
+            total_corrompus = 0
             index_secours = 0
+
+            # ✨ FIX : Initialisation indispensable pour éviter le plantage NameError
+            cursor.execute("SELECT prenom, nom, email FROM utilisateurs")
+            utilisateurs_existants = cursor.fetchall()
 
             for nom_onglet in wb.sheetnames:
                 sheet = wb[nom_onglet]
@@ -547,36 +553,73 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                     if not ligne or len(ligne) < 4 or ligne[2] is None or ligne[3] is None:
                         continue
                     
+                    val_nom = str(ligne[2]).strip()
+                    val_prenom = str(ligne[3]).strip()
+
+                    # 🛡️ SÉCURITÉ 1 : Éliminer les numéros bizarres et décalages de lignes Excel
+                    if val_nom.replace('.','',1).isdigit() or val_prenom.replace('.','',1).isdigit():
+                        total_corrompus += 1
+                        continue
+                    if len(val_nom) > 35 or len(val_prenom) > 35:
+                        total_corrompus += 1
+                        continue
+
                     statut_excel = str(ligne[1]).strip() if ligne[1] else ""
                     if statut_excel in liste_statuts_autorises:
                         statut = statut_excel
                     else:
                         statut = "Autre" if "Autre" in liste_statuts_autorises else (liste_statuts_autorises[0] if liste_statuts_autorises else "Inconnu")
 
-                    nom = str(ligne[2]).strip().upper()
-                    prenom = str(ligne[3]).strip().title()
+                    nom = val_nom.upper()
+                    prenom = val_prenom.title()
                     email = build_email(prenom, nom, statut)
 
-                    # CHECK ANTI-DOUBLON PORTÉ SUR L'E-MAIL
+                    # 🛡️ SÉCURITÉ 2 : Détection anti-doublon croisée (Exacte + Floue via difflib)
+                    est_un_doublon = False
                     cursor.execute("SELECT id FROM utilisateurs WHERE LOWER(email) = ?", (email.lower(),))
-                    if not cursor.fetchone():
-                        id_unique = dt.now().strftime('%Y%m%d%H%M%S') + str(index_secours)
-                        index_secours += 1
-                        
-                        cursor.execute("""
-                            INSERT INTO utilisateurs (id, nom, prenom, statut, email, id_carte, montant, certifications) 
-                            VALUES (?, ?, ?, ?, ?, NULL, 0.0, '[]')
-                        """, (id_unique, nom, prenom, statut, email))
-                        total_ajoutes += 1
+                    if cursor.fetchone():
+                        est_un_doublon = True
                     else:
+                        # Vérification floue pour intercepter l'effet "Bartholin" vs "Barthollin"
+                        for p_existant, n_existant, e_existant in utilisateurs_existants:
+                            if p_existant.lower() == prenom.lower():
+                                similitude = difflib.SequenceMatcher(None, n_existant.upper(), nom).ratio()
+                                if similitude > 0.85:
+                                    est_un_doublon = True
+                                    break
+                    
+                    if est_un_doublon:
                         total_doublons += 1
+                        continue
+
+                    # Si la ligne passe tous les contrôles, on génère l'utilisateur
+                    id_unique = dt.now().strftime('%Y%m%d%H%M%S') + str(index_secours)
+                    index_secours += 1
+                    
+                    # ✨ FIX : Utilisation correcte de l'instance de type 'dt'
+                    date_inscription = dt.now().strftime('%Y-%m-%d %H:%M:%S')
+                    valeur_date = ligne[0]
+                    
+                    if valeur_date:
+                        if isinstance(valeur_date, dt):
+                            date_inscription = valeur_date.strftime('%Y-%m-%d %H:%M:%S')
+                        elif isinstance(valeur_date, str):
+                            date_inscription = valeur_date
+
+                    cursor.execute("""
+                        INSERT INTO utilisateurs (id, nom, prenom, statut, email, id_carte, montant, certifications, date_inscription) 
+                        VALUES (?, ?, ?, ?, ?, NULL, 0.0, '[]', ?)
+                    """, (id_unique, nom, prenom, statut, email, date_inscription))
+                    
+                    utilisateurs_existants.append((prenom, nom, email))
+                    total_ajoutes += 1
                         
             conn.commit()
             conn.close()
             
             self.send_response_json({
                 "success": True,
-                "message": f"Importation réussie ! {total_ajoutes} profils créés, {total_doublons} doublons ignorés."
+                "message": f"Importation réussie ! {total_ajoutes} profils créés, {total_doublons} doublons filtrés, {total_corrompus} lignes corrompues ignorées."
             })
             
         except Exception as e:
@@ -586,6 +629,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             except Exception:
                 pass
 
+            
 # ==========================================
 # DÉMARRAGE DU SERVEUR
 # ==========================================
