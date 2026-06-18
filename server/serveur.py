@@ -169,6 +169,9 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             if route == "import_users_excel":
                 self.import_users_excel()
                 return
+            elif route == "rgpd_maintenance_annuelle":  # 👈 LA ROUTE UNIQUE
+                self.rgpd_maintenance_annuelle()
+                return
 
             data = self.parse_json_body()
             if data is None:
@@ -241,7 +244,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
 
-            # 2. VÉRIFICATION DE DOUBLON SUR L'ADRESSE E-MAIL ("CRIER")
+            # 🚨 2. VÉRIFICATION DE DOUBLON SUR L'ADRESSE E-MAIL ("CRIER")
             cursor.execute("SELECT id, prenom, nom FROM utilisateurs WHERE LOWER(email) = ?", (email.lower(),))
             doublon = cursor.fetchone()
             if doublon:
@@ -270,7 +273,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Erreur add_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)
-
+        
     def add_entry(self, data):
         try:
             user_id = data.get('user_id')
@@ -447,8 +450,46 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Erreur Export Transactions CSV: {e}")
             self.send_response_json({"error": str(e)}, 500)
+    
+    def rgpd_maintenance_annuelle(self):
+        """RGPD : Exécute la maintenance complète (Anonymisation des accès > 1 an + Purge des profils inactifs > 5 ans)"""
+        try:
+            db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'database', 'database.db'))
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Action A : Anonymisation des accès de plus d'un an
+            cursor.execute("""
+                UPDATE ENTREE 
+                SET id_utilisateur = 'ANONYME', commentaire = 'Données anonymisées (Contrainte RGPD 1 an)'
+                WHERE datetime(date) < datetime('now', '-1 year')
+            """)
+            lignes_anonymisees = cursor.rowcount
 
-def import_users_excel(self):
+            # Action B : Suppression des utilisateurs inactifs depuis plus de 5 ans
+            cursor.execute("""
+                DELETE FROM UTILISATEURS 
+                WHERE id NOT IN (
+                    SELECT DISTINCT id_utilisateur FROM ENTREE 
+                    WHERE datetime(date) >= datetime('now', '-5 years')
+                ) AND datetime(substr(id, 1, 4) || '-' || substr(id, 5, 2) || '-' || substr(id, 7, 2)) < datetime('now', '-5 years')
+            """)
+            profils_supprimes = cursor.rowcount
+            
+            conn.commit()
+            conn.close()
+            
+            self.send_response_json({
+                "success": True,
+                "message": f"Maintenance réussie ! {lignes_anonymisees} accès anonymisés et {profils_supprimes} profils obsolètes supprimés."
+            })
+        except Exception as e:
+            print(f"Erreur Maintenance RGPD : {e}")
+            try: self.send_response_json({"success": False, "error": str(e)}, 500)
+            except Exception: pass
+
+
+    def import_users_excel(self):
         """Lit un fichier Excel pour alimenter la table utilisateurs en filtrant les doublons par e-mail"""
         try:
             content_type = self.headers.get('Content-Type', '')
@@ -544,7 +585,6 @@ def import_users_excel(self):
                 self.send_response_json({"success": False, "error": str(e)}, 500)
             except Exception:
                 pass
-
 
 # ==========================================
 # DÉMARRAGE DU SERVEUR
