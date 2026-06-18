@@ -298,4 +298,24 @@ function initUsersPage() {
     document.getElementById('users-page-next').addEventListener('click', function() { pagination.pageActuelle++; chargerLesUtilisateurs(); });
 
     chargerLesUtilisateurs();
+
+    // ==========================================
+    // BRANCHEMENT DU PANNEAU USERS AU MOTEUR UNIQUE
+    // ==========================================
+    MoteurScan.ecouter({
+        inputRecherche: champRecherche, // Réutilise la barre de recherche existante en haut
+        datalist: document.getElementById('users-admin-list') || document.createElement('datalist'), 
+        forcerRFID: true, // Permet de charger un profil au badge pour modifier ses certifs
+        onUserFound: function(idScanne) {
+            // Dès qu'un QR ou un RFID arrive, on ouvre instantanément sa fiche d'édition à gauche !
+            fetch('/api/user_info?id=' + idScanne)
+                .then(res => res.json())
+                .then(userData => {
+                    if (userData.success) {
+                        ouvrirPanneauUtilisateur(userData.data.id); // Appelle ta fonction d'ouverture de volet
+                        champRecherche.value = ""; // Nettoie le champ
+                    }
+                });
+        }
+    });
 }
