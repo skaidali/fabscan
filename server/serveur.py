@@ -330,13 +330,21 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response_json({"success": False, "error": "ID manquant"}, 400)
                 return
             
-            db.update_user(user_id, data.get('nom'), data.get('prenom'), data.get('statut'), data.get('email'))
+            # On passe directement la liste des certifications récupérée du JavaScript à db.update_user
+            db.update_user(
+                id_user=user_id, 
+                nom=data.get('nom'), 
+                prenom=data.get('prenom'), 
+                statut=data.get('statut'), 
+                id_moodle=data.get('email'),
+                certifications_list=data.get('certifications') # 👈 Transmis directement ici !
+            )
+            
+            # On gère la carte RFID à part (car elle a sa propre logique d'unicité)
             if 'id_carte' in data:
                 db.link_id_carte(user_id, data.get('id_carte'))
-            if 'certifications' in data:
-                db.update_certifications(user_id, data.get('certifications'))
             
-            self.send_response_json({"success": True, "message": "Utilisateur mis à jour !"})
+            self.send_response_json({"success": True, "message": "Utilisateur et certifications mis à jour !"})
         except Exception as e:
             print(f"Erreur update_user: {e}")
             self.send_response_json({"success": False, "error": str(e)}, 500)

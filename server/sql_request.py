@@ -9,7 +9,6 @@ import datetime
 import csv
 import json
 
-
 ROOT = Path(__file__).resolve().parent.parent
 DATABASE_PATH = ROOT / "database" / "database.db"
 
@@ -48,11 +47,7 @@ def _migrate_legacy_users_table(cursor):
         ON UTILISATEURS(id_carte) WHERE id_carte IS NOT NULL
     """)
 
-    # =========================================================
-    # SAUVETAGE DES ANCIENNES DONNÉES (Migration vers JSON)
-    # =========================================================
-    import json
-    # On récupère tous les utilisateurs avec leurs anciennes colonnes
+    # Récupération et conversion des anciennes données
     cursor.execute("SELECT id, formation_3d, formation_laser, formation_brodeuse, certifications FROM UTILISATEURS")
     utilisateurs = cursor.fetchall()
     
@@ -63,19 +58,16 @@ def _migrate_legacy_users_table(cursor):
         f_brod = u[3]
         certifs_actuelles = u[4]
         
-        # Si le nouveau tiroir "certifications" est vide ou vierge ('[]')
         if not certifs_actuelles or certifs_actuelles == '[]':
             anciennes_certifs = []
-            
-            # On recrée la liste en lisant les anciennes cases
             if f_3d: anciennes_certifs.append("Impression 3D")
             if f_laser: anciennes_certifs.append("Découpe Laser")
             if f_brod: anciennes_certifs.append("Brodeuse Numérique")
             
-            # Si on a trouvé des anciennes certifs, on les injecte dans le nouveau tiroir !
             if anciennes_certifs:
                 nouveau_json = json.dumps(anciennes_certifs)
                 cursor.execute("UPDATE UTILISATEURS SET certifications = ? WHERE id = ?", (nouveau_json, uid))
+
 
 def _migrate_paiements_table(cursor):
     """Ajoute la colonne moyen_paiement si elle n'existe pas"""
@@ -83,6 +75,7 @@ def _migrate_paiements_table(cursor):
     existing_cols = {row[1] for row in cursor.fetchall()}
     if "moyen_paiement" not in existing_cols:
         cursor.execute("ALTER TABLE PAIEMENTS ADD COLUMN moyen_paiement TEXT")
+
 
 def init_database():
     """Initialiser la base de données avec les tables nécessaires"""
@@ -102,6 +95,7 @@ def init_database():
             formation_laser INTEGER DEFAULT 0,
             formation_brodeuse INTEGER DEFAULT 0,
             montant REAL DEFAULT 0.0,
+            certifications TEXT DEFAULT '[]',
             date_inscription TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -138,15 +132,15 @@ def init_database():
             projet_type TEXT,
             projet_tuteur TEXT,
             numero_operation TEXT,
-            type_mouvement TEXT, -- 'CREDIT' ou 'DEBIT'
+            type_mouvement TEXT,
             montant REAL,
             materiau TEXT,
             poids REAL,
+            moyen_paiement TEXT,
             FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE CASCADE
         )
     """)
     
-    # Migration des utilisateurs (pour les certifications dynamiques)
     _migrate_legacy_users_table(cursor)
     _migrate_paiements_table(cursor)
 
@@ -154,22 +148,7 @@ def init_database():
     conn.close()
 
 
-def _normalize_user_row(row):
-    return {
-        "id": row[0],
-        "id_moodle": row[1],
-        "nom": row[2],
-        "prenom": row[3],
-        "statut": row[4],
-        "formation_3d": bool(row[5]),
-        "formation_laser": bool(row[6]),
-        "formation_brodeuse": bool(row[7]),
-        "montant": row[8],
-    }
-
-
 def research_user_by_id(id_user):
-    """Rechercher un utilisateur par son ID"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT nom, prenom FROM UTILISATEURS WHERE id = ?", (id_user,))
@@ -178,13 +157,7 @@ def research_user_by_id(id_user):
     return result
 
 
-def research_user_by_id_qr(id_qr):
-    """Alias compatibilité recherche par ID QR"""
-    return research_user_by_id(id_qr)
-
-
 def research_user_by_id_carte(id_carte):
-    """Rechercher un utilisateur par son ID carte"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT nom, prenom FROM UTILISATEURS WHERE id_carte = ?", (id_carte,))
@@ -192,169 +165,52 @@ def research_user_by_id_carte(id_carte):
     conn.close()
     return result
 
-def add_user(id_user, nom, prenom, statut, id_moodle="", commentaire=""):
-    """Ajouter un utilisateur"""
+
+def update_user(id_user, nom, prenom, statut, id_moodle=None, certifications_list=None):
+    """Mettre à jour le profil et les certifications d'un coup"""
     conn = get_connection()
     cursor = conn.cursor()
+    certifs_json = json.dumps(certifications_list if certifications_list is not None else [])
+
     cursor.execute(
         """
-        INSERT INTO UTILISATEURS (id, nom, prenom, statut, email, commentaire)
-        VALUES (?, ?, ?, ?, ?, ?)
+        UPDATE UTILISATEURS
+        SET nom = ?, prenom = ?, statut = ?, email = ?, certifications = ?
+        WHERE id = ?
         """,
-        (id_user, nom, prenom, statut, id_moodle or None, commentaire or None),
+        (nom, prenom, statut, id_moodle, certifs_json, id_user),
     )
     conn.commit()
     conn.close()
 
 
-def update_user(id_user, nom, prenom, statut, id_moodle=None):
-    """Mettre à jour les informations principales d'un utilisateur"""
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    if id_moodle is None:
-        cursor.execute(
-            """
-            UPDATE UTILISATEURS
-            SET nom = ?, prenom = ?, statut = ?
-            WHERE id = ?
-            """,
-            (nom, prenom, statut, id_user),
-        )
-    else:
-        cursor.execute(
-            """
-            UPDATE UTILISATEURS
-            SET nom = ?, prenom = ?, statut = ?, email = ?
-            WHERE id = ?
-            """,
-            (nom, prenom, statut, id_moodle, id_user),
-        )
-
-    conn.commit()
-    conn.close()
-
-
 def link_id_carte(id_user, id_carte):
-    """Associer une carte RFID à un utilisateur"""
     conn = get_connection()
     cursor = conn.cursor()
-    
-    # Si id_carte est vide, on le transforme en None (NULL en SQL)
     valeur_carte = id_carte if id_carte and id_carte.strip() != "" else None
-    
     cursor.execute("UPDATE UTILISATEURS SET id_carte = ? WHERE id = ?", (valeur_carte, id_user))
     conn.commit()
     conn.close()
 
 
 def add_entry(id_utilisateur, type_projet="", zone_travail="", commentaire=""):
-    """Ajouter une entrée"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        """
-        INSERT INTO ENTREE (id_utilisateur, type_projet, zone_travail, commentaire)
-        VALUES (?, ?, ?, ?)
-        """,
+        "INSERT INTO ENTREE (id_utilisateur, type_projet, zone_travail, commentaire) VALUES (?, ?, ?, ?)",
         (id_utilisateur, type_projet, zone_travail, commentaire),
     )
     conn.commit()
     conn.close()
 
 
-def get_all_users():
-    """Récupérer tous les utilisateurs"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT id, email, nom, prenom, statut,
-               formation_3d, formation_laser, formation_brodeuse, montant
-        FROM UTILISATEURS
-        ORDER BY nom, prenom
-        """
-    )
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
-
-
-def list_machines():
-    """Retourner la liste des machines (id,name,type,slots_json)"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, type, slots FROM MACHINES ORDER BY name")
-    rows = cursor.fetchall()
-    conn.close()
-    machines = []
-    for r in rows:
-        machines.append({
-            "id": r[0],
-            "name": r[1],
-            "type": r[2],
-            "slots": [] if r[3] is None else json.loads(r[3])
-        })
-    return machines
-
-
-def add_machine(id_machine, name, type_machine, slots_list):
-    """Ajouter une machine avec une liste de slots (list)"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    slots_json = json.dumps(slots_list or [])
-    cursor.execute("INSERT OR REPLACE INTO MACHINES (id, name, type, slots) VALUES (?, ?, ?, ?)",
-                   (id_machine, name, type_machine, slots_json))
-    conn.commit()
-    conn.close()
-
-
-def update_machine(id_machine, name=None, type_machine=None, slots_list=None):
-    """Mettre à jour une machine existante"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    # build update dynamically
-    parts = []
-    params = []
-    if name is not None:
-        parts.append('name = ?')
-        params.append(name)
-    if type_machine is not None:
-        parts.append('type = ?')
-        params.append(type_machine)
-    if slots_list is not None:
-        parts.append('slots = ?')
-        params.append(json.dumps(slots_list))
-    if not parts:
-        conn.close(); return
-    params.append(id_machine)
-    sql = f"UPDATE MACHINES SET {', '.join(parts)} WHERE id = ?"
-    cursor.execute(sql, params)
-    conn.commit()
-    conn.close()
-
-
-def delete_machine(id_machine):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM MACHINES WHERE id = ?", (id_machine,))
-    changed = cursor.rowcount > 0
-    conn.commit()
-    conn.close()
-    return changed
-
-
 def list_users(search="", statut="", page=1, page_size=50):
-    """Lister les utilisateurs avec recherche, filtre statut et pagination"""
     conn = get_connection()
     cursor = conn.cursor()
 
     where_clauses = []
     params = []
-
     clean_search = (search or "").strip().lower()
-    
-    # On garde le statut exact (sans le passer en minuscules) pour faire une recherche précise
     clean_statut = (statut or "").strip()
 
     if clean_search:
@@ -362,7 +218,6 @@ def list_users(search="", statut="", page=1, page_size=50):
         like_value = f"%{clean_search}%"
         params.extend([like_value, like_value, like_value])
 
-    # NOUVELLE LOGIQUE DE FILTRE : Correspondance exacte
     if clean_statut and clean_statut != "all":
         where_clauses.append("statut = ?")
         params.append(clean_statut)
@@ -378,8 +233,7 @@ def list_users(search="", statut="", page=1, page_size=50):
 
     cursor.execute(
         f"""
-        SELECT id, email, nom, prenom, statut,
-               formation_3d, formation_laser, formation_brodeuse, montant
+        SELECT id, email, nom, prenom, statut, montant
         FROM UTILISATEURS
         {where_sql}
         ORDER BY nom, prenom
@@ -388,13 +242,11 @@ def list_users(search="", statut="", page=1, page_size=50):
         params + [safe_page_size, offset],
     )
     rows = cursor.fetchall()
-
     conn.close()
     return rows, total
 
 
 def get_all_entries(limit=50):
-    """Récupérer les dernières entrées"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -403,8 +255,7 @@ def get_all_entries(limit=50):
                e.type_projet, e.zone_travail, e.commentaire
         FROM ENTREE e
         JOIN UTILISATEURS u ON e.id_utilisateur = u.id
-        ORDER BY e.date DESC
-        LIMIT ?
+        ORDER BY e.date DESC LIMIT ?
         """,
         (limit,),
     )
@@ -414,21 +265,16 @@ def get_all_entries(limit=50):
 
 
 def get_stats(periode="semaine", statut="all", certif="all", zone="all", motif="all"):
-    """Récupère les statistiques filtrées dynamiquement par profil, visite et période"""
-    import datetime
     conn = get_connection()
     cursor = conn.cursor()
-
     base_join = "FROM ENTREE e JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
     
-    # 1. Construction dynamique des requêtes SQL selon les filtres choisis
     user_where = []
     user_params = []
     if statut and statut != "all":
         user_where.append("u.statut = ?")
         user_params.append(statut)
     if certif and certif != "all":
-        # Le JSON ressemble à '["Impression 3D", "Laser"]', on cherche donc la chaîne exacte
         user_where.append("u.certifications LIKE ?")
         user_params.append(f'%"{certif}"%')
         
@@ -441,36 +287,23 @@ def get_stats(periode="semaine", statut="all", certif="all", zone="all", motif="
         entry_where.append("e.type_projet = ?")
         entry_params.append(motif)
 
-    # Fusion des filtres
     all_where = user_where + entry_where
     all_params = user_params + entry_params
-
-    # Création des clauses WHERE intelligentes
     statut_filter = f"WHERE {' AND '.join(all_where)}" if all_where else ""
     and_statut_filter = f"AND {' AND '.join(all_where)}" if all_where else ""
 
-    # ==================================
-    # REQUÊTES
-    # ==================================
-    
-    # Total Utilisateurs (on n'applique que les filtres "Utilisateur" ici)
     u_where_sql = f"WHERE {' AND '.join(user_where)}" if user_where else ""
     cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {u_where_sql}", user_params)
     total_users = cursor.fetchone()[0]
 
-    # Total Entrées (Tout confondu)
     cursor.execute(f"SELECT COUNT(*) {base_join} {statut_filter}", all_params)
     total_entries = cursor.fetchone()[0]
 
     now = datetime.datetime.now()
-    today_str = now.strftime("%Y-%m-%d")
-    
-    # Entrées du jour
-    today_params = [today_str + "%"] + all_params
+    today_params = [now.strftime("%Y-%m-%d") + "%"] + all_params
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date LIKE ? {and_statut_filter}", today_params)
     today_entries = cursor.fetchone()[0]
 
-    # Logique temporelle pour les graphiques
     if periode == "jour":
         start_date = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
         group_by = "strftime('%Y-%m-%d %H:00', e.date)" 
@@ -484,42 +317,20 @@ def get_stats(periode="semaine", statut="all", certif="all", zone="all", motif="
         start_date = (now - datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
         group_by = "strftime('%Y-%m-%d', e.date)"
 
-    # Entrées sur la période dynamique
     period_params = [start_date] + all_params
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter}", period_params)
     period_entries = cursor.fetchone()[0]
 
-    # Données pour le Graphique en barres
-    cursor.execute(f"""
-        SELECT {group_by} as d, COUNT(*)
-        {base_join}
-        WHERE e.date >= ? {and_statut_filter}
-        GROUP BY d ORDER BY d
-    """, period_params)
+    cursor.execute(f"SELECT {group_by} as d, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY d ORDER BY d", period_params)
     chart_data = {row[0]: row[1] for row in cursor.fetchall()}
 
-    # Répartition par PROFIL (1A, 2A...)
-    cursor.execute(f"""
-        SELECT u.statut, COUNT(*)
-        {base_join}
-        WHERE e.date >= ? {and_statut_filter}
-        GROUP BY u.statut
-        ORDER BY COUNT(*) DESC
-    """, period_params)
+    cursor.execute(f"SELECT u.statut, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY u.statut ORDER BY COUNT(*) DESC", period_params)
     profiles = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
 
-    # Dernières entrées détaillées (Filtres appliqués !)
-    cursor.execute(f"""
-        SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet
-        {base_join}
-        {statut_filter}
-        ORDER BY e.date DESC
-        LIMIT 20
-    """, all_params)
+    cursor.execute(f"SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20", all_params)
     recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}", "statut": r[3], "zone": r[4], "projet": r[5]} for r in cursor.fetchall()]
 
     conn.close()
-    
     return {
         "total_users": total_users,
         "total_entries": total_entries,
@@ -531,92 +342,39 @@ def get_stats(periode="semaine", statut="all", certif="all", zone="all", motif="
     }
 
 
-def check_status(id_user):
-    """Vérifier le statut d'un utilisateur"""
+def get_user_by_scan_id(scan_id):
+    """Retourne toutes les infos d'un utilisateur, incluant les certifications décodées"""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT nom, prenom, statut FROM UTILISATEURS WHERE id = ?", (id_user,))
-    result = cursor.fetchone()
-    conn.close()
-    return result
-
-
-def check_formations(id_user):
-    """Vérifier les formations d'un utilisateur"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT formation_3d, formation_laser, formation_brodeuse FROM UTILISATEURS WHERE id = ?",
-        (id_user,),
-    )
-    result = cursor.fetchone()
-    conn.close()
-    return result
-
-
-def add_formation(id_user, f3d=False, flaser=False, fbrodeuse=False):
-    """Ajouter ou modifier les formations d'un utilisateur"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        UPDATE UTILISATEURS
-        SET formation_3d = ?, formation_laser = ?, formation_brodeuse = ?
-        WHERE id = ?
-        """,
-        (int(f3d), int(flaser), int(fbrodeuse), id_user),
-    )
-    conn.commit()
-    conn.close()
-
-
-def get_user_details(id_user):
-    """Récupérer un profil utilisateur enrichi"""
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT id, email, nom, prenom, statut,
-               formation_3d, formation_laser, formation_brodeuse, montant
+    cursor.execute("""
+        SELECT id, nom, prenom, statut, email, id_carte, montant, certifications
         FROM UTILISATEURS
-        WHERE id = ?
-        """,
-        (id_user,),
-    )
+        WHERE id = ? OR id_carte = ?
+    """, (scan_id, scan_id))
     row = cursor.fetchone()
-    if not row:
-        conn.close()
-        return None
-
-    cursor.execute(
-        """
-        SELECT date, type_projet, zone_travail, commentaire
-        FROM ENTREE
-        WHERE id_utilisateur = ?
-        ORDER BY date DESC
-        LIMIT 20
-        """,
-        (id_user,),
-    )
-    entries = cursor.fetchall()
     conn.close()
-
-    user = _normalize_user_row(row)
-    user["entries"] = [
-        {"date": e[0], "type_projet": e[1], "zone": e[2], "commentaire": e[3]}
-        for e in entries
-    ]
-    user["comments"] = [
-        {"commentaire": e[3], "zone": e[2], "date": e[0]}
-        for e in entries
-        if e[3]
-    ]
-    return user
+    
+    if row:
+        certifs = []
+        if row[7]:
+            try:
+                certifs = json.loads(row[7])
+            except Exception:
+                certifs = []
+        return {
+            "id": row[0],
+            "nom": row[1],
+            "prenom": row[2],
+            "statut": row[3],
+            "email": row[4],
+            "id_carte": row[5] or "",
+            "montant": row[6] or 0.0,
+            "certifications": certifs
+        }
+    return None
 
 
 def delete_user(id_user):
-    """Supprimer un utilisateur et ses entrées"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM UTILISATEURS WHERE id = ?", (id_user,))
@@ -626,151 +384,7 @@ def delete_user(id_user):
     return deleted
 
 
-def check_entries_by_user(id_user):
-    """Vérifier les entrées d'un utilisateur"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT u.nom, u.prenom, e.date
-        FROM UTILISATEURS u
-        JOIN ENTREE e ON u.id = e.id_utilisateur
-        WHERE u.id = ?
-        ORDER BY e.date DESC
-        """,
-        (id_user,),
-    )
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
-
-
-def add_comment(id_user, commentaire, zone=""):
-    """Ajouter un commentaire via une entrée dédiée"""
-    add_entry(id_user, type_projet="Commentaire", zone_travail=zone, commentaire=commentaire)
-
-
-def check_comments(id_user):
-    """Récupérer les commentaires associés aux entrées"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT commentaire, zone_travail, date
-        FROM ENTREE
-        WHERE id_utilisateur = ? AND commentaire IS NOT NULL AND commentaire != ''
-        ORDER BY date DESC
-        """,
-        (id_user,),
-    )
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
-
-
-def import_csv_data():
-    """Importer des données CSV si des fichiers de test existent"""
-    users_file = ROOT / "test_data" / "users.csv"
-    entries_file = ROOT / "test_data" / "entrees.csv"
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    if users_file.exists():
-        try:
-            with users_file.open("r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    cursor.execute(
-                        """
-                        INSERT OR IGNORE INTO UTILISATEURS
-                        (id, nom, prenom, statut, email)
-                        VALUES (?, ?, ?, ?, ?)
-                        """,
-                        (
-                            row.get("ID", ""),
-                            row.get("NOM", ""),
-                            row.get("PRENOM", ""),
-                            row.get("STATUT", "Etudiant"),
-                            row.get("ID_MOODLE", ""),
-                        ),
-                    )
-            print(f"Utilisateurs importés depuis {users_file}")
-        except Exception as exc:
-            print(f"Erreur import users: {exc}")
-
-    if entries_file.exists():
-        try:
-            with entries_file.open("r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    cursor.execute(
-                        """
-                        INSERT INTO ENTREE (id_utilisateur, date, type_projet, zone_travail, commentaire)
-                        VALUES (?, ?, ?, ?, ?)
-                        """,
-                        (
-                            row.get("ID_UTILISATEUR", ""),
-                            row.get("DATE", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                            row.get("TYPE_PROJET", ""),
-                            row.get("ZONE_TRAVAIL", ""),
-                            row.get("COMMENTAIRE", ""),
-                        ),
-                    )
-            print(f"Entrées importées depuis {entries_file}")
-        except Exception as exc:
-            print(f"Erreur import entries: {exc}")
-
-    conn.commit()
-    conn.close()
-
-
-def to_excel():
-    """Placeholder export Excel"""
-    pass
-
-def update_certifications(id_user, certifications_list):
-    """Met à jour la liste des certifications d'un utilisateur"""
-    import json
-    conn = get_connection()
-    cursor = conn.cursor()
-    # Transforme la liste Python en texte JSON
-    certifs_json = json.dumps(certifications_list)
-    cursor.execute("UPDATE UTILISATEURS SET certifications = ? WHERE id = ?", (certifs_json, id_user))
-    conn.commit()
-    conn.close()
-
-def get_user_by_scan_id(scan_id):
-    """Trouve un utilisateur via son ID ou sa carte RFID, et renvoie TOUTES ses infos"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    # LE FIX EST ICI : On a ajouté "montant" à la liste du SELECT
-    cursor.execute("""
-        SELECT id, nom, prenom, statut, email, id_carte, formation_3d, formation_laser, formation_brodeuse, montant
-        FROM UTILISATEURS
-        WHERE id = ? OR id_carte = ?
-    """, (scan_id, scan_id))
-    row = cursor.fetchone()
-    conn.close()
-    
-    if row:
-        return {
-            "id": row[0],
-            "nom": row[1],
-            "prenom": row[2],
-            "statut": row[3],
-            "email": row[4],
-            "id_carte": row[5] or "",
-            "formation_3d": row[6],
-            "formation_laser": row[7],
-            "formation_brodeuse": row[8],
-            "montant": row[9] or 0.0 
-        }
-    return None
-
 def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau=None, poids=None, moyen_paiement=None):
-    """Ajoute un paiement et modifie le solde de manière sécurisée"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -780,21 +394,15 @@ def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, proje
         """,
         (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement),
     )
-    
-    # 1. Si c'est un apport de matériel (Crédit), on ajoute l'argent au solde
     if type_mouvement == "CREDIT" or moyen_paiement == "Rechargement Solde":
         cursor.execute("UPDATE UTILISATEURS SET montant = montant + ? WHERE id = ?", (montant, id_utilisateur))
-        
-    # 2. Si c'est une facturation (Débit), on ne touche au solde QUE SI le mot "Solde" est dans le moyen de paiement
     elif type_mouvement == "DEBIT" and moyen_paiement and "Solde" in moyen_paiement:
         cursor.execute("UPDATE UTILISATEURS SET montant = montant - ? WHERE id = ?", (montant, id_utilisateur))
-        
     conn.commit()
     conn.close()
 
 
 def get_payments(id_user=None, project_name=None, limit=50, search_user=None):
-    """Récupère l'historique des paiements avec recherche par nom/prénom et filtres"""
     conn = get_connection()
     cursor = conn.cursor()
     query = """
@@ -804,29 +412,21 @@ def get_payments(id_user=None, project_name=None, limit=50, search_user=None):
         FROM PAIEMENTS p
         JOIN UTILISATEURS u ON p.id_utilisateur = u.id
     """
-    
     where_clauses = []
     params = []
-    
     if id_user:
         where_clauses.append("p.id_utilisateur = ?")
         params.append(id_user)
-        
     if project_name:
         where_clauses.append("p.projet_nom LIKE ?")
         params.append(f"%{project_name}%")
-        
     if search_user:
-        # NOUVEAU : Recherche par Nom OU Prénom
         where_clauses.append("(u.nom LIKE ? OR u.prenom LIKE ?)")
         params.extend([f"%{search_user}%", f"%{search_user}%"])
-        
     if where_clauses:
         query += " WHERE " + " AND ".join(where_clauses)
-        
     query += " ORDER BY p.date DESC LIMIT ?"
     params.append(limit)
-    
     cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
@@ -844,14 +444,9 @@ def get_payments(id_user=None, project_name=None, limit=50, search_user=None):
 
 
 def search_projects(query, limit=10):
-    """Rechercher des noms de projets existants"""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT DISTINCT projet_nom FROM PAIEMENTS WHERE projet_nom LIKE ? LIMIT ?",
-        (f"%{query}%", limit)
-    )
+    cursor.execute("SELECT DISTINCT projet_nom FROM PAIEMENTS WHERE projet_nom LIKE ? LIMIT ?", (f"%{query}%", limit))
     rows = cursor.fetchall()
     conn.close()
     return [r[0] for r in rows if r[0]]
-
