@@ -87,7 +87,8 @@ const MoteurScan = {
         let barcodeTimeout = null;
 
         this.listenerScanette = function(e) {
-            // Sécurité de changement d'onglet
+            // Sécurité : Si l'onglet a changé et que l'élément n'existe plus dans le DOM, on ignore
+            if (!e || !e.key) return;
             if (inputRecherche && !document.body.contains(inputRecherche) && !window.fablabAutoMode) return;
 
             if (e.key === 'Enter') {
@@ -127,5 +128,52 @@ const MoteurScan = {
         };
 
         document.addEventListener('keydown', this.listenerScanette);
+    },
+    /**
+     * Télécharge le QR code en arrière-plan, le copie dans le presse-papiers,
+     * puis ouvre Zimbra avec le message pré-rempli.
+     * @param {Object} user Données de l'utilisateur (prenom, nom, email, id)
+     */
+    envoyerEmailZimbra: function(user) {
+        if (!user.email || user.email.trim() === "") {
+            alert("Cet utilisateur n'a pas d'adresse e-mail renseignée.");
+            return;
+        }
+
+        var emailDestinataire = encodeURIComponent(user.email);
+        var sujet = encodeURIComponent("Votre QR Code d'accès au FabLab PE-63");
+        
+        var base_url = window.location.origin;
+        var lienImageQR = base_url + "/api/qr_code?id=" + user.id;
+
+        // Message professionnel identique
+        var corpsMessage = encodeURIComponent(
+                        "Bonjour " + user.prenom + ",\n\n" +
+                        "Votre inscription au FabLab a bien été validée !\n\n" +
+                        "Voici votre QR Code personnel à conserver précieusement sur votre téléphone pour vous identifier lors de vos prochaines entrées au FabLab.\n"+
+                        "\n CODE_QR\n" +
+                        "\n IMPORTANT : Pour des raisons pratiques, nous vous conseillons tout de même de vous identifier lors de vos visites à l'aide de votre carte multiservices (carte étudiante) fournie par l'établissement.\n\n" +
+                        "À très vite !\n" +
+                        "Pour l'équipe du FabLab,"
+                    );
+        
+        var urlZimbra = "https://messagerie.ec-lyon.fr/?view=compose&to=" + emailDestinataire + "&subject=" + sujet + "&body=" + corpsMessage + "#1";
+
+        // Copie automatique dans le presse-papiers avant d'ouvrir le webmail
+        fetch(lienImageQR)
+            .then(function(res) { return res.blob(); })
+            .then(function(blob) {
+                var item = new ClipboardItem({ "image/png": blob });
+                return navigator.clipboard.write([item]);
+            })
+            .then(function() {
+                console.log("✅ QR Code copié avec succès !");
+                window.open(urlZimbra, '_blank');
+            })
+            .catch(function(err) {
+                console.error("Impossible de copier l'image :", err);
+                // Si la copie échoue (ex: perte de focus), on ouvre quand même Zimbra
+                window.open(urlZimbra, '_blank');
+            });
     }
 };

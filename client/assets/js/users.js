@@ -12,6 +12,7 @@ function initUsersPage() {
     var msgBox = document.getElementById('edit-message');
 
     var pagination = { pageActuelle: 1, utilisateursParPage: 12 };
+    let COMPTE_UTILISATEUR_COURANT = null;
 
     // ==========================================
     // 0. CHARGEMENT DE LA CONFIGURATION (JSON)
@@ -91,6 +92,7 @@ function initUsersPage() {
             .then(function(resultat) {
                 if (resultat.success) {
                     var u = resultat.data;
+                    COMPTE_UTILISATEUR_COURANT = u; // Sauvegarde en mémoire
                     
                     // On affiche le bon panneau
                     panneauVide.style.display = 'none';
@@ -283,10 +285,12 @@ function initUsersPage() {
             });
         }
     });
-
     document.getElementById('btn-renvoyer-qr').addEventListener('click', function() {
-        // Note: L'envoi de mail Python n'est pas encore codé dans le serveur, on simule l'UI
-        alert("L'ordre d'envoi de l'email avec le QR Code a été transmis au serveur.");
+    if (COMPTE_UTILISATEUR_COURANT) {
+         MoteurScan.envoyerEmailZimbra(COMPTE_UTILISATEUR_COURANT);
+    } else {
+         alert("Aucun utilisateur sélectionné.");
+    }
     });
 
     // ==========================================
