@@ -13,6 +13,7 @@ function initRegistrationPage() {
     var boutonRfid = document.getElementById('rfid-associate-btn');
     var champRfidCache = document.getElementById('rfid_card_id');
     var boiteMessage = document.getElementById('registration-message');
+    var checkboxMail = document.getElementById('send_qr_email'); // La case à cocher
 
     // ==========================================
     // 1.1 CHARGEMENT DE LA CONFIGURATION (JSON)
@@ -36,15 +37,13 @@ function initRegistrationPage() {
                 if (containerMotif) {
                     containerMotif.innerHTML = "";
                     config.motifs.forEach(function(m, index) {
-                        // Création de l'input caché (le vrai bouton radio)
                         var input = document.createElement('input');
                         input.type = "radio";
                         input.id = "motif_" + index;
                         input.name = "motif";
                         input.value = m;
-                        if (index === 0) input.required = true; // Rend le 1er choix obligatoire
+                        if (index === 0) input.required = true;
 
-                        // Création du label visible (la petite bulle "pill")
                         var label = document.createElement('label');
                         label.className = "pill";
                         label.setAttribute("for", "motif_" + index);
@@ -57,7 +56,6 @@ function initRegistrationPage() {
             }
         });
 
-    // Sécurité : On s'arrête là si la page est mal chargée
     if (!formulaire || !champPrenom || !champNom) {
         console.error("Erreur : Éléments du formulaire introuvables.");
         return;
@@ -70,28 +68,20 @@ function initRegistrationPage() {
         var prenom = champPrenom.value.trim().toLowerCase();
         var nom = champNom.value.trim().toLowerCase();
 
-        // Remplacement des espaces par des tirets
         prenom = prenom.replace(/\s+/g, '-');
         nom = nom.replace(/\s+/g, '-');
 
-        // NOUVEAU : On lit directement la valeur du menu déroulant
         var statutChoisi = champStatut.value; 
 
         if (prenom !== "" && nom !== "") {
-            // On crée des "groupes" pour savoir quel email générer
             var groupeEtudiants = ["1A", "2A", "3A", "Alternant·e", "Master"];
             var groupePersonnel = ["Doctorant·e", "Enseignant·e/Chercheur·se", "Personnel"];
 
-            // Si le statut choisi fait partie du groupe des étudiants
             if (groupeEtudiants.includes(statutChoisi)) {
                 champEmail.value = prenom + "." + nom + "@etu.ec-lyon.fr";
-            } 
-            // Sinon, si c'est le personnel
-            else if (groupePersonnel.includes(statutChoisi)) {
+            } else if (groupePersonnel.includes(statutChoisi)) {
                 champEmail.value = prenom + "." + nom + "@ec-lyon.fr";
-            } 
-            // Sinon (Extérieur), on laisse vide
-            else {
+            } else {
                 champEmail.value = "";
             }
         } else {
@@ -99,10 +89,9 @@ function initRegistrationPage() {
         }
     }
 
-    // Déclencheurs de la mise à jour de l'email
     champPrenom.addEventListener('input', mettreAJourEmail);
     champNom.addEventListener('input', mettreAJourEmail);
-    champStatut.addEventListener('change', mettreAJourEmail); // NOUVEAU déclencheur
+    champStatut.addEventListener('change', mettreAJourEmail);
 
     // ==========================================
     // 3. GESTION DE LA CARTE RFID 
@@ -154,12 +143,11 @@ function initRegistrationPage() {
     }
 
     // ==========================================
-    // 4. ENVOI DES DONNÉES AU SERVEUR
+    // 4. ENVOI DES DONNÉES AU SERVEUR & COPIE AUTOMATIQUE
     // ==========================================
     formulaire.addEventListener('submit', function(evenement) {
         evenement.preventDefault();
 
-        // NOUVEAU : On récupère simplement la valeur du menu déroulant
         var statutFinal = champStatut.value;
 
         var donneesAEnvoyer = {
@@ -184,6 +172,16 @@ function initRegistrationPage() {
                 boiteMessage.style.color = "var(--success)";
                 boiteMessage.innerHTML = "<i class='fa-solid fa-check'></i> " + resultat.message;
 
+                // 🚀 APPEL DE LA FONCTION CENTRALISÉE
+                if (checkboxMail && checkboxMail.checked && donneesAEnvoyer.email !== "") {
+                    MoteurScan.envoyerEmailZimbra({
+                        id: resultat.id, // L'ID retourné par le serveur
+                        prenom: donneesAEnvoyer.prenom,
+                        nom: donneesAEnvoyer.nom,
+                        email: donneesAEnvoyer.email
+                    });
+                }
+
                 formulaire.reset();
                 
                 if (boutonRfid) {
@@ -199,10 +197,5 @@ function initRegistrationPage() {
                 boiteMessage.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur : " + resultat.error;
             }
         })
-        .catch(function(erreur) {
-            console.error("Problème de communication :", erreur);
-            boiteMessage.style.color = "var(--danger)";
-            boiteMessage.innerHTML = "<i class='fa-solid fa-plug'></i> Impossible de joindre le serveur FabLab.";
-        });
     });
 }
