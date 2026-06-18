@@ -59,4 +59,32 @@
             <div id="registration-message" class="muted form-group" role="status" aria-live="polite" style="margin-top: 1rem; text-align: center;"></div>
         </form>
     </div>
+    <div class="text-center mt-2">
+    <hr class="divider">
+    <p class="muted small">
+        <i class="fa-solid fa-file-excel"></i> Une liste importante à intégrer ? 
+        <input type="file" id="excel-file-input" accept=".xlsx" style="display: none;" />
+        <a href="#" onclick="document.getElementById('excel-file-input').click(); return false;">
+            Importer un fichier Excel historique (.xlsx)
+        </a>
+    </p>
+    <div id="import-loading-msg" class="font-bold small mt-05"></div>
+</div>
+
+<div class="mt-2 text-center">
+    <hr class="divider">
+    <details class="muted small mt-1" style="cursor: pointer; text-align: left; background: var(--light); padding: 1rem; border-radius: var(--border-radius);">
+        <summary class="font-bold" style="color: var(--gray);"><i class="fa-solid fa-shield-halved"></i> Maintenance réglementaire RGPD (1er Septembre)</summary>
+        <p class="mt-05 muted" style="font-size: 0.85rem; line-height: 1.4;">
+            Conformément aux règles de l'établissement et de la réglementation RGPD : les pointages d'accès sont limités à <strong>1 an maximum</strong> (puis anonymisés pour les statistiques), et les fiches d'inscription à <strong>5 ans maximum</strong> après la fin de présence.
+        </p>
+        
+        <div class="text-center mt-1">
+            <button type="button" onclick="declencherMaintenanceRGPD();" class="btn btn-danger btn-sm">
+                <i class="fa-solid fa-triangle-exclamation"></i> Lancer la maintenance annuelle
+            </button>
+        </div>
+        <div id="rgpd-loading-msg" class="text-center font-bold mt-1" style="font-size: 0.85rem;"></div>
+    </details>
+</div>
 </div>

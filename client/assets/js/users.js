@@ -301,8 +301,6 @@ function initUsersPage() {
     document.getElementById('users-page-prev').addEventListener('click', function() { if (pagination.pageActuelle > 1) { pagination.pageActuelle--; chargerLesUtilisateurs(); }});
     document.getElementById('users-page-next').addEventListener('click', function() { pagination.pageActuelle++; chargerLesUtilisateurs(); });
 
-    chargerLesUtilisateurs();
-
     // ==========================================
     // BRANCHEMENT DU PANNEAU USERS AU MOTEUR UNIQUE
     // ==========================================
@@ -322,4 +320,5 @@ function initUsersPage() {
                 });
         }
     });
+    chargerLesUtilisateurs();
 }
