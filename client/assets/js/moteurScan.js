@@ -141,7 +141,7 @@ const MoteurScan = {
         }
 
         var emailDestinataire = encodeURIComponent(user.email);
-        var sujet = encodeURIComponent("Votre QR Code d'accès au FabLab PE-63");
+        var sujet = encodeURIComponent("Votre QR Code d'accès au FabLab de l'Ecole Centrale de Lyon");
         
         var base_url = window.location.origin;
         var lienImageQR = base_url + "/api/qr_code?id=" + user.id;
@@ -149,9 +149,9 @@ const MoteurScan = {
         // Message professionnel identique
         var corpsMessage = encodeURIComponent(
                         "Bonjour " + user.prenom + ",\n\n" +
-                        "Votre inscription au FabLab a bien été validée !\n\n" +
+                        "Votre inscription au FabLab de l'Ecole Centrale de Lyon a bien été validée !\n\n" +
                         "Voici votre QR Code personnel à conserver précieusement sur votre téléphone pour vous identifier lors de vos prochaines entrées au FabLab.\n"+
-                        "\n CODE_QR\n" +
+                        "\n\n" +
                         "\n IMPORTANT : Pour des raisons pratiques, nous vous conseillons tout de même de vous identifier lors de vos visites à l'aide de votre carte multiservices (carte étudiante) fournie par l'établissement.\n\n" +
                         "À très vite !\n" +
                         "Pour l'équipe du FabLab,"
