@@ -2,3 +2,4 @@ requests
 pyserial
 qrcode
 pillow
+openpyxl
