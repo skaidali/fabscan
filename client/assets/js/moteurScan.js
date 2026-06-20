@@ -134,6 +134,9 @@ const MoteurScan = {
      * puis ouvre Zimbra avec le message pré-rempli.
      * @param {Object} user Données de l'utilisateur (prenom, nom, email, id)
      */
+    // Variable pour garder la trace de l'unique fenêtre Zimbra ouverte
+    fenetreZimbraUnique: null,
+
     envoyerEmailZimbra: function(user) {
         if (!user.email || user.email.trim() === "") {
             alert("Cet utilisateur n'a pas d'adresse e-mail renseignée.");
@@ -146,20 +149,19 @@ const MoteurScan = {
         var base_url = window.location.origin;
         var lienImageQR = base_url + "/api/qr_code?id=" + user.id;
 
-        // Message professionnel identique
         var corpsMessage = encodeURIComponent(
-                        "Bonjour " + user.prenom + ",\n\n" +
-                        "Votre inscription au FabLab de l'Ecole Centrale de Lyon a bien été validée !\n\n" +
-                        "Voici votre QR Code personnel à conserver précieusement sur votre téléphone pour vous identifier lors de vos prochaines entrées au FabLab.\n"+
-                        "\n\n" +
-                        "\n IMPORTANT : Pour des raisons pratiques, nous vous conseillons tout de même de vous identifier lors de vos visites à l'aide de votre carte multiservices (carte étudiante) fournie par l'établissement.\n\n" +
-                        "À très vite !\n" +
-                        "Pour l'équipe du FabLab,"
-                    );
+            "Bonjour " + user.prenom + ",\n\n" +
+            "Votre inscription au FabLab de l'Ecole Centrale de Lyon a bien été validée !\n\n" +
+            "Voici votre QR Code personnel à conserver précieusement sur votre téléphone pour vous identifier lors de vos prochaines visites du FabLab.\n" +
+            "\n\n" +
+            "\n⚠️ IMPORTANT : Pour des raisons pratiques, nous vous conseillons tout de même de vous identifier lors de vos entrées à l'aide de votre carte multiservices.\n\n" +
+            "À très vite !\n" +
+            "Pour l'équipe du FabLab,"
+        );
         
-        var urlZimbra = "https://messagerie.ec-lyon.fr/?view=compose&to=" + emailDestinataire + "&subject=" + sujet + "&body=" + corpsMessage + "#1";
+        var urlComposeDirecte = "https://messagerie.ec-lyon.fr/?view=compose&to=" + emailDestinataire + "&subject=" + sujet + "&body=" + corpsMessage + "#1";
 
-        // Copie automatique dans le presse-papiers avant d'ouvrir le webmail
+        // Copie automatique du QR Code dans le presse-papiers
         fetch(lienImageQR)
             .then(function(res) { return res.blob(); })
             .then(function(blob) {
@@ -167,13 +169,36 @@ const MoteurScan = {
                 return navigator.clipboard.write([item]);
             })
             .then(function() {
-                console.log("✅ QR Code copié avec succès !");
-                window.open(urlZimbra, '_blank');
+                console.log("✅ QR Code copié dans le presse-papiers !");
+                
+                // GESTION DE LA FENÊTRE UNIQUE ET RE-ROUTAGE
+                // Si la fenêtre existe déjà et qu'elle n'a pas été fermée par l'utilisateur
+                if (MoteurScan.fenetreZimbraUnique && !MoteurScan.fenetreZimbraUnique.closed) {
+                    
+                    // On recycle la fenêtre existante : on change son URL vers le nouveau mail
+                    MoteurScan.fenetreZimbraUnique.location.href = urlComposeDirecte;
+                    MoteurScan.fenetreZimbraUnique.focus(); // On la remet au premier plan
+                    
+                } else {
+                    // Si elle n'existe pas encore (ou a été fermée), on crée LA fenêtre unique.
+                    // 'ZimbraFabLabPopup' est le nom de la fenêtre. Tant que ce nom est identique, 
+                    // le navigateur refusera d'ouvrir d'autres onglets et réutilisera celui-ci.
+                    MoteurScan.fenetreZimbraUnique = window.open(
+                        urlComposeDirecte, 
+                        'ZimbraFabLabPopup', 
+                        'width=1100,height=750,scrollbars=yes,resizable=yes'
+                    );
+                }
             })
             .catch(function(err) {
                 console.error("Impossible de copier l'image :", err);
-                // Si la copie échoue (ex: perte de focus), on ouvre quand même Zimbra
-                window.open(urlZimbra, '_blank');
+                // En cas de secours, on applique la même logique de fenêtre unique
+                if (MoteurScan.fenetreZimbraUnique && !MoteurScan.fenetreZimbraUnique.closed) {
+                    MoteurScan.fenetreZimbraUnique.location.href = urlComposeDirecte;
+                    MoteurScan.fenetreZimbraUnique.focus();
+                } else {
+                    MoteurScan.fenetreZimbraUnique = window.open(urlComposeDirecte, 'ZimbraFabLabPopup', 'width=1100,height=750');
+                }
             });
     }
 };

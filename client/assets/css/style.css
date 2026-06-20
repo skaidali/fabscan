@@ -406,3 +406,16 @@ input, select, textarea, button {
 .align-center { align-items: center; }
 .cursor-pointer { cursor: pointer; }
 .scrollable-list-sm { max-height: 200px; overflow-y: auto; }
+
+
+.flex-column { 
+  display: flex; 
+  flex-direction: column; 
+}
+.max-w-300 { 
+  max-width: 300px; 
+}
+.mx-auto { 
+  margin-left: auto; 
+  margin-right: auto; 
+}

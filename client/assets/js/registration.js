@@ -149,7 +149,7 @@ function initRegistrationPage() {
     }
 
     // ==========================================
-    // 4. ENVOI DES DONNÉES AU SERVEUR & COPIE AUTOMATIQUE
+    // 4. ENVOI DES DONNÉES AU SERVEUR & PERSISTANCE AUTOMATIQUE 
     // ==========================================
     formulaire.addEventListener('submit', function(evenement) {
         evenement.preventDefault();
@@ -164,8 +164,8 @@ function initRegistrationPage() {
             id_carte: champRfidCache.value.trim() 
         };
 
-        boiteMessage.style.color = "var(--primary)";
-        boiteMessage.innerHTML = "Envoi au serveur en cours...";
+        boiteMessage.classList.add('text-center');
+        boiteMessage.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Envoi au serveur en cours...";
 
         fetch('/api/add_user', {
             method: 'POST',
@@ -175,36 +175,76 @@ function initRegistrationPage() {
         .then(function(reponseDuServeur) { return reponseDuServeur.json(); })
         .then(function(resultat) {
             if (resultat.success === true) {
-                boiteMessage.style.color = "var(--success)";
-                boiteMessage.innerHTML = "<i class='fa-solid fa-check'></i> " + resultat.message;
+                // 🔒 ÉTAPE A : On fige le formulaire pour bloquer l'écran
+                formulaire.querySelectorAll('input, select, button[type="submit"]').forEach(function(el) {
+                    el.disabled = true;
+                });
+                if (boutonRfid) boutonRfid.disabled = true;
 
-                // APPEL DE LA FONCTION CENTRALISÉE
-                if (checkboxMail && checkboxMail.checked && donneesAEnvoyer.email !== "") {
-                    MoteurScan.envoyerEmailZimbra({
-                        id: resultat.id, // L'ID retourné par le serveur
-                        prenom: donneesAEnvoyer.prenom,
-                        nom: donneesAEnvoyer.nom,
-                        email: donneesAEnvoyer.email
+                // 📧 ÉTAPE B : On prépare l'objet utilisateur pour Zimbra
+                var utilisateurCree = {
+                    id: resultat.id,
+                    prenom: donneesAEnvoyer.prenom,
+                    nom: donneesAEnvoyer.nom,
+                    email: donneesAEnvoyer.email
+                };
+
+                // 🔄 ÉTAPE C : On affiche l'interface d'aide et les boutons d'action
+                boiteMessage.innerHTML = `
+                    <div class="highlight-box mt-1 text-center">
+                        <p class="font-bold mb-1 text-success">
+                            <i class='fa-solid fa-circle-check'></i> ${resultat.message}
+                        </p>
+                        <div class="flex-column gap-05 max-w-300 mx-auto">
+                            <button type="button" id="btn-zimbra-retry" class="btn btn-primary w-100 flex-center">
+                                <i class="fa-solid fa-envelope"></i> Envoyer le QR code par e-mail (Zimbra)
+                            </button>
+                            <p class="muted text-sm mt-05">
+                                <i class="fa-solid fa-circle-info"></i> Si le mail à envoyer ne s'est pas affiché (connexion requise), re-cliquez sur le bouton ci-dessus.
+                            </p>
+                            <hr class="divider">
+                            <button type="button" id="btn-next-registration" class="btn btn-outline w-100 flex-center">
+                                Inscription suivante <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // 🚀 ÉTAPE D : On lance le premier coup automatique si l'e-mail existe
+                if (donneesAEnvoyer.email !== "") {
+                    MoteurScan.envoyerEmailZimbra(utilisateurCree);
+                }
+
+                // 🔄 ÉTAPE E : Écouteur pour le re-clic manuel de secours (le Retry si déconnecté)
+                document.getElementById('btn-zimbra-retry').addEventListener('click', function() {
+                    MoteurScan.envoyerEmailZimbra(utilisateurCree);
+                });
+
+                // ⏭️ ÉTAPE F : Écouteur pour nettoyer et passer à l'étudiant suivant
+                document.getElementById('btn-next-registration').addEventListener('click', function() {
+                    formulaire.querySelectorAll('input, select, button[type="submit"]').forEach(function(el) {
+                        el.disabled = false;
                     });
-                }
+                    if (boutonRfid) boutonRfid.disabled = false;
 
-                formulaire.reset();
-                
-                if (boutonRfid) {
-                    boutonRfid.textContent = "Associer la carte";
-                    boutonRfid.classList.add('btn-outline');
-                    boutonRfid.classList.remove('btn-primary');
-                    champRfidCache.value = "";
-                }
+                    formulaire.reset();
+                    boiteMessage.innerHTML = "";
+                    
+                    if (boutonRfid) {
+                        boutonRfid.textContent = "Associer la carte";
+                        boutonRfid.classList.add('btn-outline');
+                        boutonRfid.classList.remove('btn-primary');
+                        champRfidCache.value = "";
+                    }
+                });
 
-                setTimeout(function() { boiteMessage.innerHTML = ""; }, 4000);
             } else {
-                boiteMessage.style.color = "var(--danger)";
+                boiteMessage.classList.add('text-danger', 'text-center');
                 boiteMessage.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur : " + resultat.error;
             }
-        })
+        });
     });
-    
+
     // ==========================================
     // GESTION DU TÉLÉVERSEMENT EXCEL DISCRET
     // ==========================================
