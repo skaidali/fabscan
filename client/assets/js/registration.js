@@ -191,18 +191,18 @@ function initRegistrationPage() {
 
                 // 🔄 ÉTAPE C : On affiche l'interface d'aide et les boutons d'action
                 boiteMessage.innerHTML = `
-                    <div class="highlight-box mt-1 text-center">
+                    <div class="highlight-box mt-1 text-center modal-content mx-auto">
                         <p class="font-bold mb-1 text-success">
                             <i class='fa-solid fa-circle-check'></i> ${resultat.message}
                         </p>
-                        <div class="flex-column gap-05 max-w-300 mx-auto">
-                            <button type="button" id="btn-zimbra-retry" class="btn btn-primary w-100 flex-center">
-                                <i class="fa-solid fa-envelope"></i> Envoyer le QR code par e-mail (Zimbra)
-                            </button>
+                        <div class="flex-column gap-05 w-100">
                             <p class="muted text-sm mt-05">
-                                <i class="fa-solid fa-circle-info"></i> Si le mail à envoyer ne s'est pas affiché (connexion requise), re-cliquez sur le bouton ci-dessus.
+                                <i class="fa-solid fa-circle-info"></i> Si le mail à envoyer ne s'est pas affiché (connexion requise), re-cliquez sur le bouton ci-dessous.
                             </p>
                             <hr class="divider">
+                            <button type="button" id="btn-zimbra-retry" class="btn btn-outline w-100 flex-center">
+                                <i class="fa-solid fa-envelope"></i> Renvoyer le QR Code (Si besoin)
+                            </button>
                             <button type="button" id="btn-next-registration" class="btn btn-outline w-100 flex-center">
                                 Inscription suivante <i class="fa-solid fa-arrow-right"></i>
                             </button>
