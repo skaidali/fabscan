@@ -34,3 +34,6 @@ Nous remercions les conceptrices de ce projet : Chloé Laurent et [Clara Rigaud]
 ## Retours Chloé et Clara mars
 
 - [ ] Tres bien le fichier sql_request pour separer les requetes db du serveur et la petite doc qui va avec. Attention à bien la mettre à jour en meme temps que les modifications dans le code :)  
+
+# Remarques sur le code SKANER
+- La database enregistre les heures en UTC, mais le serveur les convertit en heure locale pour l'affichage. Il faut donc faire attention à ce que les heures soient bien converties. Normalement pas de problème lors de l'export en csv.

@@ -108,10 +108,12 @@ function initScanPage() {
         if (!window.fablabAutoMode) msgBox.innerHTML = "";
     }
 
-    // ==========================================
+   // ==========================================
     // 3. TRAITEMENT DE L'IDENTIFICATION (RFID / QR / RECHERCHE)
     // ==========================================
     function gererUtilisateurIdentifie(idScanne, source) {
+        if (!idScanne) return;
+        
         fetch('/api/user_info?id=' + encodeURIComponent(idScanne))
         .then(function(res) { return res.json(); })
         .then(function(userData) {

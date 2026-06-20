@@ -258,19 +258,41 @@ def search_projects(query, limit=10):
 def get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_filter, and_statut_filter, today_params, period_params, group_by):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {u_where_sql}", user_params)
+
+    # 1. Décompte de la communauté
+    if u_where_sql:
+        cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {u_where_sql}", user_params)
+    else:
+        cursor.execute("SELECT COUNT(*) FROM UTILISATEURS")
     total_users = cursor.fetchone()[0]
+
+    # 2. Total historique filtré
     cursor.execute(f"SELECT COUNT(*) {base_join} {statut_filter}", all_params)
     total_entries = cursor.fetchone()[0]
+    
+    # 3. Entrées aujourd'hui
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date LIKE ? {and_statut_filter}", today_params)
     today_entries = cursor.fetchone()[0]
+    
+    # 4. : Entrées dans la dernière heure (on applique aussi les filtres de sécurité)
+    cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date >= datetime('now', '-1 hour') {and_statut_filter}", all_params)
+    hourly_entries = cursor.fetchone()[0]
+    
+    # 5. Entrées période
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter}", period_params)
     period_entries = cursor.fetchone()[0]
+    
+    # [Le reste des requêtes de la fonction reste identique...]
     cursor.execute(f"SELECT {group_by} as d, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY d ORDER BY d", period_params)
     chart_data = {row[0]: row[1] for row in cursor.fetchall()}
+    
     cursor.execute(f"SELECT u.statut, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY u.statut ORDER BY COUNT(*) DESC", period_params)
     profiles = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
+    
     cursor.execute(f"SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20", all_params)
     recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}", "statut": r[3], "zone": r[4], "projet": r[5]} for r in cursor.fetchall()]
+    
     conn.close()
-    return total_users, total_entries, today_entries, period_entries, chart_data, profiles, recent
+    
+    # ✨ On ajoute hourly_entries dans le retour de la fonction juste après today_entries
+    return total_users, total_entries, today_entries, hourly_entries, period_entries, chart_data, profiles, recent

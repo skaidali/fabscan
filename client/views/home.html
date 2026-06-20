@@ -1,19 +1,56 @@
 <div class="container">
-    <header class="page-header">
-        <h1>Tableau de bord</h1>
-        <div class="time muted" id="time">—</div>
+    <header class="page-header flex-between">
+        <div>
+            <h1>Tableau de bord</h1>
+            <p class="muted">Suivi opérationnel et affluence du jour</p>
+        </div>
+        <div class="flex-row align-center gap-05">
+            <div id="auto-status-container" role="button" aria-label="Changer le mode d'entrée"></div>
+            
+            <div class="highlight-box py-05 px-1 flex-center mb-0" id="time-container">
+                <span class="font-bold text-lg" id="time">—</span>
+            </div>
+        </div>
     </header>
 
-    <div class="card">
-        <div class="card-header flex-between">
-            <div>
-                <strong>Actions réalisées aujourd'hui</strong>
-                <div class="muted">Arrivées, inscriptions, factures, réservations - mise à jour automatique</div>
-            </div>
-            <button class="btn btn-outline" id="refresh-actions"><i class="fa-solid fa-arrows-rotate"></i> Rafraîchir</button>
+    <div class="grid-3 mb-1">
+        <div class="card kpi-box mb-0">
+            <div class="muted"><i class="fa-solid fa-bolt"></i> Entrées (Dernière heure)</div>
+            <div class="val text-danger" id="kpi-hourly-entries">0</div>
         </div>
-        <ul id="actions" class="data-table" style="list-style: none; padding: 0;">
-            <li class="muted">Chargement…</li>
-        </ul>
+        <div class="card kpi-box mb-0">
+            <div class="muted"><i class="fa-solid fa-users"></i> Entrées aujourd'hui</div>
+            <div class="val" id="kpi-today-entries">0</div>
+        </div>
+        <div class="card kpi-box mb-0">
+            <div class="muted"><i class="fa-solid fa-address-card"></i> Communauté du FabLab</div>
+            <div class="val" id="kpi-total-users">0</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <strong>Flux d'activité en direct</strong>
+            <div class="muted">Mise à jour automatique (toutes les 5s) • Détection des scans autonomes</div>
+        </div>
+        
+        <div class="table-wrap mt-1">
+            <table class="data-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Heure</th>
+                        <th>Visiteur</th>
+                        <th>Statut</th>
+                        <th>Zone occupée</th>
+                        <th>Projet / Motif</th>
+                    </tr>
+                </thead>
+                <tbody id="actions-live-body">
+                    <tr>
+                        <td colspan="5" class="text-center muted p-05">Chargement du flux...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

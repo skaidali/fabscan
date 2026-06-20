@@ -157,9 +157,18 @@ def get_stats_logic(params_getter):
         group_by = "strftime('%Y-%m-%d', e.date)"
 
     period_params = [start_date] + all_params
-    t_u, t_e, t_d, p_e, c_d, profs, rec = db.get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_filter, and_statut_filter, today_params, period_params, group_by)
+    t_u, t_e, t_d, h_e, p_e, c_d, profs, rec = db.get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_filter, and_statut_filter, today_params, period_params, group_by)
     
-    return {"total_users": t_u, "total_entries": t_e, "today_entries": t_d, "period_entries": p_e, "chart_data": c_d, "profiles": profs, "recent_entries": rec}
+    return {
+        "total_users": t_u, 
+        "total_entries": t_e, 
+        "today_entries": t_d, 
+        "hourly_entries": h_e,
+        "period_entries": p_e, 
+        "chart_data": c_d, 
+        "profiles": profs, 
+        "recent_entries": rec
+    }
 
 def export_stats_csv_logic():
     rows = db.get_all_entries(limit=10000)

@@ -18,33 +18,35 @@ const MoteurScan = {
         const { inputRecherche, datalist, onUserFound, forcerRFID = false } = options;
 
         // ==========================================
-        // 1. RECHERCHE MANUELLE (Datalist & Saisie)
+        // 1. RECHERCHE MANUELLE (Datalist & Saisie Centralisée)
         // ==========================================
         if (inputRecherche && datalist) {
             inputRecherche.addEventListener('input', (e) => {
                 const texte = e.target.value;
 
-                // Détection instantanée si le texte correspond à un choix existant
-                const optionsDatalist = datalist.childNodes;
+                // Détection instantanée si le texte correspond à une option du datalist
+                const optionsDatalist = datalist.getElementsByTagName('option');
                 for (let i = 0; i < optionsDatalist.length; i++) {
                     if (optionsDatalist[i].value === texte) {
-                        onUserFound(optionsDatalist[i].dataset.id, "Recherche");
-                        inputRecherche.value = ""; // Vide le champ
+                        // Récupération de l'ID utilisateur mémorisé
+                        const idTrouve = optionsDatalist[i].getAttribute('data-id');
+                        onUserFound(idTrouve, "Recherche");
+                        inputRecherche.value = ""; // Vide le champ de saisie
                         return;
                     }
                 }
 
-                // Sinon, recherche dynamique au clavier
+                // Recherche dynamique au clavier (à partir de 2 caractères)
                 if (texte.length >= 2) {
-                    fetch('/api/search_users?q=' + encodeURIComponent(texte))
+                    fetch('/api/users?search=' + encodeURIComponent(texte) + '&page_size=10')
                         .then(res => res.json())
                         .then(data => {
                             datalist.innerHTML = "";
-                            if (data.success) {
+                            if (data.items && data.items.length > 0) {
                                 data.items.forEach(u => {
                                     const opt = document.createElement('option');
-                                    opt.value = u.texte || `${u.prenom} ${u.nom}`;
-                                    opt.dataset.id = u.id;
+                                    opt.value = `${u.prenom} ${u.nom} (${u.statut})`;
+                                    opt.setAttribute('data-id', u.id); // On pose l'ID
                                     datalist.appendChild(opt);
                                 });
                             }
@@ -52,7 +54,7 @@ const MoteurScan = {
                 }
             });
         }
-
+    
         // ==========================================
         // 2. LECTEUR RFID (Polling permanent)
         // ==========================================

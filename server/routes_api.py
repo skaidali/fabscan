@@ -38,7 +38,7 @@ def handle_get_api(route, params, request_handler):
         return True
 
     elif route == "stats":
-        request_handler.send_response_json(biz.get_stats_logic(lambda k, d: params.get(k, d)))
+        request_handler.send_response_json(biz.get_stats_logic(lambda k, d: params.get(k, d) if k in params else d))
         return True
 
     elif route == "users":
@@ -102,6 +102,21 @@ def handle_post_api(route, request_handler):
     elif route == "add_user":
         res = biz.add_user_logic(data)
         request_handler.send_response_json(res, res.get('code', 200))
+    elif route == "add_entry":
+        # On extrait les variables envoyées par le JavaScript
+        uid = data.get('user_id')
+        motif = data.get('type_projet', 'N/A')
+        zone = data.get('zone_travail', 'N/A')
+        comment = data.get('commentaire', '')
+        
+        # On enregistre en base de données
+        db.add_entry(uid, motif, zone, comment)
+        
+        # On récupère le prénom pour le message de succès personnalisé du mode automatique
+        user_info = db.research_user_by_id(uid)
+        prenom = user_info[1] if user_info else "Visiteur"
+        
+        request_handler.send_response_json({"success": True, "prenom": prenom, "message": "Entrée enregistrée avec succès."})
     elif route == "update_user":
         db.update_user(data.get('id'), data.get('nom'), data.get('prenom'), data.get('statut'), data.get('email'), data.get('certifications'))
         if 'id_carte' in data: db.link_id_carte(data.get('id'), data.get('id_carte'))
