@@ -15,7 +15,6 @@ function initScanPage() {
     // Panneau Gauche
     var panelCard = document.getElementById('user-panel');
     var panelName = document.getElementById('panel-name');
-    var panelStatus = document.getElementById('panel-status');
     var panelStatutDetail = document.getElementById('panel-statut-detail');
     var panelSolde = document.getElementById('panel-solde');
     var panelRfid = document.getElementById('panel-rfid');
@@ -69,7 +68,7 @@ function initScanPage() {
     // ==========================================
     function resetUI() {
         form.reset(); userIdInput.value = ""; btnValider.disabled = true;
-        panelName.textContent = "En attente de scan..."; panelStatus.textContent = "-";
+        panelName.textContent = "En attente de scan...";
         if (panelStatutDetail) panelStatutDetail.textContent = "-";
         if (panelSolde) { panelSolde.textContent = "-"; panelSolde.className = ""; }
         panelRfid.textContent = "-"; panelCard.style.borderTopColor = "var(--gray)";
@@ -79,7 +78,6 @@ function initScanPage() {
     function afficherProfil(user) {
         userIdInput.value = user.id;
         panelName.textContent = user.prenom + " " + user.nom;
-        panelStatus.textContent = user.statut;
         if (panelStatutDetail) panelStatutDetail.textContent = user.statut || "-";
         
         if (panelSolde) {
