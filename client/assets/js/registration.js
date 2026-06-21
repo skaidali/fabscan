@@ -62,7 +62,7 @@ function initRegistrationPage() {
     }
 
     //// ==========================================
-    // 2. LOGIQUE D'AUTO-REMPLISSAGE DE L'EMAIL (SANS ACCENTS)
+    // 2. LOGIQUE D'AUTO-REMPLISSAGE DE L'EMAIL
     // ==========================================
     function supprimerAccents(texte) {
         // Décompose les caractères accentués (ex: 'é' devient 'e' + '´') et supprime les marques d'accent
@@ -175,13 +175,13 @@ function initRegistrationPage() {
         .then(function(reponseDuServeur) { return reponseDuServeur.json(); })
         .then(function(resultat) {
             if (resultat.success === true) {
-                // 🔒 ÉTAPE A : On fige le formulaire pour bloquer l'écran
+                // On fige le formulaire pour bloquer l'écran
                 formulaire.querySelectorAll('input, select, button[type="submit"]').forEach(function(el) {
                     el.disabled = true;
                 });
                 if (boutonRfid) boutonRfid.disabled = true;
 
-                // 📧 ÉTAPE B : On prépare l'objet utilisateur pour Zimbra
+                // On prépare l'objet utilisateur pour Zimbra
                 var utilisateurCree = {
                     id: resultat.id,
                     prenom: donneesAEnvoyer.prenom,
@@ -189,7 +189,7 @@ function initRegistrationPage() {
                     email: donneesAEnvoyer.email
                 };
 
-                // 🔄 ÉTAPE C : On affiche l'interface d'aide et les boutons d'action
+                // On affiche l'interface d'aide et les boutons d'action
                 boiteMessage.innerHTML = `
                     <div class="highlight-box mt-1 text-center modal-content mx-auto">
                         <p class="font-bold mb-1 text-success">
@@ -210,17 +210,17 @@ function initRegistrationPage() {
                     </div>
                 `;
 
-                // 🚀 ÉTAPE D : On lance le premier coup automatique si l'e-mail existe
+                // On lance le premier coup automatique si l'e-mail existe
                 if (donneesAEnvoyer.email !== "") {
                     MoteurScan.envoyerEmailZimbra(utilisateurCree);
                 }
 
-                // 🔄 ÉTAPE E : Écouteur pour le re-clic manuel de secours (le Retry si déconnecté)
+                // Écouteur pour le re-clic manuel de secours (le Retry si déconnecté)
                 document.getElementById('btn-zimbra-retry').addEventListener('click', function() {
                     MoteurScan.envoyerEmailZimbra(utilisateurCree);
                 });
 
-                // ⏭️ ÉTAPE F : Écouteur pour nettoyer et passer à l'étudiant suivant
+                // Écouteur pour nettoyer et passer à l'étudiant suivant
                 document.getElementById('btn-next-registration').addEventListener('click', function() {
                     formulaire.querySelectorAll('input, select, button[type="submit"]').forEach(function(el) {
                         el.disabled = false;
@@ -299,7 +299,7 @@ function initRegistrationPage() {
                 return reject("Votre navigateur ne prend pas en charge la vérification système.");
             }
 
-            // Configuration bidon (challenge) requise par l'API WebAuthn pour réveiller Windows Hello
+            // Configuration requise par l'API WebAuthn pour réveiller Windows Hello
             var optionsAuth = {
                 challenge: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
                 rp: { name: "FabLab ECL" },
@@ -333,7 +333,7 @@ function initRegistrationPage() {
         var confirmation2 = confirm("🛑 CONFIRMATION FINALE REQUISE 🛑\n\nÊtes-vous absolument sûr ? Les données modifiées et effacées ne pourront pas être récupérées.");
         if (!confirmation2) return;
 
-        // 🔐 Appel de l'authentification système Windows (la fonction verifierIdentiteWindows doit rester dans ton code)
+        // Appel de l'authentification système Windows (la fonction verifierIdentiteWindows doit rester dans ton code)
         verifierIdentiteWindows()
             .then(function() {
                 msgStatus.style.display = "block";

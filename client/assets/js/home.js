@@ -77,7 +77,7 @@ function initHomePage() {
             .catch(err => console.error("Erreur actualisation flux :", err));
     }
 
-    // NEW 🛠️ : INTERRUPTEUR DE MODE DIRECT DEPUIS L'ACCUEIL
+    // INTERRUPTEUR DE MODE DIRECT DEPUIS L'ACCUEIL
     if (autoContainer) {
         autoContainer.addEventListener('click', function(e) {
             e.preventDefault();
@@ -91,7 +91,7 @@ function initHomePage() {
         });
     }
 
-    // 3. MISE EN PLACE DES RADARS AUTOMATIQUES (Inchangé)
+    // 3. MISE EN PLACE DES RADARS AUTOMATIQUES
     rafraichirHorlogeEtStatut();
     const intervalHorloge = setInterval(rafraichirHorlogeEtStatut, 1000);
 

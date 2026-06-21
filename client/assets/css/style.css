@@ -233,7 +233,7 @@ body {
   display: flex;
   align-items: flex-end;         /* Aligne les barres en bas */
   justify-content: space-around; /* Espace les barres uniformément */
-  height: 200px;                 /* HAUTEUR OBLIGATOIRE, sinon le graphe disparaît ! */
+  height: 200px;                 /* HAUTEUR OBLIGATOIRE, sinon le graphe disparaît */
   padding: 1rem;
   background-color: var(--light);
   border-radius: var(--border-radius);
@@ -257,9 +257,7 @@ body {
   background-color: var(--primary-hover);
 }
 
-/* ==========================================
-   CLASSES UTILITAIRES (Réutilisables)
-   ========================================== */
+/* CLASSES UTILITAIRES (Réutilisables) */
 .w-100 { width: 100%; }
 .w-auto { width: auto; }
 .text-center { text-align: center; }
@@ -272,9 +270,7 @@ body {
   margin: 0.5rem 0; 
 }
 
-/* ==========================================
-   UTILITAIRES SUPPLÉMENTAIRES
-   ========================================== */
+/* UTILITAIRES SUPPLÉMENTAIRES */
 .d-none { display: none !important; }
 .text-right { text-align: right; }
 .text-center { text-align: center; }
@@ -286,7 +282,7 @@ body {
 .mb-1 { margin-bottom: 1rem; }
 .my-1-5 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
 
-/* Nouveaux boutons de couleurs */
+/* Boutons de couleurs */
 .btn-success { background-color: var(--success); color: white; }
 .btn-success:hover { background-color: #218838; }
 
@@ -296,9 +292,7 @@ body {
 .btn-outline-danger { border-color: var(--danger); color: var(--danger); }
 .btn-outline-danger:hover { background-color: var(--gray-light); }
 
-/* ==========================================
-   ONGLETS (TABS) - COMPTABILITÉ
-   ========================================== */
+/* ONGLETS COMPTABILITÉ */
 .bills-tabs {
     display: flex;
     gap: 0.5rem;
@@ -339,9 +333,7 @@ body {
 }
 
 
-/* ==========================================
-   PAGE SCANNER 
-   ========================================== */
+/* PAGE SCANNER */
 .auto-mode-label {
   display: flex;
   align-items: center;
@@ -383,17 +375,12 @@ body {
   margin-top: 0.5rem;
 }
 
-/* ==========================================
-   CORRECTION DES POLICES (FORMULAIRES)
-   ========================================== */
 /* Force tous les champs à hériter de la police de l'application */
 input, select, textarea, button {
     font-family: inherit;
 }
 
-/* ==========================================
-   NOUVELLES CLASSES UTILITAIRES
-   ========================================== */
+/* CLASSES UTILITAIRES */
 .mb-0 { margin-bottom: 0 !important; }
 .mt-05 { margin-top: 0.5rem; }
 .mt-2 { margin-top: 2rem; }

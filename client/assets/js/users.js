@@ -38,7 +38,7 @@ function initUsersPage() {
                     optEdition.textContent = s;
                     editStatut.appendChild(optEdition);
                 });
-                // NOUVEAU : Création des cases à cocher des certifications (100% Robuste)
+                // Création des cases à cocher des certifications (100% Robuste)
                 if (certifsContainer && config.certifications) {
                     certifsContainer.innerHTML = "";
                     config.certifications.forEach(function(c, index) {

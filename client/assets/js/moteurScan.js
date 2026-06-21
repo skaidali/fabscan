@@ -55,9 +55,7 @@ const MoteurScan = {
             });
         }
     
-        // ==========================================
-        // 2. LECTEUR RFID (Polling permanent)
-        // ==========================================
+        // 2. LECTEUR RFID
         if (this.intervalRFID) clearInterval(this.intervalRFID);
         this.intervalRFID = setInterval(() => {
             // Sécurité : Si l'onglet a changé et que l'élément n'existe plus dans le DOM, on coupe
@@ -78,9 +76,7 @@ const MoteurScan = {
                 });
         }, 1000);
 
-        // ==========================================
-        // 3. SCANETTE QR (Écouteur clavier intelligent)
-        // ==========================================
+        // 3. SCANETTE QR (Écouteur clavier)
         if (this.listenerScanette) {
             document.removeEventListener('keydown', this.listenerScanette);
         }
@@ -171,7 +167,7 @@ const MoteurScan = {
                 return navigator.clipboard.write([item]);
             })
             .then(function() {
-                console.log("✅ QR Code copié dans le presse-papiers !");
+                console.log("QR Code copié dans le presse-papiers !");
                 
                 // GESTION DE LA FENÊTRE UNIQUE ET RE-ROUTAGE
                 // Si la fenêtre existe déjà et qu'elle n'a pas été fermée par l'utilisateur

@@ -294,5 +294,5 @@ def get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_fil
     
     conn.close()
     
-    # ✨ On ajoute hourly_entries dans le retour de la fonction juste après today_entries
+    # On ajoute hourly_entries dans le retour de la fonction juste après today_entries
     return total_users, total_entries, today_entries, hourly_entries, period_entries, chart_data, profiles, recent

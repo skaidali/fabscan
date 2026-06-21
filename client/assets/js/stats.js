@@ -64,7 +64,7 @@ function initStatsPage() {
         btnActualiser.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
         btnAppliquer.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
 
-        // On construit l'URL avec TOUS les filtres !
+        // On construit l'URL avec TOUS les filtres
         var url = `/api/stats?period=${selPeriode.value}&statut=${encodeURIComponent(selStatut.value)}&certif=${encodeURIComponent(selCertif.value)}&zone=${encodeURIComponent(selZone.value)}&motif=${encodeURIComponent(selMotif.value)}`;
 
         fetch(url)
@@ -169,6 +169,6 @@ function initStatsPage() {
         window.location.href = '/api/export_stats_csv';
     });
 
-    // On lance la première recherche par défaut !
+    // On lance la première recherche par défaut
     chargerStatistiques();
 }
