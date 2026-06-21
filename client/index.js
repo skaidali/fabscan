@@ -8,7 +8,7 @@ const ROUTES = {
   'registration': './views/registration.html'
 };
 
-/* 🌐 1. LE ROUTEUR CENTRAL (Aiguillage automatique) */
+/* 1. LE ROUTEUR CENTRAL (Aiguillage automatique) */
 function router() {
   // On récupère l'ancre actuelle (ex: "#registration" -> "registration"). Si vide, direction "home"
   const hash = window.location.hash.replace('#', '') || 'home';
@@ -23,7 +23,7 @@ function router() {
   loadPage(pageHtml, boutonAssocie);
 }
 
-/* 📥 2. LE CHARGEUR DE CONTENU ASYNCHRONE */
+/* 2. LE CHARGEUR DE CONTENU ASYNCHRONE */
 function loadPage(page, targetButton) {
   fetch(page)
     .then(function (response) {
@@ -54,7 +54,7 @@ function loadPage(page, targetButton) {
     });
 }
 
-/* 🎨 3. GESTION DE LA CLASSE ACTIVE DANS LE MENU */
+/* 3. GESTION DE LA CLASSE ACTIVE DANS LE MENU */
 function setActiveNav(activeButton) {
   const navButtons = document.querySelectorAll('header nav button');
   navButtons.forEach(function (btn) {
@@ -66,7 +66,7 @@ function setActiveNav(activeButton) {
   }
 }
 
-/* 🚨 4. ÉCOUTEURS GLOBAUX DU NAVIGATEUR */
+/* 4. ÉCOUTEURS GLOBAUX DU NAVIGATEUR */
 // Intercepte les flèches RETOUR / AVANT et les changements d'ancres manuels
 window.addEventListener('hashchange', router);
 

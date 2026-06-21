@@ -24,7 +24,7 @@ for i in range(len(name_list)):
         empty_count += 1
 
 
-# code chat gpt pour détecter les entrées similaires mais non identiques :
+# détection des entrées similaires mais non identiques :
 def similarity(a, b):
     return SequenceMatcher(None, a, b).ratio()
 

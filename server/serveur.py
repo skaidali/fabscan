@@ -42,7 +42,6 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
             return None
 
     def do_GET(self):
-        # correction : Utilisation directe de la fonction native importée
         parsed = urlparse(self.path)
         info = parsed.path.strip('/').split('/')
         params = parse_qs(parsed.query)
@@ -52,7 +51,6 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
-        # correction : Utilisation directe ici aussi
         parsed = urlparse(self.path)
         info = parsed.path.strip('/').split('/')
         
@@ -61,7 +59,6 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response_json({"error": "Route invalide"}, 404)
             
     def do_DELETE(self):
-        # correction : Utilisation directe ici aussi
         parsed = urlparse(self.path)
         info = parsed.path.strip('/').split('/')
         if len(info) > 2 and info[0] == "api" and info[1] == "user":
