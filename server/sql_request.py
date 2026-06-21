@@ -61,11 +61,14 @@ def init_database():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS PAIEMENTS (
-            id_paiement INTEGER PRIMARY KEY AUTOINCREMENT, id_utilisateur TEXT NOT NULL,
-            date DATETIME DEFAULT CURRENT_TIMESTAMP, nom TEXT, description TEXT, commentaire TEXT,
-            projet_nom TEXT, projet_type TEXT, projet_tuteur TEXT, numero_operation TEXT,
+            id_paiement INTEGER PRIMARY KEY AUTOINCREMENT, 
+            id_utilisateur TEXT, -- On enlève le NOT NULL pour pouvoir l'anonymiser
+            date DATETIME DEFAULT CURRENT_TIMESTAMP, 
+            nom TEXT, description TEXT, commentaire TEXT,
+            projet_nom TEXT, project_type TEXT, projet_tuteur TEXT, numero_operation TEXT,
             type_mouvement TEXT, montant REAL, materiau TEXT, poids REAL, moyen_paiement TEXT,
-            FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE CASCADE
+            
+            FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE SET NULL
         )
     """)
     _migrate_legacy_users_table(cursor)
