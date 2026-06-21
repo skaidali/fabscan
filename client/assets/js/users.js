@@ -58,20 +58,25 @@ function initUsersPage() {
     // ==========================================
     // 1. CHARGEMENT ET AFFICHAGE DU TABLEAU
     // ==========================================
-    function chargerLesUtilisateurs() {
+    function chargerLesUtilisateurs(forcerOuvertureId = null) {
         var urlApi = '/api/users?search=' + encodeURIComponent(champRecherche.value) + '&statut=' + encodeURIComponent(filtreStatut.value) + '&page=' + pagination.pageActuelle + '&page_size=' + pagination.utilisateursParPage;
 
         fetch(urlApi)
             .then(function(res) { return res.json(); })
             .then(function(donnees) {
                 corpsDuTableau.innerHTML = '';
+                
+                if (!donnees.items || donnees.items.length === 0) {
+                    corpsDuTableau.innerHTML = '<tr><td colspan="3" class="text-center muted">Aucun membre trouvé</td></tr>';
+                    return;
+                }
+
                 donnees.items.forEach(function(utilisateur) {
                     var clone = modeleLigne.content.cloneNode(true);
                     clone.querySelector('.user-prenom').textContent = utilisateur.prenom;
                     clone.querySelector('.user-nom').textContent = utilisateur.nom;
                     clone.querySelector('.user-statut').innerHTML = '<span class="pill">' + utilisateur.statut + '</span>';
                     
-                    // Quand on clique sur une ligne, on ouvre le panneau !
                     var ligne = clone.querySelector('tr');
                     ligne.addEventListener('click', function() {
                         ouvrirPanneauUtilisateur(utilisateur.id);
@@ -79,6 +84,11 @@ function initUsersPage() {
 
                     corpsDuTableau.appendChild(clone);
                 });
+
+                // Si une redirection automatique est demandée, on ouvre le premier profil retourné
+                if (forcerOuvertureId === true && donnees.items.length > 0) {
+                    ouvrirPanneauUtilisateur(donnees.items[0].id);
+                }
             });
     }
 
@@ -321,4 +331,23 @@ function initUsersPage() {
         }
     });
     chargerLesUtilisateurs();
+    // ==========================================
+    // 7. PASSERELLE DE REDIRECTION DEPUIS L'ACCUEIL
+    // ==========================================
+    if (window.redirectionUserNom) {
+        const nomAFiltrer = window.redirectionUserNom;
+        window.redirectionUserNom = null; // Nettoyage de sécurité immédiat
+        
+        console.log("Passerelle Admin active : Recherche synchrone de " + nomAFiltrer);
+        
+        // On remplit le champ de recherche de l'interface
+        champRecherche.value = nomAFiltrer;
+        pagination.pageActuelle = 1;
+        
+        // On lance le chargement du tableau en lui disant d'ouvrir directement le profil trouvé
+        chargerLesUtilisateurs(true);
+    } else {
+        // Chargement standard par défaut si on n'arrive pas depuis l'accueil
+        chargerLesUtilisateurs();
+    }
 }

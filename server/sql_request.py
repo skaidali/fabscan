@@ -144,13 +144,23 @@ def list_users(search="", statut="", page=1, page_size=50):
     cursor = conn.cursor()
     where_clauses, params = [], []
     clean_search = (search or "").strip().lower()
+    
     if clean_search:
-        where_clauses.append("(LOWER(nom) LIKE ? OR LOWER(prenom) LIKE ? OR LOWER(email) LIKE ?)")
+        # Permet de chercher sur le nom seul, le prénom seul, ou les combinaisons "prénom nom" et "nom prénom"
+        where_clauses.append("""
+            (LOWER(nom) LIKE ? 
+             OR LOWER(prenom) LIKE ? 
+             OR LOWER(email) LIKE ? 
+             OR LOWER(prenom || ' ' || nom) LIKE ? 
+             OR LOWER(nom || ' ' || prenom) LIKE ?)
+        """)
         like_val = f"%{clean_search}%"
-        params.extend([like_val, like_val, like_val])
+        params.extend([like_val, like_val, like_val, like_val, like_val])
+        
     if statut and statut != "all":
         where_clauses.append("statut = ?")
         params.append(statut)
+        
     where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
     cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS {where_sql}", params)
     total = cursor.fetchone()[0]
