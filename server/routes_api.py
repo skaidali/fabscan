@@ -59,6 +59,26 @@ def handle_get_api(route, params, request_handler):
             request_handler.send_response_json({"success": False, "error": "Inconnu"})
         return True
 
+    elif route == "payments":
+        # ✨ IDÉALEMENT PLACÉ ICI (Recherche en GET)
+        u_id = params.get('user_id', [None])[0]
+        proj = params.get('project', [None])[0]
+        s_user = params.get('search_user', [None])[0]
+        limit = int(params.get('limit', [50])[0])
+        
+        raw_payments = db.get_payments(id_user=u_id, project_name=proj, limit=limit, search_user=s_user)
+        
+        formatted = []
+        for r in raw_payments:
+            formatted.append({
+                "id_paiement": r[0], "id_utilisateur": r[1], "date": r[2], "nom": r[3],
+                "description": r[4], "commentaire": r[5], "projet_nom": r[6], "projet_type": r[7],
+                "projet_tuteur": r[8], "numero_operation": r[9], "type_mouvement": r[10], "montant": r[11],
+                "materiau": r[12], "poids": r[13], "user_nom": r[14], "user_prenom": r[15], "moyen_paiement": r[16]
+            })
+        request_handler.send_response_json({"success": True, "data": formatted})
+        return True
+
     elif route == "export_stats_csv":
         csv_data = biz.export_stats_csv_logic()
         request_handler.send_response(200)
@@ -69,7 +89,22 @@ def handle_get_api(route, params, request_handler):
         return True
 
     elif route == "export_transactions_csv":
-        csv_data = biz.export_transactions_csv_logic(params.get('user_id', [None])[0], params.get('project', [None])[0], params.get('search_user', [None])[0])
+        u_id = params.get('user_id', [None])[0]
+        proj = params.get('project', [None])[0]
+        s_user = params.get('search_user', [None])[0]
+        
+        raw_payments = db.get_payments(id_user=u_id, project_name=proj, limit=10000, search_user=s_user)
+        
+        formatted_payments = []
+        for r in raw_payments:
+            formatted_payments.append({
+                "id_paiement": r[0], "id_utilisateur": r[1], "date": r[2], "nom": r[3],
+                "description": r[4], "commentaire": r[5], "projet_nom": r[6], "projet_type": r[7],
+                "projet_tuteur": r[8], "numero_operation": r[9], "type_mouvement": r[10], "montant": r[11],
+                "materiau": r[12], "poids": r[13], "user_nom": r[14], "user_prenom": r[15], "moyen_paiement": r[16]
+            })
+            
+        csv_data = biz.export_transactions_csv_logic(formatted_payments)
         request_handler.send_response(200)
         request_handler.send_header('Content-Type', 'text/csv; charset=utf-8-sig')
         request_handler.send_header('Content-Disposition', 'attachment; filename="Transactions_FabLab.csv"')
@@ -103,16 +138,13 @@ def handle_post_api(route, request_handler):
         res = biz.add_user_logic(data)
         request_handler.send_response_json(res, res.get('code', 200))
     elif route == "add_entry":
-        # On extrait les variables envoyées par le JavaScript
         uid = data.get('user_id')
         motif = data.get('type_projet', 'N/A')
         zone = data.get('zone_travail', 'N/A')
         comment = data.get('commentaire', '')
         
-        # On enregistre en base de données
         db.add_entry(uid, motif, zone, comment)
         
-        # On récupère le prénom pour le message de succès personnalisé du mode automatique
         user_info = db.research_user_by_id(uid)
         prenom = user_info[1] if user_info else "Visiteur"
         
@@ -122,6 +154,13 @@ def handle_post_api(route, request_handler):
         if 'id_carte' in data: db.link_id_carte(data.get('id'), data.get('id_carte'))
         request_handler.send_response_json({"success": True, "message": "Profil mis à jour !"})
     elif route == "add_payment":
-        db.add_payment(data.get('user_id'), data.get('nom'), data.get('description'), data.get('commentaire'), data.get('projet_nom'), data.get('projet_type'), data.get('projet_tuteur'), data.get('numero_operation'), data.get('type_mouvement'), data.get('montant'), data.get('materiau'), data.get('poids'), data.get('moyen_paiement'))
-        request_handler.send_response_json({"success": True, "message": "Paiement validé."})
-    return True
+        # Traitement de l'ajout d'une opération financière en base SQLite
+        db.add_payment(
+            data.get('user_id'), data.get('nom'), data.get('description'), data.get('commentaire'),
+            data.get('projet_nom'), data.get('projet_type'), data.get('projet_tuteur'), data.get('numero_operation'),
+            data.get('type_mouvement'), data.get('montant'), data.get('materiau'), data.get('poids'), data.get('moyen_paiement')
+        )
+        request_handler.send_response_json({"success": True, "message": "Paiement enregistré avec succès !"})
+        return True
+
+    return False

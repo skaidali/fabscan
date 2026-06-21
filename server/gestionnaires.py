@@ -181,12 +181,12 @@ def export_stats_csv_logic():
         writer.writerow([ds, hs] + list(r[1:]))
     return output.getvalue().encode('utf-8-sig')
 
-def export_transactions_csv_logic(user_id, project, search_user):
-    payments = db.get_payments(id_user=user_id, project_name=project, limit=10000, search_user=search_user)
+def export_transactions_csv_logic(payments_list):
+    # Reçoit directement la liste formatée depuis routes_api
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
     writer.writerow(['Date', 'Heure', 'Nom', 'Prénom', 'Opération', 'N° Opération', 'Moyen', 'Projet Nom', 'Projet Type', 'Tuteur', 'Matériau', 'Quantité', 'Mouvement', 'Montant', 'Description', 'Commentaire'])
-    for p in payments:
+    for p in payments_list:
         dc = p['date'] if p['date'] else ""
         ds, hs = dc.split(" ", 1) if " " in dc else (dc, "")
         if "." in hs: hs = hs.split(".", 1)[0]

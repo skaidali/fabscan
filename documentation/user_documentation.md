@@ -23,7 +23,7 @@ Le Personnel doit donc :
 - allumer l'ordinateur sur lequel l'Application est installée et s'assurer qu'une connexion internet est disponible. 
 - double-cliquer sur l'icône "FabScan" disponible sur le bureau. La fenêtre du terminal (fond noir) s'ouvre. Patienter jusqu'à ce que l'Application se lance automatiquement dans le navigateur par défaut. La page d'accueil de l'Application s'ouvre. L'Application est alors prête à être utilisée.
 
-Note liminaire :
+*Note liminaire :*
 La connexion internet n'est pas indispensable pour le fonctionnement de l'Application, mais reste recommandée pour une utilisation optimale de l'ensemble des fonctionnalités, notamment pour la rubrique \ref{ref:Inscription_QR}. En cas de perte de connexion, l'Application continuera de fonctionner.
 
 # Présentation de l'interface
@@ -41,40 +41,51 @@ Onglet par défaut de l'Application, il se charge à chaque nouveau lancement de
 ![Extrait de l'onglet « Accueil »](./images/1_pageaccueil.png)
 
 L'*Accueil* se présente de la manière suivante :
-- Le titre de l'onglet ("Tableau de bord") est affiché à gauche de la page. Un bouton cliquable "Mode Manuel" ainsi que l'heure et la date sont affichées à droite de l'écran.
+- Le titre de l'onglet ("Tableau de bord") est affiché à gauche de la page. Un bouton cliquable "Mode Manuel" ainsi que la date et l'heure sont affichées à droite de l'écran.
 Lorsque le bouton "Mode Manuel" est cliqué, il bascule sur "Mode Automatique" et inversement. Le mode automatique est expliqué dans la section \ref{ref:Mode_Automatique}.
-- Des statistiques générales sur l'activité du FabLab sont affichées par la suite. Ces statistiques incluent le nombre total d'entrées sur la dernière heure à compter de l'heure actuelle, le nombre d'entrées sur sur la date du jour, et le nombre d'utilisateurs inscrits au FabLab. Ces statistiques sont mises à jour en temps réel. Pour plus de détails sur les statistiques, veuillez vous référer à la section \ref{ref:Statistiques}.
-- Un tableau récapitulatif des dernières entrées est affiché en bas de la page. Il contient les informations suivantes : l'heure d'entrée en vert, le nom et le prénom de l'Utilisateur, son statut, la zone de travail utilisée, le projet associé à l'entrée. Ce tableau est mis à jour en temps réel. Si l'entrée a été enregistrée en mode automatique, l'heure d'entrée sera affichée en rouge. Pour plus de détails sur les entrées, veuillez vous référer à la section \ref{ref:Scanner}.
+- Des statistiques générales sur l'activité du FabLab sont affichées par la suite. Ces statistiques incluent : le nombre total d'entrées sur la dernière heure à compter de l'heure actuelle, le nombre d'entrées sur sur la date du jour, et le nombre d'utilisateurs inscrits au FabLab. Ces statistiques sont mises à jour en temps réel. Pour plus de détails sur les statistiques, veuillez vous référer à la section \ref{ref:Statistiques}.
+- Un tableau récapitulatif des dernières entrées est affiché en bas de la page. Il contient les informations suivantes : l'heure d'entrée en vert, le nom et le prénom de l'Utilisateur, son statut, la zone de travail utilisée, le projet associé à l'entrée. Ce tableau est mis à jour en temps réel. Si l'entrée a été enregistrée en mode automatique, l'heure d'entrée sera affichée en rouge. Il est possible d'accéder à la fiche de l'Utilisateur en cliquant sur son nom. Pour plus de détails sur les entrées, veuillez vous référer à la section \ref{ref:Scanner}.
 
 ## Onglet « Scanner »
 
-### Mode manuel
 
-Lorsqu’un Utilisateur entre au FabLab, il faudra basculer sur l’onglet « Scanner » ; la page suivante s’affiche :
+En cliquant sur l'onglet « Scanner », vous accédez à l'interface de gestion des entrées au FabLab. Cet onglet vous permet de scanner les badges (carte multiservice) ou QR codes des Utilisateurs et d'enregistrer leurs entrées dans la base de données.
 
 ![Extrait de l'onglet « Scanner »](./images/2_pagescan.png)
 
-1. Demander à l'Utilisateur les informations suivantes, que vous renseignerez dans les listes déroulantes : **un motif de visite** ainsi qu'une **zone de travail** dans laquelle l’Utilisateur souhaite travailler.
+La page de l'onglet « Scanner » se compose de deux parties principales : 
+- à gauche: la zone d'affichage des informations de l'Utilisateur scanné ;
+- à droite: la zone de saisie des informations de l'Utilisateur ;
 
-Le motif de la visite ainsi que la zone de travail sont des champs obligatoires. Le commentaire est optionnel ; vous pouvez le renseigner grâce à la zone de texte prévue à cet effet. 
+Un bouton "Mode Automatique" est disponible en haut à droite de l'onglet. Il permet de basculer entre le mode manuel et le mode automatique pour l'enregistrement des entrées. Le mode automatique est expliqué dans la section \ref{ref:Mode_Automatique}.
 
-2. Inviter l’Utilisateur à passer sa **Carte** sur le boîtier. Lorsque la carte est détectée, la fiche de l’Utilisateur s’affichera sur le côté gauche de l’écran, comme suit : 
+A gauche :
+Une barre de recherche est d'abord disponible en haut de la zone pour retrouver un Utilisateur par son nom ou son prénom, si l'Utilisateur n'a sur lui ni badge ni QR code.
+Dans le cas très récurrent où un Utilisateur présente un QR code, il convient de cliquer sur le champ de saisie prévu à cet effet, puis de scanner le QR code avec le scanner. Le scan remplit la barre de recherche avec un identifiant unique de l'Utilisateur (et non son nom ou prénom).
+Lorsqu'un champ (identifiant OU nom OU prénom) est rempli dans la barre de recherche, une ou plusieurs suggestions d'Utilisateur s'affichent en dessous. Il est possible de cliquer sur l'Utilisateur recherché pour afficher ses informations dans le cadre "Profil scanné".
 
-![Extrait de l'onglet « Scanner » quand un Utilisateur a été identifié](images/80_scanned.png)
+Le cadre "Profil scanné" affiche les informations de l'Utilisateur identifié.
+Lorsqu'un utilisateur n'est pas encore identifié, elle est "En attente de scan..." et les informations de l'Utilisateur ne sont pas affichées.
+Les informations accessibles sont : 
+- le prénom, le nom.
+- le statut
+- le solde (se référer à la section \ref{ref:Comptabilite} pour plus de détails sur le solde)
+- la carte RFID (associée ou non à l'Utilisateur)
+- les certifications machines (associées ou nonà l'Utilisateur)
 
-3. Avant de valider l’entrée, s’assurer que l’Utilisateur possède bien les **Certifications Machine** nécessaires à l’utilisation des machines relatives à la zone de travail donné par l’Utilisateur. Une fois que les champs sont entrés, cliquer sur le bouton « Valider l’entrée ».
 
-### Mode automatique
+A droite : 
+Un cadre Validation de l'entrée est disponible. Il contient les champs suivants :
+- un menu déroulant pour sélectionner le motif de la visite (obligatoire)
+- un menu déroulant pour sélectionner la zone de travail (obligatoire)
+- un champ de texte pour saisir un commentaire (optionnel)
+- un bouton "Valider l'entrée" pour enregistrer l'entrée de l'Utilisateur dans la base de données.
 
-En cliquant sur la boîte **Mode automatique**, vous pouvez activer le mode automatique. Il est assez simple de voir si ce mode est activé par le fait que la partie **Validation de l'entrée** se grise. 
 
-![Mode automatique](images/81_modeauto.png)
-
-Dans ce mode, vous n'avez pas à renseigner les informations des Utilisateurs. Chaque badge scanné est comptabilisé dans la base de données sans information complémentaire sur la zone de travail ou le motif de visite.
 
 ## Onglet « Utilisateurs »
 
-Cet onglet sert à l'affichage, la recherche, gestion des différents Utilisateurs présents dans la base de données. 
+Cet onglet sert à l'affichage, la recherche, gestion des informations des différents Utilisateurs présents dans la base de données. 
 
 ![Extrait de l'onglet « Utilisateurs »](./images/4_pageusers.png)
 
@@ -156,3 +167,27 @@ Lorsqu'un Utilisateur entre au FabLab et ne s'est pas encore identifié pour la 
 3. Laissez l’option **Envoyer le QR code par email** cochée si vous souhaitez que la personne reçoive un QR code par e-mail. (Ceci peut être un mode d'Identification en plus de la carte physique.)
 
 4. Une fois que toutes les informations ont été vérifiées, cliquez sur **Enregistrer l’utilisateur** pour valider l’inscription.
+
+
+# Déroulement d'une entrée au FabLab
+Deux possibilités s’offrent à vous pour enregistrer l’entrée d’un Utilisateur au FabLab : le **Mode manuel** et le **Mode automatique**. Le mode manuel est celui par défaut, mais vous pouvez basculer sur le mode automatique en cliquant sur le bouton « Mode Automatique » situé en haut à droite de l’onglet « Accueil » ou « Scanner ».
+
+## Mode manuel
+Lorsqu’un Utilisateur entre au FabLab, il faudra basculer sur l’onglet « Scanner » ; la page suivante s’affiche :
+1. Demander à l'Utilisateur les informations suivantes, que vous renseignerez dans les listes déroulantes : **un motif de visite** ainsi qu'une **zone de travail** dans laquelle l’Utilisateur souhaite travailler.
+
+Le motif de la visite ainsi que la zone de travail sont des champs obligatoires. Le commentaire est optionnel ; vous pouvez le renseigner grâce à la zone de texte prévue à cet effet. 
+
+2. Inviter l’Utilisateur à passer sa **Carte** sur le boîtier. Lorsque la carte est détectée, la fiche de l’Utilisateur s’affichera sur le côté gauche de l’écran, comme suit : 
+
+![Extrait de l'onglet « Scanner » quand un Utilisateur a été identifié](images/80_scanned.png)
+
+3. Avant de valider l’entrée, s’assurer que l’Utilisateur possède bien les **Certifications Machine** nécessaires à l’utilisation des machines relatives à la zone de travail donné par l’Utilisateur. Une fois que les champs sont entrés, cliquer sur le bouton « Valider l’entrée ».
+
+## Mode automatique
+
+En cliquant sur la boîte **Mode automatique**, vous pouvez activer le mode automatique. Il est assez simple de voir si ce mode est activé par le fait que la partie **Validation de l'entrée** se grise. 
+
+![Mode automatique](images/81_modeauto.png)
+
+Dans ce mode, vous n'avez pas à renseigner les informations des Utilisateurs. Chaque badge scanné est comptabilisé dans la base de données sans information complémentaire sur la zone de travail ou le motif de visite.

@@ -132,14 +132,27 @@ function chargerHistoriquePaiements() {
     let url = '/api/payments?limit=100';
     if (historyUserId) url += `&user_id=${historyUserId}`;
     if (historyProject) url += `&project=${encodeURIComponent(historyProject)}`;
+    
     fetch(url).then(res => res.json()).then(data => {
         const tbody = document.getElementById('payments-history-table'); if (!tbody) return;
+        
+        // Initialisation ou message vide de sécurité
         tbody.innerHTML = data.success && data.data.length > 0 ? "" : '<tr><td colspan="6" class="text-center muted">Aucune transaction trouvée</td></tr>';
-        if(data.success) {
+        
+        if (data.success) {
             data.data.forEach(p => {
                 const date = new Date(p.date).toLocaleString('fr-FR');
                 const sign = p.type_mouvement === 'CREDIT' ? '+' : '-';
-                tbody.innerHTML += `<tr><td>${date}</td><td>${p.user_prenom} ${p.user_nom}</td><td><strong>${p.nom}</strong></td><td><span class="pill">${p.type_mouvement === 'CREDIT' ? 'Apport Matériel' : (p.moyen_paiement || '-')}</span></td><td>${p.projet_nom || '-'}</td><td class="${p.type_mouvement === 'CREDIT' ? 'text-success' : 'text-danger'} font-bold text-right">${sign}${p.montant.toFixed(2)} €</td></tr>`;
+                
+                //  Injecté de façon stable au cœur de la boucle de traitement du JSON
+                tbody.innerHTML += `<tr>
+                    <td>${date}</td>
+                    <td>${p.user_prenom} ${p.user_nom}</td>
+                    <td><strong>${p.nom}</strong></td>
+                    <td><span class="pill">${p.type_mouvement === 'CREDIT' ? 'Apport Matériel' : (p.moyen_paiement || '-')}</span></td>
+                    <td>${p.projet_nom || '-'}</td>
+                    <td class="${p.type_mouvement === 'CREDIT' ? 'text-success' : 'text-danger'} font-bold text-right">${sign}${p.montant.toFixed(2)} €</td>
+                </tr>`;
             });
         }
     });
