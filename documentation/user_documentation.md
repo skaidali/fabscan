@@ -2,29 +2,49 @@
 
 [ ] Images : mettre des éléments en surbrillance et les numéroter
 [ ] Images : mettre en situation réelle où les bases de données sont pleines à craquer 
+[ ] Faire une FAQ
 
 # Introduction
 
-Cette documentation a pour objet de présenter le fonctionnement de l'application Web **FabScan** et les différentes fonctionnalités qu'il contient.
+Cette documentation a pour objet de présenter le fonctionnement de l'application Web **FabScan** et les différentes fonctionnalités qu'elle contient.
 
 Dans la suite du document, nous nous référerons à :
-- le FabLab, qui désigne l'emplacement physique où se situe le dispositif **FabScan**. (*Voir la définition de [Wikipédia](https://fr.wikipedia.org/wiki/Fab_lab) si ce n'est pas clair.*)
-- l'Application, qui désigne l'interface Web du dispositif.
-- le Personnel, ou « Vous », ici considéré comme un.e gestionnaire de FabLab, qui utilise l'Application et à qui cette documentation s'adresse.
-- l'Utilisateur, qui désigne un.e membre (externe au Personnel) qui utilise les installations du FabLab.
-- le Mode d'Identification, qui désigne l'élément que l'Utilisateur va pouvoir utiliser pour s'identifier :
+- le **FabLab**, qui désigne l'emplacement physique où se situe le dispositif **FabScan**. (*Voir la page [Wikipédia](https://fr.wikipedia.org/wiki/Fab_lab) pour plus de précisions.*)
+- l'**Application**, qui désigne l'interface Web du dispositif.
+- le **Personnel**, ou « Vous », ici considéré comme un.e gestionnaire de FabLab, qui utilise l'Application et à qui cette documentation s'adresse.
+- l'**Utilisateur**, qui désigne un.e membre (externe au Personnel) qui utilise les installations du FabLab.
+- le **Mode d'Identification**, qui désigne l'élément que l'Utilisateur va pouvoir utiliser pour s'identifier :
     - soit un code QR sur le téléphone de l'Utilisateur,
-    - soit une carte multiservice (ayant un identifiant unique que l'on peut récupérer par RFID) en possession de l'Utilisateur.
+    - soit une carte multiservice (resp. carte étudiante) en possession de l'Utilisateur.
 
-# Fonctionnalités
+# Prérequis
+A partir de cette section, nous nous plaçons dans le cas où le Personnel vient de s'installer à son poste de travail au FabLab et souhaite utiliser l'Application. 
+Le Personnel doit donc :
+- allumer l'ordinateur sur lequel l'Application est installée et s'assurer qu'une connexion internet est disponible. 
+- double-cliquer sur l'icône "FabScan" disponible sur le bureau. La fenêtre du terminal (fond noir) s'ouvre. Patienter jusqu'à ce que l'Application se lance automatiquement dans le navigateur par défaut. La page d'accueil de l'Application s'ouvre. L'Application est alors prête à être utilisée.
 
-Tous les onglets cités ci-après sont accessibles en cliquant sur le bouton correspondant dans la barre de navigation située en haut de la page.
+Note liminaire :
+La connexion internet n'est pas indispensable pour le fonctionnement de l'Application, mais reste recommandée pour une utilisation optimale de l'ensemble des fonctionnalités, notamment pour la rubrique \ref{ref:Inscription_QR}. En cas de perte de connexion, l'Application continuera de fonctionner.
+
+# Présentation de l'interface
+*L'interface est conçue pour être intuitive et facile à utiliser, même pour les personnes qui ne sont pas familières avec les technologies numériques. Chaque onglet est décrit en détail dans les sections suivantes. La description se fera graduellement de haut en bas et accompagnée de captures d'écran.*
+
+L'Application est composée de plusieurs onglets, chacun correspondant à une fonctionnalité spécifique. Ces onglets sont accessibles via la barre de navigation située en haut de la page. L'onglet *Accueil* est celui qui s'affiche par défaut à l'ouverture de l'Application.
+
+Les onglets sont les suivants : *Accueil*, *Scanner*, *Utilisateurs*, *Comptabilité*, *Statistiques* et *Inscription*.
+L'onglet actif est mis en évidence par un fond coloré.
 
 ## Onglet « Accueil »
 
-Ceci est la page d'accueil sur lequel vous arrivez à chaque nouveau lancement de l'Application.
+Onglet par défaut de l'Application, il se charge à chaque nouveau lancement de l'Application.
  
 ![Extrait de l'onglet « Accueil »](./images/1_pageaccueil.png)
+
+L'*Accueil* se présente de la manière suivante :
+- Le titre de l'onglet ("Tableau de bord") est affiché à gauche de la page. Un bouton cliquable "Mode Manuel" ainsi que l'heure et la date sont affichées à droite de l'écran.
+Lorsque le bouton "Mode Manuel" est cliqué, il bascule sur "Mode Automatique" et inversement. Le mode automatique est expliqué dans la section \ref{ref:Mode_Automatique}.
+- Des statistiques générales sur l'activité du FabLab sont affichées par la suite. Ces statistiques incluent le nombre total d'entrées sur la dernière heure à compter de l'heure actuelle, le nombre d'entrées sur sur la date du jour, et le nombre d'utilisateurs inscrits au FabLab. Ces statistiques sont mises à jour en temps réel. Pour plus de détails sur les statistiques, veuillez vous référer à la section \ref{ref:Statistiques}.
+- Un tableau récapitulatif des dernières entrées est affiché en bas de la page. Il contient les informations suivantes : l'heure d'entrée en vert, le nom et le prénom de l'Utilisateur, son statut, la zone de travail utilisée, le projet associé à l'entrée. Ce tableau est mis à jour en temps réel. Si l'entrée a été enregistrée en mode automatique, l'heure d'entrée sera affichée en rouge. Pour plus de détails sur les entrées, veuillez vous référer à la section \ref{ref:Scanner}.
 
 ## Onglet « Scanner »
 
