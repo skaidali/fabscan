@@ -54,20 +54,26 @@ def init_database():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS ENTREE (
-            id_entree INTEGER PRIMARY KEY AUTOINCREMENT, id_utilisateur TEXT NOT NULL,
-            date DATETIME DEFAULT CURRENT_TIMESTAMP, type_projet TEXT, zone_travail TEXT, commentaire TEXT,
-            FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE CASCADE
+            id_entree INTEGER PRIMARY KEY AUTOINCREMENT, 
+            id_utilisateur TEXT, -- On enlève 'NOT NULL' pour autoriser le passage à NULL
+            date DATETIME DEFAULT CURRENT_TIMESTAMP, 
+            type_projet TEXT, 
+            zone_travail TEXT, 
+            commentaire TEXT,
+            -- SÉCURITÉ STATS : Si l'user est supprimé, l'entrée reste pour les graphiques !
+            FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE SET NULL
         )
     """)
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS PAIEMENTS (
             id_paiement INTEGER PRIMARY KEY AUTOINCREMENT, 
-            id_utilisateur TEXT, -- On enlève le NOT NULL pour pouvoir l'anonymiser
+            id_utilisateur TEXT, -- On enlève 'NOT NULL' pour autoriser le passage à NULL
             date DATETIME DEFAULT CURRENT_TIMESTAMP, 
             nom TEXT, description TEXT, commentaire TEXT,
-            projet_nom TEXT, project_type TEXT, projet_tuteur TEXT, numero_operation TEXT,
+            projet_nom TEXT, projet_type TEXT, projet_tuteur TEXT, numero_operation TEXT,
             type_mouvement TEXT, montant REAL, materiau TEXT, poids REAL, moyen_paiement TEXT,
-            
+            -- SÉCURITÉ COMPTA : Si l'user est supprimé, la facture reste pour la caisse !
             FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE SET NULL
         )
     """)
@@ -178,7 +184,8 @@ def get_all_entries(limit=50):
     cursor = conn.cursor()
     cursor.execute("""
         SELECT datetime(e.date, 'localtime'), u.statut, u.nom, u.prenom, e.type_projet, e.zone_travail, e.commentaire
-        FROM ENTREE e JOIN UTILISATEURS u ON e.id_utilisateur = u.id ORDER BY e.date DESC LIMIT ?
+        -- LEFT JOIN plutôt que JOIN pour ne pas masquer les entrées des profils supprimés
+        FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id ORDER BY e.date DESC LIMIT ?
     """, (limit,))
     rows = cursor.fetchall()
     conn.close()
@@ -244,10 +251,11 @@ def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, proje
 def get_payments(id_user=None, project_name=None, limit=50, search_user=None):
     conn = get_connection()
     cursor = conn.cursor()
+    # LEFT JOIN au lieu de JOIN pour garder les lignes orphelines
     query = """
-        SELECT p.id_paiement, p.id_utilisateur, p.date, p.nom, p.description, p.commentaire, 
+        SELECT p.id_paiement, p.id_utilisateur, datetime(p.date, 'localtime'), p.nom, p.description, p.commentaire, 
                p.projet_nom, p.projet_type, p.projet_tuteur, p.numero_operation, p.type_mouvement, p.montant, p.materiau, p.poids,
-               u.nom, u.prenom, p.moyen_paiement FROM PAIEMENTS p JOIN UTILISATEURS u ON p.id_utilisateur = u.id
+               u.nom, u.prenom, p.moyen_paiement FROM PAIEMENTS p LEFT JOIN UTILISATEURS u ON p.id_utilisateur = u.id
     """
     w, params = [], []
     if id_user: w.append("p.id_utilisateur = ?"); params.append(id_user)
@@ -259,6 +267,7 @@ def get_payments(id_user=None, project_name=None, limit=50, search_user=None):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
 
 def search_projects(query, limit=10):
     conn = get_connection()

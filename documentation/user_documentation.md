@@ -3,6 +3,7 @@
 [ ] Images : mettre des éléments en surbrillance et les numéroter
 [ ] Images : mettre en situation réelle où les bases de données sont pleines à craquer 
 [ ] Faire une FAQ
+[ ] /!\ ATTENTION : POINT A PRENDRE en compte: la suppression d'un user supprime ses entrées, et ses paiements ! A CORRIGER !
 
 # Introduction
 
@@ -14,8 +15,8 @@ Dans la suite du document, nous nous référerons à :
 - le **Personnel**, ou « Vous », ici considéré comme un.e gestionnaire de FabLab, qui utilise l'Application et à qui cette documentation s'adresse.
 - l'**Utilisateur**, qui désigne un.e membre (externe au Personnel) qui utilise les installations du FabLab.
 - le **Mode d'Identification**, qui désigne l'élément que l'Utilisateur va pouvoir utiliser pour s'identifier :
-    - soit un code QR sur le téléphone de l'Utilisateur,
-    - soit une carte multiservice (resp. carte étudiante) en possession de l'Utilisateur.
+    - soit un QR code sur le téléphone de l'Utilisateur,
+    - soit une carte multiservice (resp. carte étudiante, resp. carte de personnel resp. badge) en possession de l'Utilisateur.
 
 # Prérequis
 A partir de cette section, nous nous plaçons dans le cas où le Personnel vient de s'installer à son poste de travail au FabLab et souhaite utiliser l'Application. 
@@ -61,7 +62,7 @@ Un bouton "Mode Automatique" est disponible en haut à droite de l'onglet. Il pe
 
 A gauche :
 Une barre de recherche est d'abord disponible en haut de la zone pour retrouver un Utilisateur par son nom ou son prénom, si l'Utilisateur n'a sur lui ni badge ni QR code.
-Dans le cas très récurrent où un Utilisateur présente un QR code, il convient de cliquer sur le champ de saisie prévu à cet effet, puis de scanner le QR code avec le scanner. Le scan remplit la barre de recherche avec un identifiant unique de l'Utilisateur (et non son nom ou prénom).
+Dans le cas très récurrent où un Utilisateur présente un QR code plutôt qu'un badge, il convient de cliquer sur le champ de saisie prévu à cet effet, puis de scanner le QR code avec le scanner. Le scan remplit la barre de recherche avec un identifiant unique de l'Utilisateur (et non son nom ou prénom).
 Lorsqu'un champ (identifiant OU nom OU prénom) est rempli dans la barre de recherche, une ou plusieurs suggestions d'Utilisateur s'affichent en dessous. Il est possible de cliquer sur l'Utilisateur recherché pour afficher ses informations dans le cadre "Profil scanné".
 
 Le cadre "Profil scanné" affiche les informations de l'Utilisateur identifié.
@@ -88,6 +89,23 @@ Un cadre Validation de l'entrée est disponible. Il contient les champs suivants
 Cet onglet sert à l'affichage, la recherche, gestion des informations des différents Utilisateurs présents dans la base de données. 
 
 ![Extrait de l'onglet « Utilisateurs »](./images/4_pageusers.png)
+
+L'onglet « Utilisateurs » se compose de deux parties principales :
+- à gauche : la zone d'affichage des informations de l'Utilisateur sélectionné ;
+- à droite : la zone de recherche et le tableau des Utilisateurs ;
+
+Un bouton "Ajouter un Utilisateur" est disponible en haut à droite de l'onglet. Il permet d'accéder à l'onglet « Inscription » pour créer un nouveau profil d'Utilisateur. L'onglet « Inscription » est expliqué dans la section \ref{ref:Inscription}.
+
+A gauche :
+Lorsqu'un Utilisateur est sélectionné dans le tableau de droite, ses informations s'affichent dans le cadre "Profil Utilisateur". Toutes les informations connues y apparaissent et sont modifiables depuis ce cadre. On y voit :
+- le QR code de l'Utilisateur associé à son identifiant unique;
+- les informations de base : le prénom, le nom, l'e-mail et le statut de l'Utilisateur ;
+- l'identifiant de la carte RFID associée à l'Utilisateur (si elle existe). Il est possible de retirer la carte (en cliquant sur l'icône corbeille) ou d'en associer une nouvelle (en cliquant sur Modifier la carte). Le bouton "Modifier la carte" permet également d'associer une carte RFID à l'Utilisateur s'il n'en a pas encore. Il est important de ne pas oublier de sauvegarder les modifications après avoir associé une nouvelle carte.
+- les certifications machines associées à l'Utilisateur (si elles existent). Il est possible de cocher ou décocher les certifications machines pour l'Utilisateur. Il est important de ne pas oublier de sauvegarder les modifications après avoir modifié les certifications machines.
+- Un bouton Sauvegarder pour enregistrer les modifications apportées aux informations de l'Utilisateur.
+- Un bouton "Envoyer le QR" pour renvoyer le QR code à l'Utilisateur par e-mail. La procédure d'envoi du QR code est expliquée dans la section \ref{ref:Envoyer le QR}.
+- Un bouton rouge "Supprimer cet utilisateur" pour supprimer l'Utilisateur de la base de données. La suppression d'un Utilisateur est irréversible et nécessite une confirmation avant d'être effectuée. Cette confirmation apparaît sous la forme d'une fenêtre pop-up demandant au Personnel de confirmer la suppression. Il est important de noter que la suppression d'un Utilisateur entraîne la perte de toutes les informations associées à ce profil. Les entrées et paiements ne sont en revanche pas affectés par la suppression d'un Utilisateur, mais l'identifiant de l'Utilisateur sera remplacé par "Utilisateur supprimé" dans les entrées et paiements associés à ce profil.
+
 
 L’onglet « Utilisateurs » vous permet de retrouver rapidement une personne déjà enregistrée, puis de consulter ou modifier sa fiche. C’est ici que vous gérez ses informations, ses modes d'Identification, ses certifications et son historique de paiements.
 

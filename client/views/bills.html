@@ -78,12 +78,8 @@
                     <label for="project-type-select">Lier à un projet ?</label>
                     <select id="project-type-select" class="form-control">
                         <option value="NONE">Aucun projet</option>
-                        <option value="PE">Projet d'Études (PE)</option>
-                        <option value="PAI">PAI</option>
-                        <option value="PAR">PAR</option>
-                        <option value="RESEARCH">Projet de recherche</option>
                     </select>
-                </div>
+                </div> 
 
                 <div id="project-details-fields" class="highlight-box mb-1 d-none">
                     <div class="form-group">
@@ -159,27 +155,44 @@
         </div>
         
         <div class="flex-row gap-1 p-05 align-center" style="border-bottom: 1px solid var(--border-color); margin-bottom: 1rem;">
-            <input type="text" id="filter-history-project" class="form-control w-auto" placeholder="Rechercher par nom de projet...">
-            <button class="btn btn-primary" id="btn-filter-history"><i class="fa-solid fa-filter"></i> Filtrer</button>
-            <button class="btn btn-outline" id="btn-reset-history">Tout réinitialiser (Voir tout le FabLab)</button>
+            <select id="filter-history-project-type" class="form-control w-auto">
+                <option value="all">Tous les types de projets</option>
+            </select>
+            
+            <input type="text" id="filter-history-project" class="form-control w-auto" list="projects-filter-autocomplete" placeholder="Rechercher par nom de projet..." autocomplete="off">
+            <datalist id="projects-filter-autocomplete"></datalist>
+            
+            <button class="btn btn-primary" id="btn-filter-history"><i class="fa-solid fa-filter"></i> Rechercher</button>
+            <button class="btn btn-outline" id="btn-reset-history"> Réinitialiser les filtres</button>
         </div>
 
-        <div class="table-container">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Utilisateur</th>
-                        <th>Opération</th>
-                        <th>Paiement</th>
-                        <th>Projet</th>
-                        <th>Valeur</th>
-                    </tr>
-                </thead>
-                <tbody id="payments-history-table">
-                    <tr><td colspan="6" class="text-center muted">Chargement des données...</td></tr>
-                </tbody>
-            </table>
+        <div style="display: flex; gap: 1rem; align-items: flex-start;">
+            <div class="table-container" style="flex: 1; min-width: 0;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Utilisateur</th>
+                            <th>Type Projet</th>
+                            <th>Projet</th>
+                            <th>Valeur</th>
+                            <th>Paiement</th>
+                            <th>Nom de l'opération</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payments-history-table">
+                        <tr><td colspan="7" class="text-center muted">Chargement des données...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card highlight-box d-none" id="transaction-details-panel" style="width: 350px; position: sticky; top: 10px;">
+                <div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                    <strong><i class="fa-solid fa-receipt"></i> Détails de l'opération</strong>
+                    <button type="button" class="btn btn-outline py-02 px-05" id="btn-fermer-transaction" style="font-size: 0.8rem;">Fermer</button>
+                </div>
+                <div id="transaction-details-content" class="flex-column gap-05" style="font-size: 0.9rem;"></div>
+            </div>
         </div>
     </div>
 </div>

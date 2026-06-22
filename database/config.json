@@ -4,7 +4,7 @@
     "Enseignant·e/Chercheur·se", "Extérieur", "Master", "Personnel"
   ],
   "motifs": [
-    "Projet d'Études", "Projet Personnel", "Visite", "Autre"
+    "Projet d'Études", "PAi", "PAr", "Projet de Recherche", "Projet Personnel", "Visite", "Autre"
   ],
   "zones": [
     "Impression 3D", "Découpe Laser", "Électronique", 
@@ -31,5 +31,11 @@
     {"nom": "PMMA transparent 3mm", "unite": "plaque·s", "prix": 18.57},
     {"nom": "Brodeuse CNC", "unite": "minute", "prix": 0.15},
     {"nom": "Fraiseuse CNC", "unite": "heure", "prix": 5.00}
+  ],
+  "projets_types": [
+    {"id_type": "PE", "nom": "Projet d'Études (PE)"},
+    {"id_type": "PAI", "nom": "PAI"},
+    {"id_type": "PAR", "nom": "PAR"},
+    {"id_type": "RECHERCHE", "nom": "Projet de Recherche"}
   ]
 }

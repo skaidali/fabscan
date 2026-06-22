@@ -123,7 +123,8 @@ def get_stats_logic(params_getter):
     zone = params_getter('zone', ['all'])[0]
     motif = params_getter('motif', ['all'])[0]
 
-    base_join = "FROM ENTREE e JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
+    # Remplacer JOIN par LEFT JOIN pour que les graphiques prennent en compte les anciens membres
+    base_join = "FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
     user_where, user_params, entry_where, entry_params = [], [], [], []
     
     if statut and statut != "all": user_where.append("u.statut = ?"); user_params.append(statut)
