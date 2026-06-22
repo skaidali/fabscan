@@ -17,7 +17,10 @@ Cette documentation détaille la liste du matériel nécessaire, les instruction
 
 ## 2. Impression 3D des boîtiers
 
-Les fichiers STL nécessaires à l'impression sont disponibles en téléchargement via **[ce lien](https://ecloud.myecl.fr/s/2JnsZxnKDqR7NKA)**.
+Les fichiers STL nécessaires à l'impression sont disponibles en téléchargement en cliquant sur **[ce lien](https://ecloud.myecl.fr/s/2JnsZxnKDqR7NKA)**, ou en scannant le QR code ci dessous :
+<div align="center">
+<img src="images/qr-code.png" alt="qr code des impressions 3D" width="300" />
+</div>
 
 ### 2.1 Paramètres du Slicer (Trancheur)
 
@@ -42,8 +45,14 @@ Seul le support de la LED nécessite des supports d'impression. Pour les placer 
 ![Peindre les supports](./images/support.png)
 
 
+## 3. Câblage électronique
 
-## 3. Intégration des composants
+Effectuez les connexions en suivant le schéma ci-dessous.
+
+![Schéma de câblage complet](./images/cablage.jpg)
+
+
+## 4. Intégration des composants
 
 Une fois l'impression terminée, nettoyez les pièces de leur supports, avant de procéder à l'intégration des composants électroniques.
 
@@ -51,18 +60,16 @@ Une fois l'impression terminée, nettoyez les pièces de leur supports, avant de
 
 Glissez les cartes dans leurs rails respectifs comme indiqué ci-dessous. Le module RFID se place dans la partie supérieure, tandis que l'Arduino Nano vient se loger juste en dessous.
 
-![Emplacement RFID et Arduino](./images/emplacement1.png)
+<div align="center">
+<img src="./images/emplacement1.png" alt="Emplacement RFID et Arduino" width="430" />
+</div>
+
+
 
 <BR>
 
 La LED verte s'insère dans le support dédié, présent en bas de l'image :
 
-![Emplacement de la LED](./images/emplacement2.png)
-
-
-
-## 4. Câblage électronique
-
-Effectuez les connexions en suivant le schéma ci-dessous.
-
-![Schéma de câblage complet](./images/cablage.jpg)
+<div align="center">
+<img src="./images/emplacement2.png" alt="Emplacement de la LED" width="430" />
+</div>
