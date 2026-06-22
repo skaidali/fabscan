@@ -11,7 +11,7 @@ function initUsersPage() {
     var formEdit = document.getElementById('edit-user-form');
     var msgBox = document.getElementById('edit-message');
 
-    var pagination = { pageActuelle: 1, utilisateursParPage: 12 };
+    var pagination = { pageActuelle: 1, utilisateursParPage: 20 };
     let COMPTE_UTILISATEUR_COURANT = null;
 
     // ==========================================

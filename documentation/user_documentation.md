@@ -104,48 +104,62 @@ Lorsqu'un Utilisateur est sélectionné dans le tableau de droite, ses informati
 - Un bouton Sauvegarder pour enregistrer les modifications apportées aux informations de l'Utilisateur.
 - Un bouton "Envoyer le QR" pour renvoyer le QR code à l'Utilisateur par e-mail. La procédure d'envoi du QR code est expliquée dans la section \ref{ref:Envoyer le QR}.
 - Un bouton rouge "Supprimer cet utilisateur" pour supprimer l'Utilisateur de la base de données. La suppression d'un Utilisateur est irréversible et nécessite une confirmation avant d'être effectuée. Cette confirmation apparaît sous la forme d'une fenêtre pop-up demandant au Personnel de confirmer la suppression. Il est important de noter que la suppression d'un Utilisateur entraîne la perte de toutes les informations associées à ce profil. Les entrées sont affectées dans la mesure où le nom et prénom sont supprimés, mais le statut est conservé. Une entrée précédent la suppression d'un Utilisateur sera tout de même comptabilisée, le nom et prénom seront remplacés par "Membre supprimé". Les paiements ne sont en revanche pas affectés par la suppression d'un Utilisateur. Une transaction d'un Utilisateur supprimé sera quand même affichée et ses informations seront conservées.
+- L'historique des paiements de l'Utilisateur, qui permet de consulter les dernières transactions liées à cet Utilisateur. L'historique des paiements est expliqué dans la section \ref{ref:Comptabilite}.
 
-L’onglet « Utilisateurs » vous permet de retrouver rapidement une personne déjà enregistrée, puis de consulter ou modifier sa fiche. C’est ici que vous gérez ses informations, ses modes d'Identification, ses certifications et son historique de paiements.
+A droite
+La table des Utilisateurs affiche la liste de tous les Utilisateurs présents dans la base de données. Il est possible de rechercher un Utilisateur par son nom, prénom ou e-mail grâce à la barre de recherche située en haut du tableau. Il est également possible de filtrer les Utilisateurs par statut grâce au menu déroulant situé à côté de la barre de recherche. Le tableau affiche les informations suivantes pour chaque Utilisateur : le prénom, le nom, et le statut. Il est possible de cliquer sur un Utilisateur pour afficher ses informations dans le cadre "Profil Utilisateur" à gauche dont la description est donnée ci-dessus.
+Deux boutons "Précédent" et "Suivant" sont disponibles en bas du tableau pour naviguer entre les pages de la liste des Utilisateurs. Le nombre d'Utilisateurs affichés par page est limité à 20.
 
-- Vous pouvez utiliser la barre de recherche pour retrouver une personne par son nom ou son prénom. Vous pouvez aussi affiner l’affichage avec le filtre par statut si vous cherchez un profil précis.
-
-    - Cliquez ensuite sur la ligne de l’Utilisateur que vous cherchez dans le tableau. Un panneau s’ouvre sur la gauche avec son profil complet, ce qui vous permet de vérifier ses informations et de les corriger si besoin.
-
-    ![Panneau latéral donnant les informations de l'Utilisateur](./images/82_profil.png)
-
-    - Dans la partie **Informations de base**, vous pouvez modifier son prénom, son nom, son e-mail et son statut. Cela vous sert par exemple à corriger une erreur de saisie ou à mettre à jour la situation de la personne.
-
-    - La zone **Carte RFID** vous indique si un badge est déjà associé. Si nécessaire, vous pouvez soit retirer la carte avec l’icône Corbeille, soit cliquer sur **Associer une carte** pour enregistrer un nouveau badge, puis ne pas oublier de sauvegarder.
-
-    - Dans **Certifications Machines**, cochez les machines ou compétences que l'Utilisateur est autorisée à utiliser. Cette partie vous aide à garder un suivi des accès et des autorisations au sein du FabLab.
-
-- Le bouton Sauvegarder enregistre vos modifications. Si vous devez renvoyer le QR code à la l'Utilisateur, utilisez **Envoyer le QR**. Si le profil doit être supprimé, le bouton rouge **Supprimer cet utilisateur** permet de retirer l'Utilisateur de la base de données après confirmation.
-
-- En bas du panneau, l’historique des paiements vous permet de consulter rapidement les dernières transactions liées à cet utilisateur. Cela vous donne une vue utile sur son suivi sans quitter l'onglet.
 
 ## Onglet « Comptabilité »
 
-Lorsqu'un Utilisateur souhaite effectuer un paiement ou ajouter de l'argent à son solde, vous devrez ouvrir l’onglet « Comptabilité ». Cet onglet vous permet de rattacher une opération à un utilisateur et de garder une trace de ce qui a été crédité ou débité.
+Cet onglet vous permet de gérer les transactions financières des Utilisateurs. Vous pouvez enregistrer des paiements, ajouter un montant (calculé en équivalent Matériau) au solde d'un Utilisateur, ou encore consulter l'historique des transactions d'un Utilisateur ou d'un Projet.
+
+
 
 ![Extrait de l'onglet « Comptabilité »](images/11_compta.png)
 
-1. Commencez par **sélectionner l’utilisateur** dans la zone **Recherche utilisateur** à gauche, soit en tapant son nom, soit en scannant sa carte RFID. Dès qu’il est reconnu, son profil s’affiche en bas avec ses informations essentielles et ses dernières transactions.
+L'onglet « Comptabilité » se compose de deux parties principales, assez similaires à l'onglet « Scanner » ; ainsi qu'une troisième partie en bas de page :
+- à gauche : la zone d'affichage des informations de l'Utilisateur sélectionné ;
+- à droite : la zone de saisie des informations de l'Utilisateur et d'enregistrement des transactions.
+- en bas de page : l'historique des transactions, qui permet de consulter les dernières transactions enregistrées dans la base de données.
 
-2. Vous pouvez ensuite vérifier son **e-mail** et son **numéro de carte RFID** dans le panneau de profil. Cette vue vous aide à vous assurer que vous avez bien sélectionné la bonne personne avant d’enregistrer une opération.
+Une barre de recherche est disponible en haut de la zone de gauche pour retrouver un Utilisateur par son nom ou son prénom, si l'Utilisateur n'a sur lui ni badge ni QR code. Dans le cas très récurrent où un Utilisateur présente un QR code plutôt qu'un badge, il convient de cliquer sur le champ de saisie prévu à cet effet, puis de scanner le QR code avec le scanner. Le scan remplit la barre de recherche avec un identifiant unique de l'Utilisateur (et non son nom ou prénom). Lorsqu'un champ (identifiant OU nom OU prénom) est rempli dans la barre de recherche, une ou plusieurs suggestions d'Utilisateur s'affichent en dessous. Il est possible de cliquer sur l'Utilisateur recherché pour afficher ses informations dans le cadre "Profil sélectionné".
 
-3. Dans la zone **Nouvelle opération** (à droite), renseignez le **nom de l’opération**. Si besoin, ajoutez un numéro d’opération, une description ou un commentaire pour préciser le contexte, par exemple un achat de matériau ou une participation à un projet.
+A gauche :
+Le cadre "Profil sélectionné" affiche les informations de l'Utilisateur identifié. Lorsqu'un utilisateur n'est pas encore identifié, elle est "En attente..." et les informations de l'Utilisateur ne sont pas affichées.
+Les informations accessibles sont :
+- le prénom, le nom.
+- le statut
+- le solde (se référer à la section \ref{ref:Comptabilite} pour plus de détails sur le solde)
+- l'e-mail de l'Utilisateur
+- l'information si l'Utilisateur possède une carte RFID associée ou non
+- Les dernières transactions de l'Utilisateur, avec le nom de la transaction, la date, le projet lié à la transaction (si applicable), et le montant de la transaction.
 
-![Exemple de transaction possible](images/83_compta.png)
+A droite :
+Un formulaire de saisie est disponible pour enregistrer une nouvelle transaction pour l'Utilisateur sélectionné. Le formulaire contient les champs suivants :
+- le nom de l'opération (obligatoire)
+- le numéro d'opération (optionnel) - très souvent lié à des opérations bancaires internes à l'établissement.
+- une description (optionnelle)
+- Un menu déroulant pour sélectionner le type de projet (obligatoire). Par défaut, le type de projet est "Aucun projet". Si un projet est sélectionné, il est possible de saisir le nom du projet (obligatoire) et le responsable du projet (optionnel). Le nom du projet peut-être un nom ou un numéro de projet. Le champ "Nom du projet" est muni (comme pour la barre de recherche d'un Utilisateur) d'une fonctionnalité de recherche pour retrouver un projet existant dans la base de données, si un projet a déjà été entré auparavant. 
+Dans le cas où le projet a déjà été entré auparavant, il est possible de le sélectionner dans la liste de suggestions qui s'affiche. Le responsable de projet est alors automatiquement rempli. Le responsable du projet peut être un nom et/ou un prénom.
+- Type de mouvement (obligatoire) : Crédit ou Débit. Le type de mouvement détermine si le montant saisi sera ajouté ou retiré du solde de l'Utilisateur. 
+Dans le cas d'un mouvement de type Crédit (Ajout), il est possible de sélectionner un matériau (optionnel), une quantité ou un poids (obligatoire si matériau choisi), et le prix est calculé automatiquement en fonction du matériau et de la quantité/poids saisis. Le prix est affiché en temps réel dans le formulaire dans le champ suivant "Montant final de l'opération".
+Dans le cas d'un mouvement de type Débit (Retrait), il est possible de sélectionner un matériau (optionnel), une quantité ou un poids (obligatoire si matériau choisi), et le prix est calculé automatiquement en fonction du matériau et de la quantité/poids saisis. Le prix est affiché en temps réel dans le formulaire dans le champ suivant "Montant final de l'opération"
+- Le champ Montant final de l'opération est affiché en temps réel dans le formulaire. Il est calculé automatiquement en fonction du type de mouvement, du matériau et de la quantité/poids saisis. Le montant final de l'opération est affiché en euros (€) avec deux décimales. Il est possible de saisir un montant directement dans le champ "Montant final de l'opération" si le type de mouvement est Crédit (resp. Débit). Dans ce cas, le montant saisi sera ajouté (resp. retiré) au solde de l'Utilisateur.
+- Un champ de texte pour saisir un commentaire (optionnel)
+- Un bouton "Enregistrer l'opération" pour enregistrer la transaction dans la base de données. Si le formulaire n'est pas correctement rempli, un message d'erreur s'affiche et la transaction n'est pas enregistrée. Si le formulaire est correctement rempli, la transaction est enregistrée et l'historique des transactions de l'Utilisateur est mis à jour.
 
-4. Si l’opération doit être liée à un **projet**, choisissez d’abord le type de projet, puis complétez le nom du projet et le responsable. Cette étape est utile pour retrouver facilement toutes les opérations associées à un projet donné.
+En bas de page :
+L'historique des transactions affiche les dernières transactions enregistrées dans la base de données. 
 
-5. Choisissez ensuite le **type de transaction**. En mode **Crédit**, vous saisissez simplement un montant (montant qui va être ajouté au solde); en mode **Débit** (montant qui va être retiré du solde), vous sélectionnez le matériau, la quantité ou le poids, puis le prix est calculé pour vous.
+Dans le tableau de l'historique des transactions :
 
-6. Une fois les informations saisies, cliquez sur **Enregistrer l’opération**. L’historique en bas de page se met à jour pour vous montrer l’ensemble des transactions, avec la date, l’utilisateur, le projet, le type de mouvement et la valeur correspondante.
+Il est possible de filtrer les transactions par type de projet.
+Il est également possible de filtrer les transactions par nom de projet grâce à la barre de recherche située en haut du tableau. Après avoir saisi le nom du projet, il est nécessaire de cliquer sur le bouton "Rechercher" pour appliquer le filtre. Le bouton "Réinitialiser les filtres" permet de retirer le filtre et d'afficher toutes les transactions.
+Le tableau affiche les informations suivantes pour chaque transaction : la date, le nom de l'Utilisateur, le type de Projet, le nom du Projet (ou le numéro), le montant, le type de mouvement, et le nom de l'opération. Il est possible de cliquer sur une transaction pour afficher ses détails (et donc l'ensemble des information recueillies) dans un panneau latéral. Le panneau latéral peut être retiré en cliquant sur le bouton "Fermer" en haut à droite du panneau. 
 
-![Historique des transactions](images/84_transactions.png)
-
-Concernant l'historique des transactions : vous pouvez sélectionner toutes les transactions d'un seul projet en utilisant la zone de texte **Rechercher par nom de projet** puis en cliquant sur **Filtrer** pour filtrer l’historique et vous concentrer uniquement sur les opérations concernées par celui-ci. Le bouton **Tout réinitialiser** permet de retirer le filtre.
+Un bouton "Exporter l'historique" est disponible pour exporter l'historique des transactions au format CSV (lisible sur LibrOffice, Excel, etc.). Le fichier CSV contient toutes les informations enregistrées pour chaque transaction. Les informations sont les suivantes : Date, Heure,	Nom,	Prénom,	Nom de l'Opération,	N° Opération,	Moyen de paiement,	Nom Projet,  Type Projet,	Tuteur	, Matériau	, Quantité	, Mouvement	(Crédit ou Débit), Montant,	Description,	Commentaire. Les filtres appliquées dans l'historique des transactions sont également appliqués à l'exportation. Le fichier CSV est enregistré dans le dossier "Téléchargements" de l'ordinateur utilisé pour accéder à l'Application sous le nom "Transactions_FabLab.csv".
 
 ## Onglet « Statistiques »
 
