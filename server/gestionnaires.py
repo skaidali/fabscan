@@ -123,12 +123,13 @@ def get_stats_logic(params_getter):
     zone = params_getter('zone', ['all'])[0]
     motif = params_getter('motif', ['all'])[0]
 
-    # Remplacer JOIN par LEFT JOIN pour que les graphiques prennent en compte les anciens membres
-    base_join = "FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
+    base_join = "FROM ENTREE e"
     user_where, user_params, entry_where, entry_params = [], [], [], []
     
-    if statut and statut != "all": user_where.append("u.statut = ?"); user_params.append(statut)
-    if certif and certif != "all": user_where.append("u.certifications LIKE ?"); user_params.append(f'%"{certif}"%')
+    if statut and statut != "all": entry_where.append("e.user_statut = ?"); entry_params.append(statut)
+    if certif and certif != "all": 
+        base_join = "FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
+        user_where.append("u.certifications LIKE ?"); user_params.append(f'%"{certif}"%')
     if zone and zone != "all": entry_where.append("e.zone_travail = ?"); entry_params.append(zone)
     if motif and motif != "all": entry_where.append("e.type_projet = ?"); entry_params.append(motif)
 

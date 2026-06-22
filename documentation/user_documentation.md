@@ -3,7 +3,6 @@
 [ ] Images : mettre des éléments en surbrillance et les numéroter
 [ ] Images : mettre en situation réelle où les bases de données sont pleines à craquer 
 [ ] Faire une FAQ
-[ ] /!\ ATTENTION : POINT A PRENDRE en compte: la suppression d'un user supprime ses entrées, et ses paiements ! A CORRIGER !
 
 # Introduction
 
@@ -104,8 +103,7 @@ Lorsqu'un Utilisateur est sélectionné dans le tableau de droite, ses informati
 - les certifications machines associées à l'Utilisateur (si elles existent). Il est possible de cocher ou décocher les certifications machines pour l'Utilisateur. Il est important de ne pas oublier de sauvegarder les modifications après avoir modifié les certifications machines.
 - Un bouton Sauvegarder pour enregistrer les modifications apportées aux informations de l'Utilisateur.
 - Un bouton "Envoyer le QR" pour renvoyer le QR code à l'Utilisateur par e-mail. La procédure d'envoi du QR code est expliquée dans la section \ref{ref:Envoyer le QR}.
-- Un bouton rouge "Supprimer cet utilisateur" pour supprimer l'Utilisateur de la base de données. La suppression d'un Utilisateur est irréversible et nécessite une confirmation avant d'être effectuée. Cette confirmation apparaît sous la forme d'une fenêtre pop-up demandant au Personnel de confirmer la suppression. Il est important de noter que la suppression d'un Utilisateur entraîne la perte de toutes les informations associées à ce profil. Les entrées et paiements ne sont en revanche pas affectés par la suppression d'un Utilisateur, mais l'identifiant de l'Utilisateur sera remplacé par "Utilisateur supprimé" dans les entrées et paiements associés à ce profil.
-
+- Un bouton rouge "Supprimer cet utilisateur" pour supprimer l'Utilisateur de la base de données. La suppression d'un Utilisateur est irréversible et nécessite une confirmation avant d'être effectuée. Cette confirmation apparaît sous la forme d'une fenêtre pop-up demandant au Personnel de confirmer la suppression. Il est important de noter que la suppression d'un Utilisateur entraîne la perte de toutes les informations associées à ce profil. Les entrées sont affectées dans la mesure où le nom et prénom sont supprimés, mais le statut est conservé. Une entrée précédent la suppression d'un Utilisateur sera tout de même comptabilisée, le nom et prénom seront remplacés par "Membre supprimé". Les paiements ne sont en revanche pas affectés par la suppression d'un Utilisateur. Une transaction d'un Utilisateur supprimé sera quand même affichée et ses informations seront conservées.
 
 L’onglet « Utilisateurs » vous permet de retrouver rapidement une personne déjà enregistrée, puis de consulter ou modifier sa fiche. C’est ici que vous gérez ses informations, ses modes d'Identification, ses certifications et son historique de paiements.
 

@@ -247,7 +247,7 @@ function chargerHistoriquePaiements() {
             transactionsFiltrees.forEach(p => {
                 const date = new Date(p.date).toLocaleString('fr-FR');
                 const sign = p.type_mouvement === 'CREDIT' ? '+' : '-';
-                const affichageNom = (p.user_prenom !== "Membre" && p.user_nom !== "Supprimé") ? `${p.user_prenom} ${p.user_nom}` : "👤 *Membre supprimé*";
+                const affichageNom = (p.user_prenom !== "Membre" && p.user_nom !== "Supprimé") ? `${p.user_prenom} ${p.user_nom}` : "👤 Utilisateur supprimé";
                 
                 let libelleTypeProjet = "-";
                 if (p.projet_type && CONFIG_BILLS && CONFIG_BILLS.projets_types) {
@@ -280,23 +280,27 @@ function ouvrirVoletDetailsTransaction(id) {
     const content = document.getElementById('transaction-details-content');
     const dateLong = new Date(tx.date).toLocaleString('fr-FR');
     const typeLabel = tx.type_mouvement === 'CREDIT' ? '🟢 CRÉDIT (Apport)' : '🔴 DÉBIT (Facturation)';
+    const affichageUtilisateur = (tx.user_prenom !== "Membre" && tx.user_nom !== "Supprimé") 
+        ? `${tx.user_prenom} ${tx.user_nom}` 
+        : "👤 Utilisateur supprimé";
 
     content.innerHTML = `
         <div class="flex-between"><span>Date :</span><span class="muted">${dateLong}</span></div>
+        <div class="flex-between"><span>Utilisateur :</span><strong>${affichageUtilisateur}</strong></div>
         <div class="flex-between"><span>Type :</span><strong>${typeLabel}</strong></div>
-        <div class="flex-between"><span>Opération :</span><strong>${tx.nom}</strong></div>
+        <div class="flex-between"><span>Nom de l'opération :</span><strong>${tx.nom}</strong></div>
         <div class="flex-between"><span>Montant :</span><strong style="font-size: 1.1rem; color: ${tx.type_mouvement === 'CREDIT' ? 'var(--success)' : 'var(--danger)'}">${tx.type_mouvement === 'CREDIT' ? '+' : '-'}${tx.montant.toFixed(2)} €</strong></div>
-        <div class="flex-between"><span>Régie / Moyen :</span><span class="pill">${tx.moyen_paiement || '-'}</span></div>
+        <div class="flex-between"><span>Moyen de paiement :</span><span class="pill">${tx.moyen_paiement || '-'}</span></div>
         <hr class="divider">
-        <div class="flex-between"><span>Liaison Projet :</span><strong>${tx.projet_nom || 'Aucun'}</strong></div>
-        <div class="flex-between"><span>Type Projet :</span><span>${tx.projet_type || 'Non spécifié'}</span></div>
-        <div class="flex-between"><span>Responsable / Tuteur :</span><strong>${tx.projet_tuteur || '👤 Aucun tuteur enregistré'}</strong></div>
+        <div class="flex-between"><span>Type :</span><span>${tx.projet_type || 'Non spécifié'}</span></div>
+        <div class="flex-between"><span>Titre :</span><strong>${tx.projet_nom || 'Aucun'}</strong></div>
+        <div class="flex-between"><span>Responsable / Tuteur :</span><strong>${tx.projet_tuteur || 'Aucun tuteur enregistré'}</strong></div>
         <hr class="divider">
         <div class="flex-between"><span>Matériau :</span><span>${tx.materiau || 'N/A'}</span></div>
         <div class="flex-between"><span>Quantité / Poids :</span><span>${tx.poids ? tx.poids + ' unités' : 'N/A'}</span></div>
         <hr class="divider">
         <div class="flex-column"><span class="muted">Description :</span><p class="mt-02" style="background: rgba(0,0,0,0.02); padding: 0.4rem; border-radius: 4px;">${tx.description || 'Aucune description'}</p></div>
-        <div class="flex-column"><span class="muted">N° Opération en banque :</span><strong>${tx.numero_operation || 'Aucun'}</strong></div>
+        <div class="flex-column"><span class="muted">N° Opération :</span><strong>${tx.numero_operation || 'Aucun'}</strong></div>
         <div class="flex-column"><span class="muted">Commentaire interne :</span><em class="text-sm">${tx.commentaire || 'Aucun'}</em></div>
     `;
     panel.classList.remove('d-none');

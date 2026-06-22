@@ -55,12 +55,14 @@ def init_database():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS ENTREE (
             id_entree INTEGER PRIMARY KEY AUTOINCREMENT, 
-            id_utilisateur TEXT, -- On enlève 'NOT NULL' pour autoriser le passage à NULL
+            id_utilisateur TEXT, 
             date DATETIME DEFAULT CURRENT_TIMESTAMP, 
             type_projet TEXT, 
             zone_travail TEXT, 
             commentaire TEXT,
-            -- SÉCURITÉ STATS : Si l'user est supprimé, l'entrée reste pour les graphiques !
+            user_nom TEXT,
+            user_prenom TEXT,
+            user_statut TEXT,
             FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE SET NULL
         )
     """)
@@ -68,12 +70,14 @@ def init_database():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS PAIEMENTS (
             id_paiement INTEGER PRIMARY KEY AUTOINCREMENT, 
-            id_utilisateur TEXT, -- On enlève 'NOT NULL' pour autoriser le passage à NULL
+            id_utilisateur TEXT, 
             date DATETIME DEFAULT CURRENT_TIMESTAMP, 
             nom TEXT, description TEXT, commentaire TEXT,
             projet_nom TEXT, projet_type TEXT, projet_tuteur TEXT, numero_operation TEXT,
             type_mouvement TEXT, montant REAL, materiau TEXT, poids REAL, moyen_paiement TEXT,
-            -- SÉCURITÉ COMPTA : Si l'user est supprimé, la facture reste pour la caisse !
+            user_nom TEXT,
+            user_prenom TEXT,
+            user_statut TEXT,
             FOREIGN KEY (id_utilisateur) REFERENCES UTILISATEURS(id) ON DELETE SET NULL
         )
     """)
@@ -143,8 +147,13 @@ def research_user_by_id_carte(id_carte):
 def add_entry(id_utilisateur, type_projet="", zone_travail="", commentaire=""):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO ENTREE (id_utilisateur, type_projet, zone_travail, commentaire) VALUES (?, ?, ?, ?)",
-                   (id_utilisateur, type_projet, zone_travail, commentaire))
+    cursor.execute("SELECT nom, prenom, statut FROM UTILISATEURS WHERE id = ?", (id_utilisateur,))
+    user = cursor.fetchone()
+    u_nom, u_prenom, u_statut = user if user else ("Inconnu", "Visiteur", "Extérieur")
+    cursor.execute("""
+        INSERT INTO ENTREE (id_utilisateur, type_projet, zone_travail, commentaire, user_nom, user_prenom, user_statut) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (id_utilisateur, type_projet, zone_travail, commentaire, u_nom, u_prenom, u_statut))
     conn.commit()
     conn.close()
 
@@ -155,7 +164,6 @@ def list_users(search="", statut="", page=1, page_size=50):
     clean_search = (search or "").strip().lower()
     
     if clean_search:
-        # Permet de chercher sur le nom seul, le prénom seul, ou les combinaisons "prénom nom" et "nom prénom"
         where_clauses.append("""
             (LOWER(nom) LIKE ? 
              OR LOWER(prenom) LIKE ? 
@@ -183,9 +191,8 @@ def get_all_entries(limit=50):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT datetime(e.date, 'localtime'), u.statut, u.nom, u.prenom, e.type_projet, e.zone_travail, e.commentaire
-        -- LEFT JOIN plutôt que JOIN pour ne pas masquer les entrées des profils supprimés
-        FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id ORDER BY e.date DESC LIMIT ?
+        SELECT datetime(e.date, 'localtime'), e.user_statut, e.user_nom, e.user_prenom, e.type_projet, e.zone_travail, e.commentaire
+        FROM ENTREE e ORDER BY e.date DESC LIMIT ?
     """, (limit,))
     rows = cursor.fetchall()
     conn.close()
@@ -194,17 +201,27 @@ def get_all_entries(limit=50):
 def execute_rgpd_maintenance():
     conn = get_connection()
     cursor = conn.cursor()
+    
+    # Au bout d'un an, on efface l'identité (Nom/Prénom) 
+    # MAIS on conserve précieusement le "user_statut" et la "zone_travail" pour les graphiques !
     cursor.execute("""
-        UPDATE ENTREE SET id_utilisateur = 'ANONYME', commentaire = 'Données anonymisées (Contrainte RGPD 1 an)'
+        UPDATE ENTREE 
+        SET id_utilisateur = 'ANONYME', 
+            user_nom = 'Anonyme', 
+            user_prenom = 'Membre',
+            commentaire = 'Données anonymisées (Contrainte RGPD 1 an)'
         WHERE datetime(date) < datetime('now', '-1 year')
     """)
     anonymes = cursor.rowcount
+    
+    # Purge des profils d'utilisateurs totalement inactifs depuis plus de 5 ans
     cursor.execute("""
         DELETE FROM UTILISATEURS WHERE id NOT IN (
             SELECT DISTINCT id_utilisateur FROM ENTREE WHERE datetime(date) >= datetime('now', '-5 years')
         ) AND datetime(date_inscription) < datetime('now', '-5 years')
     """)
     purges = cursor.rowcount
+    
     conn.commit()
     conn.close()
     return anonymes, purges
@@ -228,8 +245,21 @@ def get_user_by_scan_id(scan_id):
 def delete_user(id_user):
     conn = get_connection()
     cursor = conn.cursor()
+    
+    # ANONYMISATION IMMÉDIATE : Avant de supprimer l'user, on nettoie ses entrées.
+    # On efface son nom et son prénom, mais on laisse intact le "user_statut" pour les stats !
+    cursor.execute("""
+        UPDATE ENTREE 
+        SET user_nom = 'Anonyme', 
+            user_prenom = 'Membre',
+            commentaire = 'Identité retirée suite à la suppression du compte'
+        WHERE id_utilisateur = ?
+    """, (id_user,))
+    
+    # Maintenant on peut supprimer l'utilisateur de la table
     cursor.execute("DELETE FROM UTILISATEURS WHERE id = ?", (id_user,))
     deleted = cursor.rowcount > 0
+    
     conn.commit()
     conn.close()
     return deleted
@@ -237,10 +267,16 @@ def delete_user(id_user):
 def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau=None, poids=None, moyen_paiement=None):
     conn = get_connection()
     cursor = conn.cursor()
+
+    cursor.execute("SELECT nom, prenom, statut FROM UTILISATEURS WHERE id = ?", (id_utilisateur,))
+    user = cursor.fetchone()
+    u_nom, u_prenom, u_statut = user if user else ("Supprimé", "Membre", "Personnel")
+
     cursor.execute("""
-        INSERT INTO PAIEMENTS (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement))
+        INSERT INTO PAIEMENTS (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement, user_nom, user_prenom, user_statut)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement, u_nom, u_prenom, u_statut))
+    
     if type_mouvement == "CREDIT" or moyen_paiement == "Rechargement Solde":
         cursor.execute("UPDATE UTILISATEURS SET montant = montant + ? WHERE id = ?", (montant, id_utilisateur))
     elif type_mouvement == "DEBIT" and moyen_paiement and "Solde" in moyen_paiement:
@@ -251,23 +287,21 @@ def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, proje
 def get_payments(id_user=None, project_name=None, limit=50, search_user=None):
     conn = get_connection()
     cursor = conn.cursor()
-    # LEFT JOIN au lieu de JOIN pour garder les lignes orphelines
     query = """
         SELECT p.id_paiement, p.id_utilisateur, datetime(p.date, 'localtime'), p.nom, p.description, p.commentaire, 
                p.projet_nom, p.projet_type, p.projet_tuteur, p.numero_operation, p.type_mouvement, p.montant, p.materiau, p.poids,
-               u.nom, u.prenom, p.moyen_paiement FROM PAIEMENTS p LEFT JOIN UTILISATEURS u ON p.id_utilisateur = u.id
+               p.user_nom, p.user_prenom, p.moyen_paiement, p.user_statut FROM PAIEMENTS p
     """
     w, params = [], []
     if id_user: w.append("p.id_utilisateur = ?"); params.append(id_user)
     if project_name: w.append("p.projet_nom LIKE ?"); params.append(f"%{project_name}%")
-    if search_user: w.append("(u.nom LIKE ? OR u.prenom LIKE ?)"); params.extend([f"%{search_user}%", f"%{search_user}%"])
+    if search_user: w.append("(p.user_nom LIKE ? OR p.user_prenom LIKE ?)"); params.extend([f"%{search_user}%", f"%{search_user}%"])
     if w: query += " WHERE " + " AND ".join(w)
     query += " ORDER BY p.date DESC LIMIT ?"
     cursor.execute(query, params + [limit])
     rows = cursor.fetchall()
     conn.close()
     return rows
-
 
 def search_projects(query, limit=10):
     conn = get_connection()
@@ -296,7 +330,7 @@ def get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_fil
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date LIKE ? {and_statut_filter}", today_params)
     today_entries = cursor.fetchone()[0]
     
-    # 4. : Entrées dans la dernière heure (on applique aussi les filtres de sécurité)
+    # 4. Entrées dans la dernière heure
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date >= datetime('now', '-1 hour') {and_statut_filter}", all_params)
     hourly_entries = cursor.fetchone()[0]
     
@@ -304,17 +338,23 @@ def get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_fil
     cursor.execute(f"SELECT COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter}", period_params)
     period_entries = cursor.fetchone()[0]
     
-    # [Le reste des requêtes de la fonction reste identique...]
+    # 6. Graphique linéaire
     cursor.execute(f"SELECT {group_by} as d, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY d ORDER BY d", period_params)
     chart_data = {row[0]: row[1] for row in cursor.fetchall()}
     
-    cursor.execute(f"SELECT u.statut, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY u.statut ORDER BY COUNT(*) DESC", period_params)
-    profiles = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
+    # 7. Répartition par profils (✨ FIX : On utilise e.user_statut au lieu de u.statut car u n'existe plus ici)
+    col_statut = "u.statut" if "UTILISATEURS" in base_join else "e.user_statut"
+    cursor.execute(f"SELECT {col_statut}, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY {col_statut} ORDER BY COUNT(*) DESC", period_params)
+    profiles = [{"name": row[0] if row[0] else "Inconnu", "count": row[1]} for row in cursor.fetchall()]
     
-    cursor.execute(f"SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20", all_params)
-    recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}", "statut": r[3], "zone": r[4], "projet": r[5]} for r in cursor.fetchall()]
+    # 8. Tableau des entrées récentes (✨ FIX : On va chercher directement les infos gravées en dur)
+    if "UTILISATEURS" in base_join:
+        sql_recent = f"SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20"
+    else:
+        sql_recent = f"SELECT datetime(e.date, 'localtime'), e.user_nom, e.user_prenom, e.user_statut, e.zone_travail, e.type_projet {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20"
+        
+    cursor.execute(sql_recent, all_params)
+    recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}" if (r[1] or r[2]) else "Ancien Membre", "statut": r[3] or "Supprimé", "zone": r[4], "projet": r[5]} for r in cursor.fetchall()]
     
     conn.close()
-    
-    # On ajoute hourly_entries dans le retour de la fonction juste après today_entries
     return total_users, total_entries, today_entries, hourly_entries, period_entries, chart_data, profiles, recent
