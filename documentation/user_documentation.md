@@ -199,7 +199,6 @@ Cet onglet permet de rechercher, consulter et modifier les profils utilisateurs.
 - Les entrées passées restent comptabilisées mais le nom/prénom devient **Membre supprimé**.
 - Les transactions comptables restent visibles.
 
-\newpage
 
 ## 7. Onglet Comptabilité
 
@@ -309,7 +308,6 @@ Trois indicateurs centraux :
 
 Fichier exporté : **Historique_Entrees_FabLab.csv** (dossier Téléchargements).
 
-\newpage
 
 ## 9. Onglet Inscription
 
@@ -393,7 +391,6 @@ Voir aussi : [9. Onglet Inscription](#9-onglet-inscription).
 
 Voir aussi : [8. Onglet Statistiques](#8-onglet-statistiques).
 
-\newpage
 
 ## 11. Déroulement d'une entrée au FabLab
 
@@ -473,26 +470,3 @@ Cela correspond à un enregistrement en mode automatique (selon la configuration
 Dans le dossier **Téléchargements** de l'ordinateur utilisé.
 
 ---
-
-## 14. Checklist avant export PDF / impression
-
-Utiliser cette liste avant diffusion :
-
-- [ ] Vérifier que toutes les images sont présentes et lisibles.
-- [ ] Vérifier que les liens internes de la table des matières fonctionnent.
-- [ ] Vérifier les captures d'écran (cohérence avec la version actuelle de l'interface).
-- [ ] Vérifier l'orthographe des intitulés de boutons.
-- [ ] Vérifier les noms de fichiers d'export CSV.
-- [ ] Exporter en PDF puis contrôler la lisibilité à 100 % de zoom.
-- [ ] Faire un test d'impression (A4, marges standard) sur 2 à 3 pages représentatives.
-
----
-
-## Annexe - Actions de mise en forme encore possibles
-
-Si vous souhaitez améliorer encore la version imprimée :
-
-- ajouter des encadrés visuels de type "Attention" / "Astuce",
-- numéroter explicitement les captures d'écran dans les légendes,
-- ajouter des repères visuels sur les captures (flèches, cercles, zones colorées),
-- adapter les sauts de page selon l'outil de conversion PDF utilisé.
