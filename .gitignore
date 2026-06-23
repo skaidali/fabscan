@@ -4,3 +4,4 @@
 # On enlève les changements à la database
 /database/database.db
 /database/QRCode/
+.vscode/extensions.json
