@@ -193,23 +193,33 @@ def handle_post_api(route, request_handler):
         zone = data.get('zone_travail', 'N/A')
         comment = data.get('commentaire', '')
         
-        db.add_entry(uid, motif, zone, comment)
-        
-        user_info = db.research_user_by_id(uid)
-        prenom = user_info[1] if user_info else "Visiteur"
-        
-        request_handler.send_response_json({"success": True, "prenom": prenom, "message": "Entrée enregistrée avec succès."})
+        # On intercepte la non-existence de l'utilisateur
+        try:
+            db.add_entry(uid, motif, zone, comment)
+            user_info = db.research_user_by_id(uid)
+            prenom = user_info[1] if user_info else "Visiteur"
+            request_handler.send_response_json({"success": True, "prenom": prenom, "message": "Entrée enregistrée avec succès."})
+        except ValueError as e:
+            request_handler.send_response_json({"success": False, "error": str(e)}, 400)
+        return True
+
     elif route == "update_user":
         db.update_user(data.get('id'), data.get('nom'), data.get('prenom'), data.get('statut'), data.get('email'), data.get('certifications'))
         if 'id_carte' in data: db.link_id_carte(data.get('id'), data.get('id_carte'))
         request_handler.send_response_json({"success": True, "message": "Profil mis à jour !"})
+        return True
+
     elif route == "add_payment":
-        db.add_payment(
-            data.get('user_id'), data.get('nom'), data.get('description'), data.get('commentaire'),
-            data.get('projet_nom'), data.get('projet_type'), data.get('projet_tuteur'), data.get('numero_operation'),
-            data.get('type_mouvement'), data.get('montant'), data.get('materiau'), data.get('poids'), data.get('moyen_paiement')
-        )
-        request_handler.send_response_json({"success": True, "message": "Paiement enregistré avec succès !"})
+        # On intercepte l'erreur financière pour empêcher la corruption du registre
+        try:
+            db.add_payment(
+                data.get('user_id'), data.get('nom'), data.get('description'), data.get('commentaire'),
+                data.get('projet_nom'), data.get('projet_type'), data.get('projet_tuteur'), data.get('numero_operation'),
+                data.get('type_mouvement'), data.get('montant'), data.get('materiau'), data.get('poids'), data.get('moyen_paiement')
+            )
+            request_handler.send_response_json({"success": True, "message": "Paiement enregistré avec succès !"})
+        except ValueError as e:
+            request_handler.send_response_json({"success": False, "error": str(e)}, 400)
         return True
 
     return False

@@ -72,27 +72,28 @@ function initBillsPage() {
         });
     }
 
-    // 🔍 AUTOCOMPLÉTION DYNAMIQUE AVEC PRÉ-REMPLISSAGE DU TUTEUR
+    // AUTOCOMPLÉTION DYNAMIQUE AVEC PRÉ-REMPLISSAGE DU TUTEUR
     const projectNameInput = document.getElementById('project-name-input');
     if (projectNameInput) {
         projectNameInput.addEventListener('input', (e) => {
             const valeur = e.target.value;
             if (valeur.length < 1) return;
             
-            const typeActuel = projectTypeSelect.value;
+            // On vérifie l'existence de projectTypeSelect avant d'en lire la valeur
+            const typeActuel = projectTypeSelect ? projectTypeSelect.value : 'NONE';
             fetch(`/api/search_projects?q=${encodeURIComponent(valeur)}&type=${encodeURIComponent(typeActuel)}`)
                 .then(res => res.json())
                 .then(data => {
                     const dl = document.getElementById('projects-autocomplete'); if (!dl) return;
                     dl.innerHTML = "";
                     
-                    // On mémorise les résultats côté client
-                    SUGGESTIONS_PROJETS_FORMULAIRE = data.items;
+                    SUGGESTIONS_PROJETS_FORMULAIRE = data.items || [];
                     
-                    // On injecte les suggestions dans la datalist
-                    data.items.forEach(proj => {
-                        dl.innerHTML += `<option value="${proj.nom}"></option>`;
-                    });
+                    if (data.items) {
+                        data.items.forEach(proj => {
+                            dl.innerHTML += `<option value="${proj.nom}"></option>`;
+                        });
+                    }
                 });
         });
 
@@ -228,11 +229,17 @@ function chargerHistoriquePaiements() {
     if (historyUserId) url += `&user_id=${historyUserId}`;
     if (historyProject) url += `&project=${encodeURIComponent(historyProject)}`;
     
-    fetch(url).then(res => res.json()).then(data => {
+    fetch(url)
+    .then(res => {
+        if (!res.ok) throw new Error("Erreur réseau compta");
+        return res.json();
+    })
+    .then(data => {
         const tbody = document.getElementById('payments-history-table'); if (!tbody) return;
-        tbody.innerHTML = data.success && data.data.length > 0 ? "" : '<tr><td colspan="7" class="text-center muted">Aucune transaction trouvée</td></tr>';
         
-        if (data.success) {
+        // On vérifie l'existence de data, data.success et data.data
+        if (data && data.success && data.data && data.data.length > 0) {
+            tbody.innerHTML = "";
             let transactionsFiltrees = data.data;
             if (historyProjectType !== "all") {
                 transactionsFiltrees = data.data.filter(t => t.projet_type === historyProjectType);
@@ -270,7 +277,14 @@ function chargerHistoriquePaiements() {
                 tr.addEventListener('click', () => ouvrirVoletDetailsTransaction(p.id_paiement));
                 tbody.appendChild(tr);
             });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center muted">Aucune transaction trouvée</td></tr>';
         }
+    })
+    .catch(err => {
+        console.error("Échec de récupération de la compta :", err);
+        const tbody = document.getElementById('payments-history-table');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Erreur lors du chargement de l\'historique comptable</td></tr>';
     });
 }
 

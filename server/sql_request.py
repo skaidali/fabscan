@@ -149,7 +149,11 @@ def add_entry(id_utilisateur, type_projet="", zone_travail="", commentaire=""):
     cursor = conn.cursor()
     cursor.execute("SELECT nom, prenom, statut FROM UTILISATEURS WHERE id = ?", (id_utilisateur,))
     user = cursor.fetchone()
-    u_nom, u_prenom, u_statut = user if user else ("Inconnu", "Visiteur", "Extérieur")
+    if not user:
+        conn.close()
+        raise ValueError(f"L'utilisateur avec l'ID {id_utilisateur} n'existe pas.")
+
+    u_nom, u_prenom, u_statut = user
     cursor.execute("""
         INSERT INTO ENTREE (id_utilisateur, type_projet, zone_travail, commentaire, user_nom, user_prenom, user_statut) 
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -267,11 +271,13 @@ def delete_user(id_user):
 def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau=None, poids=None, moyen_paiement=None):
     conn = get_connection()
     cursor = conn.cursor()
-
     cursor.execute("SELECT nom, prenom, statut FROM UTILISATEURS WHERE id = ?", (id_utilisateur,))
     user = cursor.fetchone()
-    u_nom, u_prenom, u_statut = user if user else ("Supprimé", "Membre", "Personnel")
+    if not user:
+        conn.close()
+        raise ValueError(f"Impossible d'imputer un paiement : l'utilisateur {id_utilisateur} est introuvable.")
 
+    u_nom, u_prenom, u_statut = user
     cursor.execute("""
         INSERT INTO PAIEMENTS (id_utilisateur, nom, description, commentaire, projet_nom, projet_type, projet_tuteur, numero_operation, type_mouvement, montant, materiau, poids, moyen_paiement, user_nom, user_prenom, user_statut)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -281,6 +287,7 @@ def add_payment(id_utilisateur, nom, description, commentaire, projet_nom, proje
         cursor.execute("UPDATE UTILISATEURS SET montant = montant + ? WHERE id = ?", (montant, id_utilisateur))
     elif type_mouvement == "DEBIT" and moyen_paiement and "Solde" in moyen_paiement:
         cursor.execute("UPDATE UTILISATEURS SET montant = montant - ? WHERE id = ?", (montant, id_utilisateur))
+        
     conn.commit()
     conn.close()
 

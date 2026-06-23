@@ -24,11 +24,20 @@ function initScanPage() {
     var champMotif = document.getElementById('motif'); 
     var champZone = document.getElementById('zone');   
     var listeCertificationsConfig = [];
+    
+    // Gestion du throttling pour éviter les doubles scans
+    var lastAutoEntryTime = 0;
+    var AUTO_ENTRY_THROTTLE_MS = 3000; // 3 secondes minimum entre deux entrées auto
 
     // ==========================================
-    // 0. CHARGEMENT DE LA CONFIGURATION (Fichier JSON)
+    // 0. CHARGEMENT DE LA CONFIGURATION (Avec gestion d'échec)
     // ==========================================
-    fetch('/api/config').then(function(res) { return res.json(); }).then(function(resultat) {
+    fetch('/api/config')
+    .then(function(res) { 
+        if (!res.ok) throw new Error("Erreur serveur");
+        return res.json(); 
+    })
+    .then(function(resultat) {
         if (resultat.success) {
             var config = resultat.data;
             listeCertificationsConfig = config.certifications || [];
@@ -36,19 +45,32 @@ function initScanPage() {
             config.motifs.forEach(function(m) { champMotif.innerHTML += `<option value="${m}">${m}</option>`; });
             champZone.innerHTML = "";
             config.zones.forEach(function(z) { champZone.innerHTML += `<option value="${z}">${z}</option>`; });
+        } else {
+            throw new Error(resultat.error || "Données invalides");
         }
+    })
+    .catch(function(err) {
+        console.error("Échec du chargement de la config:", err);
+        msgBox.style.color = "var(--danger)";
+        msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur de configuration. Veuillez recharger la page.";
+        champMotif.innerHTML = "<option value=''>Erreur de chargement</option>";
+        champZone.innerHTML = "<option value=''>Erreur de chargement</option>";
     });
 
     // ==========================================
     // 1. GESTION VISUELLE DU MODE AUTOMATIQUE
     // ==========================================
-    if (window.fablabAutoMode) { 
+    // Restaurer l'état du mode auto depuis localStorage
+    if (localStorage.getItem('fablabAutoMode') === 'true') { 
+        window.fablabAutoMode = true;
         autoModeToggle.checked = true; 
         activerModeAutoUI(); 
     }
     
     autoModeToggle.addEventListener('change', function() {
         window.fablabAutoMode = this.checked;
+        // Persévérer l'état dans localStorage
+        localStorage.setItem('fablabAutoMode', this.checked);
         this.checked ? activerModeAutoUI() : desactiverModeAutoUI();
     });
 
@@ -112,30 +134,76 @@ function initScanPage() {
     function gererUtilisateurIdentifie(idScanne, source) {
         if (!idScanne) return;
         
+        // Vérifier la visibilité AVANT de faire le fetch
+        var visible = document.body.contains(panelName);
+        if (!visible) return;
+        
         fetch('/api/user_info?id=' + encodeURIComponent(idScanne))
         .then(function(res) { return res.json(); })
         .then(function(userData) {
-            var visible = document.body.contains(panelName);
+            var stillVisible = document.body.contains(panelName);
             if (userData.success) {
-                if (visible) afficherProfil(userData.data);
+                if (stillVisible) afficherProfil(userData.data);
                 
                 // Si le mode automatique/robot est coché, on valide l'entrée sans intervention humaine
-                if (window.fablabAutoMode) {
+                if (window.fablabAutoMode && stillVisible) {
+                    // Appliquer le throttling pour éviter les doubles scans rapides
+                    var now = Date.now();
+                    if (now - lastAutoEntryTime < AUTO_ENTRY_THROTTLE_MS) {
+                        console.warn("Double scan évité - throttling actif");
+                        return;
+                    }
+                    lastAutoEntryTime = now;
+                    
+                    // Vérifier les certifications requises (si la zone l'exige)
+                    var zoneRequiereCertif = userData.data.certifications && userData.data.certifications.length > 0;
+                    if (!userData.data.certifications || userData.data.certifications.length === 0) {
+                        msgBox.style.color = "var(--danger)";
+                        msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Accès refusé : aucune certification machine !";
+                        setTimeout(resetUI, 3000);
+                        return;
+                    }
+                    
                     fetch('/api/add_entry', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ user_id: userData.data.id, type_projet: "N/A", zone_travail: "N/A", commentaire: "Mode Auto (" + source + ")" })
-                    }).then(function(res) { return res.json(); }).then(function(resData) {
-                        if (resData.success && visible) {
-                            msgBox.style.color = "var(--success)";
-                            msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée Auto validée pour " + resData.prenom + " !";
-                            setTimeout(resetUI, 2500);
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(resData) {
+                        var finalVisible = document.body.contains(panelName);
+                        if (finalVisible) {
+                            if (resData.success) {
+                                msgBox.style.color = "var(--success)";
+                                msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée Auto validée pour " + resData.prenom + " !";
+                                setTimeout(resetUI, 2500);
+                            } else {
+                                msgBox.style.color = "var(--danger)";
+                                msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur d'enregistrement !";
+                                setTimeout(resetUI, 3000);
+                            }
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error("Erreur lors de l'enregistrement auto:", err);
+                        if (stillVisible) {
+                            msgBox.style.color = "var(--danger)";
+                            msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Problème de connexion avec le serveur !";
+                            setTimeout(resetUI, 3000);
                         }
                     });
                 }
-            } else if (visible) {
+            } else if (stillVisible) {
                 msgBox.style.color = "var(--danger)"; 
                 msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Utilisateur ou Badge Inconnu !";
+            }
+        })
+        .catch(function(err) {
+            console.error("Erreur lors de la recherche utilisateur:", err);
+            if (document.body.contains(panelName)) {
+                msgBox.style.color = "var(--danger)";
+                msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur serveur !";
+                setTimeout(resetUI, 3000);
             }
         });
     }
@@ -143,16 +211,35 @@ function initScanPage() {
     // Validation manuelle du formulaire d'entrée
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        if (!userIdInput.value) {
+            msgBox.style.color = "var(--danger)";
+            msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Veuillez scanner ou sélectionner un utilisateur !";
+            return;
+        }
+        
         fetch('/api/add_entry', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: userIdInput.value, type_projet: champMotif.value, zone_travail: champZone.value, commentaire: champCommentaire.value })
-        }).then(function(res) { return res.json(); }).then(function(data) {
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
             if (data.success) {
                 msgBox.style.color = "var(--success)"; 
                 msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée validée !";
                 setTimeout(resetUI, 3000);
+            } else {
+                msgBox.style.color = "var(--danger)";
+                msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur : " + (data.error || "Utilisateur invalide");
+                setTimeout(resetUI, 3000);
             }
+        })
+        .catch(function(err) {
+            console.error("Erreur lors de la validation manuelle:", err);
+            msgBox.style.color = "var(--danger)";
+            msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Problème de connexion serveur !";
+            setTimeout(resetUI, 3000);
         });
     });
 

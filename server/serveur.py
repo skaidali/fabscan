@@ -69,11 +69,18 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_response_json({"error": "Route DELETE invalide"}, 404)
 
+# On utilise ThreadingTCPServer pour traiter les requêtes en parallèle
+class ThreadingHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+
 if __name__ == "__main__":
     print("=== Configuration du Serveur Modulaire ===")
     db.init_database()
     print(f"Serveur actif sur le port {PORT_SERVEUR} -> http://localhost:{PORT_SERVEUR}/")
-    with socketserver.TCPServer(("", PORT_SERVEUR), RequestHandler) as httpd:
+    
+    # Remplacement de socketserver.TCPServer par notre instance Multi-Threadée
+    with ThreadingHTTPServer(("", PORT_SERVEUR), RequestHandler) as httpd:
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:

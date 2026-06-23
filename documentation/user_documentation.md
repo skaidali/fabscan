@@ -1,8 +1,20 @@
 # FabScan - Documentation Utilisateur (version complète)
 
-Version du document : 23/06/2026  
-Public cible : Personnel de FabLab (gestionnaires)  
-Objet : Utilisation quotidienne de l'application FabScan
+<table style="width: 100%; border: none; border-collapse: collapse;">
+  <tr>
+    <td style="width: 60%; vertical-align: top; border: none; padding-right: 20px;">
+      <strong>Version du document :</strong> 23/06/2026<br>
+      <strong>Public cible :</strong> Personnel de FabLab (gestionnaires)<br>
+      <strong>Objet :</strong> Utilisation quotidienne de l'application FabScan
+    </td>
+    <td style="width: 40%; vertical-align: top; border: none; border-left: 1px solid #ddd; padding-left: 20px; text-align: left;">
+      <small>
+        <strong>Réalisé par l'équipe du PE-63 :</strong><br>
+        Skander Kaidali, Marceau Cottin, Hévan Rehel, Gabriel Sokolowski, Zaccary Nebout
+      </small>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -31,7 +43,7 @@ Cette documentation présente le fonctionnement de l'application Web **FabScan**
 
 ### 1.1 Définitions
 
-Dans la suite du document :
+Dans la suite du document, nous nous référerons à :
 
 - **FabLab** : emplacement physique où se situe le dispositif FabScan.
 - **Application** : interface Web du dispositif FabScan.

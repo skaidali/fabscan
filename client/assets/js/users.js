@@ -315,22 +315,22 @@ function initUsersPage() {
     // BRANCHEMENT DU PANNEAU USERS AU MOTEUR UNIQUE
     // ==========================================
     MoteurScan.ecouter({
-        inputRecherche: champRecherche, // Réutilise la barre de recherche existante en haut
+        inputRecherche: champRecherche, 
         datalist: document.getElementById('users-admin-list') || document.createElement('datalist'), 
-        forcerRFID: true, // Permet de charger un profil au badge pour modifier ses certifs
+        forcerRFID: true, 
         onUserFound: function(idScanne) {
-            // Dès qu'un QR ou un RFID arrive, on ouvre instantanément sa fiche d'édition à gauche !
             fetch('/api/user_info?id=' + idScanne)
                 .then(res => res.json())
                 .then(userData => {
                     if (userData.success) {
-                        ouvrirPanneauUtilisateur(userData.data.id); // Appelle ta fonction d'ouverture de volet
-                        champRecherche.value = ""; // Nettoie le champ
+                        ouvrirPanneauUtilisateur(userData.data.id); 
+                        champRecherche.value = ""; 
                     }
                 });
         }
     });
-    chargerLesUtilisateurs();
+
+    
     // ==========================================
     // 7. PASSERELLE DE REDIRECTION DEPUIS L'ACCUEIL
     // ==========================================
@@ -340,14 +340,13 @@ function initUsersPage() {
         
         console.log("Passerelle Admin active : Recherche synchrone de " + nomAFiltrer);
         
-        // On remplit le champ de recherche de l'interface
         champRecherche.value = nomAFiltrer;
         pagination.pageActuelle = 1;
         
-        // On lance le chargement du tableau en lui disant d'ouvrir directement le profil trouvé
+        // Un seul appel ici
         chargerLesUtilisateurs(true);
     } else {
-        // Chargement standard par défaut si on n'arrive pas depuis l'accueil
+        // Un seul appel ici dans le cas standard
         chargerLesUtilisateurs();
     }
 }

@@ -67,9 +67,12 @@ const MoteurScan = {
             fetch('/api/get_last_scan')
                 .then(res => res.json())
                 .then(data => {
-                    // On n'intercepte le RFID que si on force (Compta) OU si le mode auto d'accueil n'est pas actif
+                        // On intercepte le RFID si:
+                        // 1. On force (Compta), OU
+                        // 2. Le mode auto est ACTIF (traiter partout), OU
+                        // 3. On est sur la page scanner (manual = ON)
                     if (data.success && data.id_carte) {
-                        if (forcerRFID || !window.fablabAutoMode || document.getElementById('entry-form')) {
+                            if (forcerRFID || window.fablabAutoMode || document.getElementById('entry-form')) {
                             onUserFound(data.id_carte, "RFID");
                         }
                     }

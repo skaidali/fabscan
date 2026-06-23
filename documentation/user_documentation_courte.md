@@ -1,15 +1,28 @@
-# FabScan - Guide Opérationnel (version courte)
+# FabScan - Documentation Utilisateur (version complète)
 
-Version : 23/06/2026  
-Public cible : Personnel de FabLab  
-Usage : Référence rapide pour l'utilisation quotidienne
+<table style="width: 100%; border: none; border-collapse: collapse;">
+  <tr>
+    <td style="width: 60%; vertical-align: top; border: none; padding-right: 20px;">
+      <strong>Version du document :</strong> 23/06/2026<br>
+      <strong>Public cible :</strong> Personnel de FabLab (gestionnaires)<br>
+      <strong>Objet :</strong> Référence rapide pour l'utilisation quotidienne
+    </td>
+    <td style="width: 40%; vertical-align: top; border: none; border-left: 1px solid #ddd; padding-left: 20px; text-align: left;">
+      <small>
+        <strong>Réalisé par l'équipe du PE-63 :</strong><br>
+        Skander Kaidali, Marceau Cottin, Hévan Rehel, Gabriel Sokolowski, Zaccary Nebout
+      </small>
+    </td>
+  </tr>
+</table>
 
 ---
+
 
 ## 1. Démarrage rapide
 
 1. Allumer le poste FabScan.
-2. Lancer l'application via l'icône bureau.
+2. Lancer l'application via le raccourci bureau FabScan.
 3. Attendre l'ouverture automatique dans le navigateur.
 4. Vérifier que l'onglet **Accueil** est affiché.
 
@@ -58,7 +71,7 @@ Effet :
    - statut,
    - prénom,
    - nom,
-   - e-mail,
+   - e-mail (pré-rempli normalement),
    - motif.
 3. Associer une carte si nécessaire.
 4. Cliquer sur **Enregistrer l'utilisateur**.
@@ -131,6 +144,15 @@ Non, la suppression est définitive.
 ### Où sont les fichiers CSV ?
 
 Dans **Téléchargements**.
+
+### Un Utilisateur n'a pas de carte RFID, que faire ?
+
+Il peut utiliser le QR code ou la recherche nom/prénom.
+
+
+### Un Utilisateur dit n'avoir jamais reçu son QR code, que faire ?
+
+Vérifier avec l'Utilisateur l'adresse e-mail connue par l'Application, puis renvoyer le QR code depuis l'onglet **Utilisateurs**.
 
 ---
 

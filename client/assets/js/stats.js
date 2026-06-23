@@ -53,27 +53,37 @@ function initStatsPage() {
         btnActualiser.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
         btnAppliquer.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
 
-        // 🤖 Insertion du paramètre type_entree dans l'appel à l'API
         var url = `/api/stats?period=${selPeriode.value}&statut=${encodeURIComponent(selStatut.value)}&certif=${encodeURIComponent(selCertif.value)}&zone=${encodeURIComponent(selZone.value)}&motif=${encodeURIComponent(selMotif.value)}&type_entree=${selTypeEntree.value}`;
 
         fetch(url)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Réponse serveur invalide");
+            return res.json();
+        })
         .then(donnees => {
-            boiteAujourdhui.textContent = donnees.today_entries;
-            boitePeriode.textContent = donnees.period_entries;
-            boiteTotal.textContent = donnees.total_users; 
+            // Sécurisation des objets et tableaux contre les retours null/undefined
+            var chartData = donnees.chart_data || {};
+            var profiles = donnees.profiles || [];
+            var recentEntries = donnees.recent_entries || [];
+
+            // 1. KPI
+            boiteAujourdhui.textContent = donnees.today_entries !== undefined ? donnees.today_entries : 0;
+            boitePeriode.textContent = donnees.period_entries !== undefined ? donnees.period_entries : 0;
+            boiteTotal.textContent = donnees.total_users !== undefined ? donnees.total_users : 0; 
             rangeLabel.textContent = labelsPeriode[selPeriode.value];
 
-            dessinerGraphique(donnees.chart_data);
+            // 2. Graphique
+            dessinerGraphique(chartData);
 
+            // 3. Répartition des profils
             var listeProfils = document.getElementById('profile-list');
             listeProfils.innerHTML = "";
             var totalPassages = 0;
             
-            if (donnees.profiles.length > 0) {
-                donnees.profiles.forEach(p => {
-                    listeProfils.innerHTML += `<div class="flex-between mt-1"><span>${p.name}</span><strong>${p.count}</strong></div>`;
-                    totalPassages += p.count;
+            if (profiles.length > 0) {
+                profiles.forEach(p => {
+                    listeProfils.innerHTML += `<div class="flex-between mt-1"><span>${p.name || 'Inconnu'}</span><strong>${p.count || 0}</strong></div>`;
+                    totalPassages += (p.count || 0);
                 });
                 document.getElementById('profile-total').textContent = totalPassages;
             } else {
@@ -81,13 +91,14 @@ function initStatsPage() {
                 document.getElementById('profile-total').textContent = "0";
             }
 
+            // 4. Tableau d'historique
             var corpsTableau = document.querySelector('#entries-table tbody');
             corpsTableau.innerHTML = "";
 
-            if (donnees.recent_entries.length > 0) {
-                donnees.recent_entries.forEach(entree => {
-                    var dateS = entree.date.split(" ")[0];
-                    var heureS = entree.date.split(" ")[1] ? entree.date.split(" ")[1].substring(0, 5) : "";
+            if (recentEntries.length > 0) {
+                recentEntries.forEach(entree => {
+                    var dateS = entree.date ? entree.date.split(" ")[0] : "—";
+                    var heureS = (entree.date && entree.date.split(" ")[1]) ? entree.date.split(" ")[1].substring(0, 5) : "";
                     
                     const estAuto = (entree.projet === "N/A" && entree.zone === "N/A");
                     const affichageZone = estAuto ? "Badge autonome" : (entree.zone || "Non spécifiée");
@@ -101,11 +112,11 @@ function initStatsPage() {
                     tr.innerHTML = `
                         <td><strong>${dateS}</strong> <span class="muted">${heureS}</span></td>
                         <td>
-                            <a class="action-redirection-user font-bold text-primary cursor-pointer" data-nom="${entree.nom}" title="Ouvrir la fiche de ce membre sur le scanner">
-                                ${entree.nom}
+                            <a class="action-redirection-user font-bold text-primary cursor-pointer" data-nom="${entree.nom || 'Inconnu'}" title="Ouvrir la fiche de ce membre sur le scanner">
+                                ${entree.nom || 'Inconnu'}
                             </a>
                         </td>
-                        <td><span class="pill">${entree.statut}</span></td>
+                        <td><span class="pill">${entree.statut || '—'}</span></td>
                         <td><i class="fa-solid fa-location-dot text-danger"></i> ${affichageZone}</td>
                         <td class="muted">${affichageProjet}</td>
                         <td>${typeEntreeBadge}</td>
@@ -125,10 +136,16 @@ function initStatsPage() {
             } else {
                 corpsTableau.innerHTML = "<tr><td colspan='6' class='text-center muted py-2'>Aucune entrée correspondante trouvée.</td></tr>";
             }
-
+        })
+        .catch(err => {
+            console.error("Erreur lors de la récupération des stats :", err);
+            var corpsTableau = document.querySelector('#entries-table tbody');
+            if (corpsTableau) corpsTableau.innerHTML = "<tr><td colspan='6' class='text-center text-danger py-2'><i class='fa-solid fa-triangle-exclamation'></i> Échec de l'actualisation des données.</td></tr>";
+        })
+        .finally(() => {
+            // Libération systématique de l'état graphique des boutons
             btnActualiser.innerHTML = "<i class='fa-solid fa-rotate-right'></i> Actualiser";
             btnAppliquer.innerHTML = "<i class='fa-solid fa-check'></i> Appliquer les filtres";
-            
             filterBody.style.display = 'none';
             filterChevron.classList.remove('fa-chevron-up');
             filterChevron.classList.add('fa-chevron-down');

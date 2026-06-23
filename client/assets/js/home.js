@@ -1,6 +1,11 @@
 function initHomePage() {
     console.log("Poste de pilotage interactif v2 initialisé");
     
+    // Restaurer le mode auto depuis localStorage
+    if (localStorage.getItem('fablabAutoMode') === 'true') {
+        window.fablabAutoMode = true;
+    }
+    
     const liveBody = document.getElementById('actions-live-body');
     const autoContainer = document.getElementById('auto-status-container');
     const timeDisplay = document.getElementById('time');
@@ -108,6 +113,8 @@ function initHomePage() {
         autoContainer.addEventListener('click', function(e) {
             e.preventDefault();
             window.fablabAutoMode = !window.fablabAutoMode;
+            // Persévérer dans localStorage
+            localStorage.setItem('fablabAutoMode', window.fablabAutoMode);
             rafraichirHorlogeEtStatut();
             rafraichirFluxDonnees();
         });

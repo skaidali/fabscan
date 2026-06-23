@@ -129,8 +129,10 @@ def get_stats_logic(params_getter):
     
     if statut and statut != "all": entry_where.append("e.user_statut = ?"); entry_params.append(statut)
     if certif and certif != "all": 
-        base_join = "FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id"
-        user_where.append("u.certifications LIKE ?"); user_params.append(f'%"{certif}"%')
+        # On utilise json_each pour faire une vérification stricte au sein du tableau JSON
+        base_join = "FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id, json_each(IFNULL(u.certifications, '[]'))"
+        user_where.append("json_each.value = ?")
+        user_params.append(certif)
     if zone and zone != "all": entry_where.append("e.zone_travail = ?"); entry_params.append(zone)
     if motif and motif != "all": entry_where.append("e.type_projet = ?"); entry_params.append(motif)
     if type_entree and type_entree != "all":
