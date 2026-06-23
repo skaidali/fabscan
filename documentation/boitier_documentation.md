@@ -1,6 +1,19 @@
 # Documentation hardware - FABSCAN
-
-Cette documentation détaille la liste du matériel nécessaire, les instructions d'impression 3D ainsi que les étapes de câblage et d'assemblage du boîtier.
+<table style="width: 100%; border: none; border-collapse: collapse;">
+  <tr>
+    <td style="width: 60%; vertical-align: top; border: none; padding-right: 20px;">
+      <strong>Version du document :</strong> 23/06/2026<br>
+      <strong>Public cible :</strong> Toute personne souhaitant reproduire notre travail<br>
+      <strong>Objet :</strong> Liste du matériel nécessaire, les instructions d'impression 3D ainsi que les étapes de câblage et d'assemblage du boîtier.
+    </td>
+    <td style="width: 40%; vertical-align: top; border: none; border-left: 1px solid #ddd; padding-left: 20px; text-align: left;">
+      <small>
+        <strong>Réalisé par l'équipe du PE-63 :</strong><br>
+        Skander Kaidali, Marceau Cottin, Hévan Rehel, Gabriel Sokolowski, Zaccary Nebout
+      </small>
+    </td>
+  </tr>
+</table>
 
 
 ## 1. Liste du matériel
