@@ -1,4 +1,4 @@
-# FabScan - Documentation Utilisateur (version complète)
+# FabScan - Documentation Utilisateur (version courte)
 
 <table style="width: 100%; border: none; border-collapse: collapse;">
   <tr>
