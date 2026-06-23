@@ -37,6 +37,14 @@
                         <label>Motif de la visite</label>
                         <select id="filter-motif" class="form-control"><option value="all">Tous les motifs</option></select>
                     </div>
+                    <div class="form-group">
+                        <label>Mode d'enregistrement</label>
+                        <select id="filter-type-entree" class="form-control">
+                            <option value="all" selected>Tous les modes</option>
+                            <option value="manuel">Mode Manuel </option>
+                            <option value="auto">Mode Automatique </option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="highlight-box">
@@ -61,7 +69,7 @@
 
     <div class="grid-3 form-group">
         <div class="card kpi-box">
-            <div class="muted">Entrées aujourd'hui (Filtres inclus)</div>
+            <div class="muted">Entrées aujourd'hui</div>
             <div id="today-count" class="val text-success">—</div>
         </div>
         <div class="card kpi-box">
@@ -101,19 +109,22 @@
 
     <div class="card">
         <div class="card-header">
-            <strong>Dernières entrées filtrées (Top 20)</strong> 
+            <strong>Dernières entrées filtrées (top 20)</strong> 
         </div>
         <table id="entries-table" class="data-table">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Nom</th>
-                    <th>Profil</th>
-                    <th>Zone</th>
+                    <th>Date et Heure</th>
+                    <th>Visiteur</th>
+                    <th>Statut</th>
+                    <th>Zone occupée</th>
                     <th>Projet</th>
+                    <th>Type d'Entrée</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <tr><td colspan="6" class="text-center muted py-2">Chargement de l'historique...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>

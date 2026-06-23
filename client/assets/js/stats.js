@@ -1,6 +1,5 @@
 function initStatsPage() {
     
-    // 1. Définitions du texte pour les périodes
     var labelsPeriode = {
         'jour': '24 dernières heures',
         'semaine': '7 derniers jours',
@@ -8,18 +7,17 @@ function initStatsPage() {
         'annee': '12 derniers mois'
     };
 
-    // 2. Éléments du DOM (Filtres)
     var selPeriode = document.getElementById('filter-periode');
     var selZone = document.getElementById('filter-zone');
     var selMotif = document.getElementById('filter-motif');
     var selStatut = document.getElementById('filter-statut');
     var selCertif = document.getElementById('filter-certif');
+    var selTypeEntree = document.getElementById('filter-type-entree');
     
     var filterHeader = document.getElementById('filter-header');
     var filterBody = document.getElementById('filter-body');
     var filterChevron = document.getElementById('filter-chevron');
 
-    // Éléments du DOM (Affichage)
     var btnActualiser = document.getElementById('refresh-btn');
     var btnAppliquer = document.getElementById('apply-filters-btn');
     var btnReset = document.getElementById('reset-filters-btn');
@@ -29,9 +27,6 @@ function initStatsPage() {
     var boiteTotal = document.getElementById('total-count');
     var rangeLabel = document.getElementById('range-label');
 
-    // ==========================================
-    // ACCORDÉON DES FILTRES
-    // ==========================================
     filterHeader.addEventListener('click', function() {
         if (filterBody.style.display === 'none') {
             filterBody.style.display = 'block';
@@ -44,9 +39,6 @@ function initStatsPage() {
         }
     });
 
-    // ==========================================
-    // CHARGEMENT DE LA CONFIG (config.json)
-    // ==========================================
     fetch('/api/config').then(res => res.json()).then(res => {
         if (res.success) {
             var conf = res.data;
@@ -57,29 +49,23 @@ function initStatsPage() {
         }
     });
 
-    // ==========================================
-    // MOTEUR DE RECHERCHE PRINCIPAL
-    // ==========================================
     function chargerStatistiques() {
         btnActualiser.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
         btnAppliquer.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
 
-        // On construit l'URL avec TOUS les filtres
-        var url = `/api/stats?period=${selPeriode.value}&statut=${encodeURIComponent(selStatut.value)}&certif=${encodeURIComponent(selCertif.value)}&zone=${encodeURIComponent(selZone.value)}&motif=${encodeURIComponent(selMotif.value)}`;
+        // 🤖 Insertion du paramètre type_entree dans l'appel à l'API
+        var url = `/api/stats?period=${selPeriode.value}&statut=${encodeURIComponent(selStatut.value)}&certif=${encodeURIComponent(selCertif.value)}&zone=${encodeURIComponent(selZone.value)}&motif=${encodeURIComponent(selMotif.value)}&type_entree=${selTypeEntree.value}`;
 
         fetch(url)
         .then(res => res.json())
         .then(donnees => {
-            // 1. KPI
             boiteAujourdhui.textContent = donnees.today_entries;
             boitePeriode.textContent = donnees.period_entries;
-            boiteTotal.textContent = donnees.total_users; // Affiche nb d'users inscrits correspondants !
+            boiteTotal.textContent = donnees.total_users; 
             rangeLabel.textContent = labelsPeriode[selPeriode.value];
 
-            // 2. Graphique
             dessinerGraphique(donnees.chart_data);
 
-            // 3. Répartition des profils
             var listeProfils = document.getElementById('profile-list');
             listeProfils.innerHTML = "";
             var totalPassages = 0;
@@ -95,7 +81,6 @@ function initStatsPage() {
                 document.getElementById('profile-total').textContent = "0";
             }
 
-            // 4. Tableau d'historique en bas
             var corpsTableau = document.querySelector('#entries-table tbody');
             corpsTableau.innerHTML = "";
 
@@ -104,22 +89,46 @@ function initStatsPage() {
                     var dateS = entree.date.split(" ")[0];
                     var heureS = entree.date.split(" ")[1] ? entree.date.split(" ")[1].substring(0, 5) : "";
                     
-                    corpsTableau.innerHTML += `<tr>
+                    const estAuto = (entree.projet === "N/A" && entree.zone === "N/A");
+                    const affichageZone = estAuto ? "Badge autonome" : (entree.zone || "Non spécifiée");
+                    const affichageProjet = estAuto ? "Entrée automatique" : (entree.projet || "Visite libre");
+                    
+                    const typeEntreeBadge = estAuto 
+                        ? `<span class="pill text-danger" style="background: rgba(219, 68, 85, 0.1);"><i class="fa-solid fa-robot"></i> Automatique</span>`
+                        : `<span class="pill text-success" style="background: rgba(40, 167, 69, 0.1);"><i class="fa-solid fa-hand"></i> Manuel</span>`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
                         <td><strong>${dateS}</strong> <span class="muted">${heureS}</span></td>
-                        <td class="font-bold">${entree.nom}</td>
+                        <td>
+                            <a class="action-redirection-user font-bold text-primary cursor-pointer" data-nom="${entree.nom}" title="Ouvrir la fiche de ce membre sur le scanner">
+                                ${entree.nom}
+                            </a>
+                        </td>
                         <td><span class="pill">${entree.statut}</span></td>
-                        <td>${entree.zone || "-"}</td>
-                        <td>${entree.projet || "-"}</td>
-                    </tr>`;
+                        <td><i class="fa-solid fa-location-dot text-danger"></i> ${affichageZone}</td>
+                        <td class="muted">${affichageProjet}</td>
+                        <td>${typeEntreeBadge}</td>
+                    `;
+                    corpsTableau.appendChild(tr);
                 });
+
+                document.querySelectorAll('#entries-table .action-redirection-user').forEach(lien => {
+                    lien.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const nomComplet = this.getAttribute('data-nom');
+                        window.redirectionUserNom = nomComplet;
+                        window.location.hash = "#users"; 
+                    });
+                });
+
             } else {
-                corpsTableau.innerHTML = "<tr><td colspan='5' class='text-center muted py-2'>Aucune entrée correspondante trouvée.</td></tr>";
+                corpsTableau.innerHTML = "<tr><td colspan='6' class='text-center muted py-2'>Aucune entrée correspondante trouvée.</td></tr>";
             }
 
             btnActualiser.innerHTML = "<i class='fa-solid fa-rotate-right'></i> Actualiser";
             btnAppliquer.innerHTML = "<i class='fa-solid fa-check'></i> Appliquer les filtres";
             
-            // On replie le menu après la recherche pour gagner de la place
             filterBody.style.display = 'none';
             filterChevron.classList.remove('fa-chevron-up');
             filterChevron.classList.add('fa-chevron-down');
@@ -150,9 +159,6 @@ function initStatsPage() {
         }
     }
 
-    // ==========================================
-    // ACTIONS BOUTONS
-    // ==========================================
     btnAppliquer.addEventListener('click', chargerStatistiques);
     btnActualiser.addEventListener('click', chargerStatistiques);
     
@@ -162,6 +168,7 @@ function initStatsPage() {
         selMotif.value = "all";
         selStatut.value = "all";
         selCertif.value = "all";
+        selTypeEntree.value = "all";
         chargerStatistiques();
     });
 
@@ -169,6 +176,5 @@ function initStatsPage() {
         window.location.href = '/api/export_stats_csv';
     });
 
-    // On lance la première recherche par défaut
     chargerStatistiques();
 }

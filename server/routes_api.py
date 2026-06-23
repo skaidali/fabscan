@@ -66,7 +66,7 @@ def handle_get_api(route, params, request_handler):
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # On sélectionne aussi le tuteur pour pouvoir le renvoyer à l'interface
+        # Sélection du nom et du tuteur depuis la table PAIEMENTS
         sql = "SELECT DISTINCT projet_nom, projet_tuteur FROM PAIEMENTS WHERE projet_nom LIKE ?"
         args = [f"%{query_text}%"]
         
@@ -79,7 +79,6 @@ def handle_get_api(route, params, request_handler):
         rows = cursor.fetchall()
         conn.close()
         
-        # On renvoie un dictionnaire avec le nom et le tuteur pour chaque suggestion
         request_handler.send_response_json({
             "items": [{"nom": r[0], "tuteur": r[1] or ""} for r in rows if r[0]]
         })
@@ -112,7 +111,8 @@ def handle_get_api(route, params, request_handler):
                 "poids": r[13], 
                 "user_nom": r[14] if r[14] else "Supprimé", 
                 "user_prenom": r[15] if r[15] else "Membre", 
-                "moyen_paiement": r[16]
+                "moyen_paiement": r[16],
+                "user_statut": r[17] if len(r) > 17 else "Personnel"
             })
         request_handler.send_response_json({"success": True, "data": formatted})
         return True
@@ -152,7 +152,8 @@ def handle_get_api(route, params, request_handler):
                 "poids": r[13], 
                 "user_nom": r[14] if r[14] else "Supprimé", 
                 "user_prenom": r[15] if r[15] else "Membre", 
-                "moyen_paiement": r[16]
+                "moyen_paiement": r[16],
+                "user_statut": r[17] if len(r) > 17 else "Personnel"
             })
             
         csv_data = biz.export_transactions_csv_logic(formatted)

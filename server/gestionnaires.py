@@ -122,6 +122,7 @@ def get_stats_logic(params_getter):
     certif = params_getter('certif', ['all'])[0]
     zone = params_getter('zone', ['all'])[0]
     motif = params_getter('motif', ['all'])[0]
+    type_entree = params_getter('type_entree', ['all'])[0]
 
     base_join = "FROM ENTREE e"
     user_where, user_params, entry_where, entry_params = [], [], [], []
@@ -132,6 +133,10 @@ def get_stats_logic(params_getter):
         user_where.append("u.certifications LIKE ?"); user_params.append(f'%"{certif}"%')
     if zone and zone != "all": entry_where.append("e.zone_travail = ?"); entry_params.append(zone)
     if motif and motif != "all": entry_where.append("e.type_projet = ?"); entry_params.append(motif)
+    if type_entree and type_entree != "all":
+        if type_entree == "manuel": entry_where.append("e.type_projet != 'N/A' AND e.zone_travail != 'N/A'")
+        elif type_entree == "auto": entry_where.append("e.type_projet = 'N/A' AND e.zone_travail = 'N/A'")
+
 
     all_where = user_where + entry_where
     all_params = user_params + entry_params
@@ -176,18 +181,27 @@ def export_stats_csv_logic():
     rows = db.get_all_entries(limit=10000)
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';') 
-    writer.writerow(['Date', 'Heure', 'Statut', 'Nom', 'Prenom', 'Type Projet', 'Zone', 'Commentaire'])
+
+    writer.writerow(['Date', 'Heure', 'Statut', 'Nom', 'Prenom', 'Projet', 'Zone', 'Commentaire', "Type d'Entrée"])
+    
     for r in rows:
         dc = str(r[0]) if r[0] else ""
         ds, hs = dc.split(" ", 1) if " " in dc else (dc, "")
-        writer.writerow([ds, hs] + list(r[1:]))
+        
+        # Détection du mode d'accès (r[4] = type_projet, r[5] = zone_travail)
+        est_auto = (r[4] == "N/A" and r[5] == "N/A")
+        type_entree = "Automatique" if est_auto else "Manuel"
+        
+        # On écrit la ligne en ajoutant la valeur détectée à la fin
+        writer.writerow([ds, hs] + list(r[1:]) + [type_entree])
+        
     return output.getvalue().encode('utf-8-sig')
 
 def export_transactions_csv_logic(payments_list):
     # Reçoit directement la liste formatée depuis routes_api
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
-    writer.writerow(['Date', 'Heure', 'Nom', 'Prénom', 'Opération', 'N° Opération', 'Moyen', 'Projet Nom', 'Projet Type', 'Tuteur', 'Matériau', 'Quantité', 'Mouvement', 'Montant', 'Description', 'Commentaire'])
+    writer.writerow(['Date', 'Heure', 'Nom', 'Prénom', 'Nom de l\'Opération', 'N° Opération', 'Moyen de Paiement', 'Nom du Projet', 'Type de Projet', 'Tuteur', 'Matériau', 'Quantité', 'Type de Mouvement', 'Montant', 'Description', 'Commentaire'])
     for p in payments_list:
         dc = p['date'] if p['date'] else ""
         ds, hs = dc.split(" ", 1) if " " in dc else (dc, "")
