@@ -1,16 +1,16 @@
 # FabScan - Documentation Utilisateur (version complète)
 
-<table style="width: 100%; border: none; border-collapse: collapse;">
+<table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 30px;">
   <tr>
     <td style="width: 60%; vertical-align: top; border: none; padding-right: 20px;">
       <strong>Version du document :</strong> 23/06/2026<br>
       <strong>Public cible :</strong> Personnel de FabLab (gestionnaires)<br>
-      <strong>Objet :</strong> Utilisation quotidienne de l'application FabScan
+      <strong>Objet :</strong> Manuel d'utilisation quotidienne de l'application FabScan
     </td>
-    <td style="width: 40%; vertical-align: top; border: none; border-left: 1px solid #ddd; padding-left: 20px; text-align: left;">
+    <td style="width: 40%; vertical-align: top; border: none; border-left: 2px solid #ddd; padding-left: 20px; text-align: left;">
       <small>
         <strong>Réalisé par l'équipe du PE-63 :</strong><br>
-        Skander Kaidali, Marceau Cottin, Hévan Rehel, Gabriel Sokolowski, Zaccary Nebout
+        Skander Kaidali, Marceau Cottin, Hévan Rehel,<br>Gabriel Sokolowski, Zaccary Nebout
       </small>
     </td>
   </tr>
@@ -32,343 +32,274 @@
 - [10. Mise en pratique](#10-mise-en-pratique)
 - [11. Déroulement d'une entrée au FabLab](#11-déroulement-dune-entrée-au-fablab)
 - [12. Procédures liées](#12-procédures-liées)
-- [13. FAQ](#13-faq)
-- [14. Checklist avant export PDF / impression](#14-checklist-avant-export-pdf--impression)
+- [13. Foire Aux Questions (FAQ)](#13-foire-aux-questions-faq)
 
 ---
 
 ## 1. Introduction
 
-Cette documentation présente le fonctionnement de l'application Web **FabScan** et l'ensemble de ses fonctionnalités.
+Ce document détaille le fonctionnement opérationnel de l'application Web **FabScan** et couvre l'exhaustivité de ses fonctionnalités d'administration.
 
-### 1.1 Définitions
+### 1.1 Définitions et terminologie
 
-Dans la suite du document, nous nous référerons à :
+Afin de faciliter la compréhension des procédures, les termes suivants seront employés :
 
-- **FabLab** : emplacement physique où se situe le dispositif FabScan.
-- **Application** : interface Web du dispositif FabScan.
-- **Personnel** / **Vous** : gestionnaire du FabLab qui utilise l'Application.
-- **Utilisateur** : membre externe au Personnel qui fréquente le FabLab.
-- **Mode d'identification** : moyen utilisé par l'Utilisateur pour s'identifier :
-  - QR code (sur téléphone),
-  - carte multiservice / carte étudiante / badge.
+- **FabLab** : Espace physique intégrant le dispositif matériel et logiciel FabScan.
+- **Application** : Interface Web de pointage et de gestion du dispositif FabScan.
+- **Personnel** (ou Vous) : Gestionnaire ou animateur du FabLab habilité à administrer l'Application.
+- **Utilisateur** : Membre ou visiteur (externe au Personnel) exploitant les ressources du FabLab.
+- **Mode d'identification** : Support permettant à l'Utilisateur d'authentifier sa présence (QR code numérique sur smartphone, carte multiservice, carte étudiante ou badge RFID).
 
-### 1.2 Navigation dans ce document
+### 1.2 Navigation rapide
 
-- Pour une prise en main rapide : voir [10. Mise en pratique](#10-mise-en-pratique).
-- Pour enregistrer une entrée : voir [11. Déroulement d'une entrée au FabLab](#11-déroulement-dune-entrée-au-fablab).
-- Pour l'inscription d'un nouvel utilisateur : voir [9. Onglet Inscription](#9-onglet-inscription).
+- Pour un guide pas à pas de l'inscription : [Voir 10.1 Inscription d'un utilisateur](#101-inscription-dun-utilisateur-procédure-rapide).
+- Pour l'enregistrement standard des flux : [Voir 11. Déroulement d'une entrée au FabLab](#11-déroulement-dune-entrée-au-fablab).
+- Pour la gestion des comptes : [Voir 9. Onglet Inscription](#9-onglet-inscription).
 
 ---
 
 ## 2. Prérequis et démarrage
 
-Contexte : le Personnel s'installe à son poste de travail et souhaite lancer l'Application.
+Cette section détaille la procédure de démarrage de l'Application lors de la prise de poste du Personnel.
 
-1. Allumer l'ordinateur où FabScan est installé.
-2. Vérifier qu'une connexion Internet est disponible (recommandé).
-3. Double-cliquer sur l'icône **FabScan** sur le bureau.
-4. La fenêtre terminal (fond noir) s'ouvre.
-5. Patienter jusqu'à l'ouverture automatique de l'Application dans le navigateur.
+1. Démarrez l'ordinateur central gérant FabScan.
+2. Assurez-vous que le poste est connecté au réseau (Ethernet ou Wi-Fi).
+3. Double-cliquez sur le raccourci **FabScan** situé sur le bureau.
+4. Une invite de commande (terminal noir) s'ouvre pour initialiser les services. **Veuillez patienter** sans fermer cette fenêtre.
+5. L'Application s'ouvre automatiquement dans votre navigateur Web par défaut.
 
-L'onglet **Accueil** apparaît : l'Application est prête à l'emploi.
+L'onglet **Accueil** s'affiche : le système de gestion est désormais opérationnel.
 
-> Note : la connexion Internet n'est pas indispensable au fonctionnement de base. En cas de perte de connexion, l'Application reste utilisable, mais certaines fonctions (notamment l'envoi de QR code) peuvent être dégradées.
+> **Note sur la connectivité :** Une connexion Internet n'est pas strictement indispensable au fonctionnement du pointage. En cas de coupure réseau, l'Application maintient ses fonctions d'enregistrement locales. Toutefois, la connexion est requise pour l'exploitation avancée (ex: envoi des QR codes par e-mail).
 
 ---
 
 ## 3. Présentation générale de l'interface
 
-L'interface est organisée en onglets accessibles depuis la barre de navigation :
+L'ergonomie de l'Application repose sur une barre de navigation supérieure segmentant les tâches métier en six onglets distincts :
 
-- **Accueil**
-- **Scanner**
-- **Utilisateurs**
-- **Comptabilité**
-- **Statistiques**
-- **Inscription**
+- **Accueil** (Tableau de bord de l'activité en cours)
+- **Scanner** (Pointage et vérification des accès)
+- **Utilisateurs** (Annuaire et édition des profils)
+- **Comptabilité** (Gestion des flux financiers)
+- **Statistiques** (Analyse des données et exports)
+- **Inscription** (Création et maintenance des accès)
 
-L'onglet actif est mis en évidence par un fond coloré.
+L'onglet actuellement consulté est systématiquement mis en surbrillance.
 
-### 3.1 Logique commune à plusieurs onglets
+### 3.1 Logique de navigation commune
 
-Plusieurs écrans partagent la même logique :
-
-- une zone de **recherche/identification** d'utilisateur,
-- une zone de **profil** (informations affichées),
-- une zone de **saisie/validation** (action métier),
-- des **tableaux d'historique** filtrables.
+La majorité des écrans de gestion s'articulent autour d'une disposition standardisée :
+- Un panneau de **recherche et d'identification** (à gauche ou en en-tête).
+- Une zone de **consultation de profil** affichant les données du membre sélectionné.
+- Un formulaire de **saisie et de validation** dédié à l'action métier en cours.
+- Des **tableaux d'historique** dynamiques et filtrables.
 
 ---
 
 ## 4. Onglet Accueil
 
-Onglet affiché par défaut au lancement.
+Il s'agit de la vue par défaut de l'Application, agissant comme un moniteur de l'activité en temps réel.
 
 ![Extrait de l'onglet Accueil](./images/1_pageaccueil.png)
 
-### 4.1 Contenu de l'écran
+### 4.1 Éléments de l'interface
 
-- Titre **Tableau de bord**.
-- Bouton **Mode Manuel / Mode Automatique**.
-- Date et heure courantes.
-- Indicateurs d'activité :
-  - entrées sur la dernière heure,
-  - entrées du jour,
-  - nombre total d'utilisateurs inscrits.
-- Tableau des dernières entrées.
+- **En-tête :** Affiche la date, l'heure système et le bouton de bascule **Mode Manuel / Mode Automatique**.
+- **Indicateurs de performance (KPI) :**
+  - Entrées cumulées sur la dernière heure.
+  - Entrées totales de la journée.
+  - Effectif global des utilisateurs inscrits.
+- **Journal d'activité :** Tableau consignant les entrées les plus récentes.
 
-### 4.2 Points d'attention
+### 4.2 Points de contrôle
 
-- Les données de synthèse sont mises à jour en temps réel.
-- Le tableau des dernières entrées permet de cliquer sur un nom pour ouvrir sa fiche utilisateur (voir [6. Onglet Utilisateurs](#6-onglet-utilisateurs)).
-- Le mode automatique est détaillé dans [11.2 Mode automatique](#112-mode-automatique).
+- L'ensemble des compteurs est actualisé de manière asynchrone (en temps réel) sans nécessiter de rafraîchissement manuel de la page.
+- Au sein du journal d'activité, un clic sur le nom d'un Utilisateur redirige immédiatement vers sa fiche détaillée ([Voir 6. Onglet Utilisateurs](#6-onglet-utilisateurs)).
+- Pour en savoir plus sur l'automatisation de l'accueil : [Voir 11.2 Mode automatique](#112-mode-automatique).
 
 ---
 
 ## 5. Onglet Scanner
 
-Cet onglet sert à enregistrer les entrées au FabLab (badge RFID ou QR code).
+L'interface "Scanner" est le point de contrôle physique du FabLab. Elle permet de valider la présence et l'autorisation d'utilisation des machines.
 
 ![Extrait de l'onglet Scanner](./images/2_pagescan.png)
 
-### 5.1 Organisation de la page
+### 5.1 Architecture de la page
 
-- À gauche : identification et affichage du **Profil scanné**.
-- À droite : bloc **Validation de l'entrée**.
-- En haut : bouton de bascule **Mode Automatique**.
+- **Panneau de gauche :** Outil de recherche et fiche d'identité du **Profil scanné**.
+- **Panneau de droite :** Formulaire de **Validation de l'entrée**.
+- **En-tête droit :** Interrupteur d'activation du **Mode Automatique**.
 
 ### 5.2 Identification d'un utilisateur
 
-Vous pouvez identifier un utilisateur via :
+Le moteur de recherche unifié permet de retrouver un profil via quatre méthodes :
+- Saisie textuelle du nom ou du prénom.
+- Saisie de l'identifiant unique (ID).
+- Scan optique du QR code via la douchette.
+- Détection du badge RFID via le lecteur NFC.
 
-- son nom,
-- son prénom,
-- son identifiant (issu d'un QR code),
-- sa carte RFID.
+Dès la détection, le système suggère le profil ou l'affiche instantanément.
 
-Lorsqu'une valeur est saisie, des suggestions apparaissent. Cliquer sur la bonne personne pour charger son profil.
+### 5.3 Analyse du profil scanné
 
-### 5.3 Informations affichées dans Profil scanné
+Lorsqu'une identité est confirmée, la fiche affiche les autorisations du membre :
+- Prénom, nom et statut institutionnel.
+- État du solde financier.
+- Indicateur de liaison de la carte RFID.
+- **Certifications machine** (marquées d'une coche verte si acquises).
 
-- prénom, nom,
-- statut,
-- solde,
-- présence/absence de carte RFID,
-- certifications machine.
+Si la station est inactive, l'état indiqué est : *En attente de scan...*
 
-Si aucun utilisateur n'est identifié : état **En attente de scan...**.
+### 5.4 Validation d'une entrée manuelle
 
-### 5.4 Validation d'une entrée
+Pour confirmer un accès, le Personnel doit renseigner le formulaire :
+1. **Motif de visite** (menu déroulant obligatoire).
+2. **Zone de travail** (menu déroulant obligatoire).
+3. **Commentaire** (champ texte optionnel pour annotation).
+4. Clic sur le bouton de confirmation **Valider l'entrée**.
 
-Champs de saisie :
-
-- motif de visite (obligatoire),
-- zone de travail (obligatoire),
-- commentaire (optionnel).
-
-Puis cliquer sur **Valider l'entrée**.
-
-### 5.5 Références utiles
-
-- Processus complet d'entrée : [11. Déroulement d'une entrée au FabLab](#11-déroulement-dune-entrée-au-fablab).
-- Mode automatique : [11.2 Mode automatique](#112-mode-automatique).
+> **Important :** Le processus opérationnel complet est détaillé dans la section [11. Déroulement d'une entrée au FabLab](#11-déroulement-dune-entrée-au-fablab).
 
 ---
 
 ## 6. Onglet Utilisateurs
 
-Cet onglet permet de rechercher, consulter et modifier les profils utilisateurs.
+Cet espace agit comme le gestionnaire d'annuaire (CRM) du FabLab.
 
 ![Extrait de l'onglet Utilisateurs](./images/4_pageusers.png)
 
-### 6.1 Organisation de la page
+### 6.1 Architecture de la page
 
-- À gauche : fiche détaillée du **Profil Utilisateur** sélectionné.
-- À droite : recherche, filtres et tableau des utilisateurs.
+- **Panneau de gauche :** Fiche d'édition détaillée du **Profil Utilisateur** sélectionné.
+- **Panneau de droite :** Moteur de recherche avancé et répertoire sous forme de tableau.
 
-### 6.2 Actions disponibles sur une fiche
+### 6.2 Administration d'une fiche profil
 
-- Voir QR code et identifiant utilisateur.
-- Modifier prénom, nom, e-mail, statut.
-- Associer / retirer une carte RFID.
-- Gérer les certifications machine.
-- **Sauvegarder** les changements.
-- **Envoyer le QR** par e-mail.
-- **Supprimer cet utilisateur** (action irréversible, avec confirmation).
-- Consulter l'historique des paiements liés à l'utilisateur.
+La sélection d'un membre déverrouille les actions d'administration suivantes :
+- Consultation du QR code personnel.
+- Modification des données d'état civil (Prénom, Nom, E-mail, Statut).
+- **Gestion RFID :** Révocation d'un badge perdu ou association d'une nouvelle carte via le bouton **Modifier la carte**.
+- **Accréditations :** Ajout ou retrait des certifications machines.
+- Historique des transactions comptables liées au membre.
 
-### 6.3 Recherche et pagination
+**Boutons d'action :**
+- **Sauvegarder :** Valide les modifications saisies.
+- **Envoyer le QR :** Déclenche l'envoi de l'identifiant par courriel.
+- **Supprimer cet utilisateur :** Procédure de suppression irréversible.
 
-- Recherche par nom, prénom ou e-mail.
-- Filtre par statut.
-- Pagination via **Précédent / Suivant**.
-- 20 utilisateurs affichés par page.
+### 6.3 Moteur de recherche et navigation
 
-### 6.4 Effet d'une suppression
+- Requêtes acceptées : Nom, prénom ou adresse e-mail.
+- Menu déroulant pour isoler une cohorte (filtrage par statut).
+- La navigation s'effectue par bloc de 20 résultats via la pagination (**Précédent / Suivant**).
 
-- Le profil utilisateur est supprimé définitivement.
-- Les entrées passées restent comptabilisées mais le nom/prénom devient **Membre supprimé**.
-- Les transactions comptables restent visibles.
+### 6.4 Impact de la suppression d'un profil
 
+> **Sécurité des données :** La suppression d'un compte est irréversible. Pour garantir l'intégrité des statistiques annuelles, le système efface l'identité (qui devient "Membre supprimé") mais préserve la traçabilité des transactions financières et le statut d'usage des anciennes visites.
+
+---
 
 ## 7. Onglet Comptabilité
 
-Cet onglet sert à gérer les transactions financières des utilisateurs.
+L'onglet Comptabilité centralise la facturation des matériaux et la gestion des flux de caisse.
 
 ![Extrait de l'onglet Comptabilité](images/11_compta.png)
 
-### 7.1 Organisation de la page
+### 7.1 Architecture de la page
 
-- À gauche : profil de l'utilisateur sélectionné.
-- À droite : formulaire d'enregistrement d'une opération.
-- En bas : historique global des transactions.
+- **Panneau de gauche :** Identification et état financier du profil.
+- **Panneau de droite :** Formulaire de saisie d'une nouvelle opération.
+- **Registre inférieur :** Journal de bord des transactions globales.
 
-### 7.2 Recherche d'utilisateur
+### 7.2 Identification du payeur
 
-Même logique que [5.2 Identification d'un utilisateur](#52-identification-dun-utilisateur) :
+Le processus de recherche hérite des mêmes caractéristiques que la borne d'accueil ([Voir 5.2 Identification d'un utilisateur](#52-identification-dun-utilisateur)). La fiche charge immédiatement le solde en cours et les cinq derniers mouvements du membre.
 
-- recherche textuelle,
-- scan QR,
-- suggestions cliquables.
+### 7.3 Saisie d'un mouvement financier
 
-### 7.3 Informations affichées (zone gauche)
+Le formulaire de droite structure l'opération comptable :
+- **Nom de l'opération :** Libellé obligatoire (ex: "Achat PLA").
+- **Numéro d'opération :** Référence de suivi bancaire (optionnel).
+- **Liaison Projet :** Type de projet et Nom du projet. L'autocomplétion suggère les projets existants et pré-remplit le responsable (Tuteur).
+- **Type de mouvement :** Sélection stricte entre **Crédit** (Rechargement) ou **Débit** (Achat).
+- **Tarification automatisée :** La sélection d'un matériau couplée à un poids/quantité calcule automatiquement le montant final selon la grille tarifaire enregistrée.
+- **Validation :** Le clic sur **Enregistrer l'opération** met à jour le solde instantanément.
 
-- prénom, nom,
-- statut,
-- solde,
-- e-mail,
-- carte RFID associée (ou non),
-- dernières transactions.
+### 7.4 Journal comptable et exportation
 
-### 7.4 Saisie d'une opération (zone droite)
-
-Champs principaux :
-
-- nom de l'opération (obligatoire),
-- numéro d'opération (optionnel),
-- description (optionnelle),
-- type de projet (obligatoire),
-- nom du projet (obligatoire si projet sélectionné),
-- responsable projet (optionnel),
-- type de mouvement : **Crédit** ou **Débit** (obligatoire),
-- matériau + quantité/poids (optionnel, mais quantité/poids obligatoire si matériau choisi),
-- montant final de l'opération,
-- commentaire (optionnel).
-
-Le montant final peut être calculé automatiquement selon matériau et quantité/poids, ou saisi directement selon le cas d'usage.
-
-### 7.5 Historique et export
-
-Le tableau en bas de page permet :
-
-- filtrage par type de projet,
-- filtrage par nom de projet,
-- ouverture du détail d'une transaction dans un panneau latéral,
-- export CSV via **Exporter l'historique**.
-
-Le fichier est enregistré dans **Téléchargements** sous le nom :
-**Transactions_FabLab.csv**.
+Le registre inférieur offre une vue exhaustive des flux :
+- Outils de filtrage croisés (par type de projet ou nom exact).
+- L'inspection détaillée d'une facture s'ouvre dans un volet latéral par simple clic sur une ligne.
+- Le bouton **Exporter l'historique** génère un fichier tableur de la requête en cours (téléchargé sous le nom `Transactions_FabLab.csv`).
 
 ---
 
 ## 8. Onglet Statistiques
 
-Cet onglet fournit une vue d'ensemble de la fréquentation sur une période donnée.
+L'interface de reporting décisionnel. Elle agglomère les données brutes pour éditer des rapports de fréquentation.
 
 ![Extrait de l'onglet Statistiques](images/6_pagestats.png)
 
-### 8.1 Section Filtres d'analyse
+### 8.1 Module de filtrage
 
-Filtres disponibles :
+Accessible via le panneau supérieur déroulant **Filtres d'analyse** :
+- **Critères temporels :** Aujourd'hui, 7 jours, 30 jours, 12 mois.
+- **Critères spatiaux et sociaux :** Zone de travail, motif, statut, certification, mode de saisie.
 
-- période (aujourd'hui, 7 jours, 30 jours, 12 mois),
-- zone de travail,
-- motif de visite,
-- mode d'enregistrement,
-- statut utilisateur,
-- certification machine.
+L'actualisation des données requiert de cliquer sur **Appliquer les filtres**.
 
-Actions :
+### 8.2 Indicateurs de performance
 
-- **Appliquer les filtres**,
-- **Réinitialiser**.
+Trois métriques réagissent dynamiquement aux filtres appliqués :
+- Total des entrées du jour.
+- Total des entrées sur l'amplitude temporelle choisie.
+- Nombre de visiteurs uniques sur la période.
 
-### 8.2 Indicateurs clés
+### 8.3 Analyse graphique
 
-Trois indicateurs centraux :
+- **Histogramme (gauche) :** Visualisation de l'évolution du trafic par intervalles de temps.
+- **Graphique de répartition (droite) :** Segmentation de l'audience selon le statut institutionnel.
 
-- entrées aujourd'hui,
-- entrées sur la période sélectionnée,
-- nombre de membres correspondants.
+### 8.4 Registre des accès filtrés
 
-### 8.3 Bloc Activités
+- Le tableau répertorie les 20 derniers pointages correspondant aux critères actifs.
+- L'extraction des données brutes vers Excel/LibreOffice s'effectue via le bouton **Exporter l'historique** (fichier `Historique_Entrees_FabLab.csv`).
 
-- Histogramme d'évolution des passages.
-- Répartition par profils (statuts).
-
-### 8.4 Dernières entrées filtrées
-
-- Tableau des 20 passages les plus récents selon les filtres.
-- Colonnes : date/heure, nom/prénom, statut, zone, projet, type d'entrée.
-- Clic sur un nom : ouverture de sa fiche utilisateur.
-
-### 8.5 Export et actualisation
-
-- **Exporter l'historique** : export CSV des données filtrées.
-- **Actualiser** : mise à jour du tableau selon les filtres.
-
-Fichier exporté : **Historique_Entrees_FabLab.csv** (dossier Téléchargements).
-
+---
 
 ## 9. Onglet Inscription
 
-Cet onglet sert à créer un nouvel utilisateur dans la base de données.
+Module d'intégration (Onboarding) pour la création et la maintenance des identités numériques.
 
 ![Extrait de l'onglet Inscription](./images/7_pageinscrip.png)
 
-### 9.1 Objectif
+### 9.1 Formulaire de création d'accès
 
-L'inscription est nécessaire avant une première identification en Scanner.
+La création d'un compte exige la saisie des champs suivants :
+- **Statut** (Génère automatiquement le suffixe de l'adresse e-mail de l'établissement).
+- **Prénom & Nom** (Obligatoires).
+- **E-mail** (Éditable si le format généré nécessite une correction).
+- **Motif de visite** (Catégorisation initiale).
+- **Liaison RFID** (Facultative lors de l'inscription).
 
-### 9.2 Formulaire d'inscription
+### 9.2 Délivrance du QR Code
 
-Champs et actions :
+Un clic sur le bouton « Enregistrer l'utilisateur » déclenche, après enregistrement, l'ouverture de votre client de messagerie par défaut (ex: Zimbra).
 
-- statut (obligatoire),
-- prénom (obligatoire),
-- nom (obligatoire),
-- e-mail (obligatoire, pré-rempli selon le statut),
-- motif de visite (obligatoire),
-- associer la carte (optionnel),
-- enregistrer l'utilisateur.
+> **Sécurité & Authentification :** Lors de l'envoi, une fenêtre d'authentification (service CAS) de votre établissement peut s'ouvrir. Ces données de connexion transitent exclusivement par les serveurs sécurisés de l'établissement et ne sont en aucun cas collectées par l'Application FabScan. 
 
-### 9.3 Envoi du QR code
+**Procédure d'expédition :**
+1. Validez le contenu de l'e-mail.
+2. Fais un **(CTRL+V)** ou un **(Clic droit + Coller)** dans le corps du texte pré-rédigé.
+3. Expédiez le message et retournez sur l'Application.
 
-Après enregistrement, une fenêtre s'ouvre pour préparer l'envoi d'e-mail (ex. client de messagerie de l'établissement).
+### 9.3 Outils d'administration de bases de données
 
-Bonnes pratiques :
-
-1. Vérifier l'adresse e-mail.
-2. Envoyer le QR code.
-3. Revenir dans FabScan et confirmer la suite.
-
-### 9.4 Import de base historique
-
-Bouton : **Importer un fichier Excel historique (.xlsx)**.
-
-Cette fonction sert principalement à l'initialisation ou à une migration de données.
-
-### 9.5 Maintenance réglementaire
-
-Bouton : **Maintenance réglementaire**.
-
-Cette fonction permet de :
-
-- supprimer les utilisateurs inactifs depuis longtemps (ex. 5 ans),
-- anonymiser certaines données selon les règles applicables.
-
-L'action est sécurisée par confirmations successives et authentification système.
+- **Importation de données :** Le bouton **Importer un fichier Excel historique (.xlsx)** est réservé aux opérations de migration ou d'initialisation massive des cohortes. Afin que l'importation se passe au mieux, il faut que le fichier Excel contienne trois colonnes: Nom, Prénom, et Statut. Le nombre de fenêtres n'est pas important, puisque notre Application balaye l'entièreté du fichier. Dans la majorité des cas, cet outil ne sera quasiment pas utilisé, mais reste disponible.
+- **Maintenance réglementaire :** Conformément au RGPD de la CNIL, ce bouton purge les comptes inactifs depuis 5 ans et anonymise les données datant de plus d'un an.
+  - *Protection :* Cette opération critique est verrouillée par une double boîte de dialogue et requiert le mot de passe de session de l'ordinateur de supervision. Cette identification se fait à l'aide d'un clé d'accès délivrée par Windows. Aucune donnée n'est collectée par l'Application lors de la réalisation de cette opération. Il convient de réaliser cette maintenance tous les ans, la date du **1er septembre** étant proposé à titre d'exemple.
 
 ---
 
@@ -376,109 +307,90 @@ L'action est sécurisée par confirmations successives et authentification syst�
 
 ### 10.1 Inscription d'un utilisateur (procédure rapide)
 
-1. Ouvrir l'onglet **Inscription**.
-2. Renseigner statut, prénom, nom, e-mail et motif.
-3. Associer une carte si nécessaire.
-4. Cliquer sur **Enregistrer l'utilisateur**.
-5. Le client de messagerie de l'établissement (Zimbra) s'ouvre automatiquement.
-6. Si vous n'êtes pas connecté au service CAS de l'établissement :
-  - connectez-vous avec vos identifiants,
-  - fermez la fenêtre,
-  - revenez sur FabScan,
-  - cliquez sur **Renvoyer le QR Code**.
-7. Si vous êtes déjà connecté au service CAS :
-  - un e-mail pré-rédigé s'ouvre,
-  - collez le QR code dans le corps du message (**Ctrl+V** ou clic droit > Coller),
-  - envoyez l'e-mail.
+1. Naviguez vers l'onglet **Inscription**.
+2. Renseignez la fiche d'identité (Statut, Prénom, Nom, E-mail, Motif).
+3. (Optionnel) Cliquez sur "Associer la carte" puis demandez à l'Utilisateur de passer son badge vierge sur le lecteur pour l'associer.
+4. Cliquez sur **Enregistrer l'utilisateur**.
+5. Si le client de messagerie exige une connexion (CAS), identifiez-vous. Sinon, passez à l'étape suivante. 
+   Une fois l'identification faite, votre boîte de messagerie institutionnelle apparaîtra. Fermez la fenêtre, et revenez sur le formulaire d'inscription, puis cliquez à nouveau sur "Renvoyer le QR Code". Passez à l'étape suivante.
+6. Dans la fenêtre de rédaction du courriel, faites un **(CTRL+V)** ou **(Clic droit + Coller)** dans le corps du mail et procédez à l'envoi.
 
-Voir aussi : [9. Onglet Inscription](#9-onglet-inscription).
+Pour une description complète des champs : [Voir 9. Onglet Inscription](#9-onglet-inscription).
 
-### 10.2 Consultation rapide des statistiques
+### 10.2 Consultation des rapports d'activité
 
-1. Ouvrir l'onglet **Statistiques**.
-2. Déplier **Filtres d'analyse**.
-3. Choisir la période et les filtres utiles.
-4. Cliquer sur **Appliquer les filtres**.
-5. Lire les indicateurs, graphiques et tableau des dernières entrées.
+1. Ouvrez l'onglet **Statistiques**.
+2. Déployez le menu **Filtres d'analyse**.
+3. Croisez les critères de votre choix (ex: Zone d'Impression 3D, sur les 30 derniers jours).
+4. Cliquez sur **Appliquer les filtres**.
+5. Exploitez les KPI ou cliquez sur **Exporter l'historique** pour traiter les données sur Excel.
 
-Voir aussi : [8. Onglet Statistiques](#8-onglet-statistiques).
-
+---
 
 ## 11. Déroulement d'une entrée au FabLab
 
-Deux modes d'enregistrement existent : **manuel** et **automatique**.
+L'architecture FabScan prévoit deux régimes de fonctionnement selon l'affluence.
 
-### 11.1 Mode manuel
+### 11.1 Mode manuel (Accueil standard)
 
-1. Aller dans l'onglet **Scanner**.
-2. Saisir au minimum : motif de visite + zone de travail.
-3. Inviter l'utilisateur à scanner sa carte ou son QR code.
-4. Vérifier le profil et les certifications machine nécessaires.
-5. Cliquer sur **Valider l'entrée**.
+Ce régime assure une traçabilité optimale et garantit le contrôle humain des accréditations.
+
+1. Positionnez-vous sur l'onglet **Scanner**.
+2. Spécifiez en amont le **Motif de visite** et la **Zone de travail**.
+3. Demandez à l'usager de présenter son badge ou son téléphone.
+4. Analysez la fiche qui apparaît. **Assurez-vous que l'usager dispose de la certification requise** pour la zone demandée (icône verte).
+5. Validez l'accès via le bouton **Valider l'entrée**.
 
 ![Extrait Scanner avec utilisateur identifié](images/80_scanned.png)
 
-### 11.2 Mode automatique
+### 11.2 Mode automatique (Borne libre-service)
 
-Activer **Mode automatique** depuis **Accueil** ou **Scanner**.
+Ce régime fluidifie l'accès en période de forte affluence en supprimant la vérification humaine.
 
-![Mode automatique](images/81_modeauto.png)
+1. Depuis la barre d'en-tête (Accueil ou Scanner), activez l'interrupteur **Mode Automatique**.
+2. Le formulaire de droite se verrouille visuellement (grisé).
+3. L'installation agit désormais comme une borne autonome : chaque scan enregistre une présence sans exiger de détails supplémentaires.
 
-Comportement :
+![Aperçu du Mode Automatique](images/81_modeauto.png)
 
-- la zone de validation se grise,
-- chaque badge scanné est comptabilisé automatiquement,
-- les informations détaillées (zone, motif) ne sont pas demandées.
+Pour reprendre le contrôle de l'accueil, désactivez simplement l'interrupteur pour restaurer le Mode Manuel.
 
 ---
 
 ## 12. Procédures liées
 
-### 12.1 Filtrer les statistiques
+### 12.1 Paramétrage des filtres de données
+
+Les fonctions de filtrage (disponibles en Statistiques et Comptabilité) requièrent systématiquement une validation manuelle.
 
 ![Menu de filtrage](images/85_filtrage.png)
 
-1. Déplier **Filtres d'analyse**.
-2. Choisir période + filtres complémentaires.
-3. Cliquer sur **Appliquer les filtres** ou **Actualiser**.
+1. Ajustez les menus déroulants selon votre cible d'analyse.
+2. N'oubliez pas de presser le bouton **Appliquer les filtres** / **Rechercher** pour exécuter la requête.
 
-![Statistiques affichées](images/88_statsplus.png)
+![Statistiques affichées](images/86_statsplus.png)
 
-### 12.2 Exporter des données
+### 12.2 Localisation des exports de données
 
-- Depuis **Statistiques** : export des entrées filtrées.
-- Depuis **Comptabilité** : export des transactions filtrées.
-
-Vérifier le dossier **Téléchargements** après export.
+L'ensemble des fichiers générés par les fonctions d'exportation de l'Application sont directement envoyés vers le dossier natif **Téléchargements** (Downloads) de votre système d'exploitation, sous le format standardisé `.csv`.
 
 ---
 
-## 13. FAQ
+## 13. Foire Aux Questions (FAQ)
 
-### 13.1 L'application fonctionne-t-elle sans Internet ?
+### 13.1 L'application est-elle dépendante d'une connexion Internet ?
+Le pointage RFID et la gestion des bases de données locales fonctionnent en réseau fermé. Internet est cependant requis pour émettre des QR codes par messagerie ou consulter des liens externes.
 
-Oui, pour les usages principaux. Internet reste recommandé, notamment pour l'envoi de QR code.
+### 13.2 Comment procéder si un membre ne reçoit pas son QR code ?
+1. [Voir 6. Onglet Utilisateurs](#6-onglet-utilisateurs) pour retrouver le profil.
+2. Vérifiez la validité de l'adresse e-mail inscrite.
+3. Cliquez sur le bouton d'action **Envoyer le QR** pour forcer une nouvelle expédition.
 
-### 13.2 Un utilisateur vous demande de renvoyer son QR code : que faire ?
+### 13.3 Comment enregistrer un visiteur démuni de badge ou de téléphone ?
+L'outil de recherche du **Scanner** est conçu pour pallier ce cas de figure. Saisissez manuellement son nom ou prénom pour forcer l'identification et valider son entrée. S'il n'est pas répertorié, passez par l'onglet Inscription.
 
-Ouvrir l'onglet **Utilisateurs**, rechercher la personne concernée, puis cliquer sur **Envoyer le QR**. Le client de messagerie de l'établissement s'ouvre automatiquement. Si vous n'êtes pas connecté au service CAS, connectez-vous puis relancez l'action depuis FabScan.
+### 13.4 La suppression d'un compte est-elle réversible ?
+Non. Le RGPD impose une suppression stricte. L'action est irréversible.
 
-Voir aussi : [10.1 Inscription d'un utilisateur (procédure rapide)](#101-inscription-dun-utilisateur-procédure-rapide).
-
-### 13.3 Un utilisateur n'a ni badge ni QR code : que faire ?
-
-Utiliser la recherche par nom/prénom dans **Scanner** ou l'inscrire via **Inscription** s'il n'existe pas encore.
-
-### 13.4 Peut-on annuler la suppression d'un utilisateur ?
-
-Non. La suppression est irréversible.
-
-### 13.5 Pourquoi une entrée apparaît en rouge dans certains tableaux ?
-
-Cela correspond à un enregistrement en mode automatique (selon la configuration d'affichage).
-
-### 13.6 Où sont enregistrés les exports CSV ?
-
-Dans le dossier **Téléchargements** de l'ordinateur utilisé.
-
----
+### 13.5 À quoi correspondent les textes en rouge dans l'historique ?
+Le code couleur identifie le canal d'enregistrement : le texte rouge signale une entrée captée de manière autonome ([Voir 11.2 Mode automatique](#112-mode-automatique)), tandis que le vert certifie un contrôle manuel par le Personnel.
