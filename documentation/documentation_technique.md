@@ -22,14 +22,13 @@ Une passerelle logicielle qui fait le pont entre le monde physique (lecteurs RFI
 
 ### Racine du projet
 - `start.bat` : Script de lancement principal pour Windows. Il installe les dépendances, démarre le serveur, lance le script d'acquisition et ouvre le navigateur.
-- `start.sh` : Script équivalent pour les systèmes Unix (Linux/macOS), focalisé sur le serveur.
 
 ### Dossier `/server`
 - `serveur.py` : Le point d'entrée. Il configure le `RequestHandler` pour servir le dossier `/client` et redirige les requêtes commençant par `/api` vers `routes_api.py`.
 - `routes_api.py` : Le contrôleur de routage. Il définit les endpoints GET (stats, users, config) et POST (scan, add_user, add_payment). Il extrait les données des requêtes et appelle les fonctions de `gestionnaires.py` ou `sql_request.py`.
 - `gestionnaires.py` : Le moteur de logique métier. Il contient les algorithmes complexes (calcul des statistiques, import Excel avec détection de doublons, génération de QR codes).
-- `sql_request.py` : La couche d'accès aux données (DAL). Il contient toutes les requêtes SQL brutes et gère les migrations de schéma de la base SQLite.
-- `traitementQR.py` : Script utilitaire pour la gestion historique des QR codes sur disque.
+- `sql_request.py` : La couche d'accès aux données. Il contient toutes les requêtes SQL brutes et gère les migrations de schéma de la base SQLite.
+- `traitementQR.py` : Script utilitaire pour la gestion historique des QR codes sur disque. Le script n'est pas utilisé par les dernières versions du code, mais peux toujours servir.
 
 ### Dossier `/client`
 - `index.html` : Structure de base de l'application (Header, Navigation, Conteneur principal).
