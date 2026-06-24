@@ -1,6 +1,6 @@
 # FabScan - Documentation Utilisateur (version complète)
 
-<table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 30px;">
+<table style="width: 100%; border: none; border-collapse: collapse;">
   <tr>
     <td style="width: 60%; vertical-align: top; border: none; padding-right: 20px;">
       <strong>Version du document :</strong> 23/06/2026<br>
@@ -34,7 +34,7 @@
 - [12. Procédures liées](#12-procédures-liées)
 - [13. Foire Aux Questions (FAQ)](#13-foire-aux-questions-faq)
 
----
+<BR>
 
 ## 1. Introduction
 
@@ -56,7 +56,7 @@ Afin de faciliter la compréhension des procédures, les termes suivants seront 
 - Pour l'enregistrement standard des flux : [Voir 11. Déroulement d'une entrée au FabLab](#11-déroulement-dune-entrée-au-fablab).
 - Pour la gestion des comptes : [Voir 9. Onglet Inscription](#9-onglet-inscription).
 
----
+<BR>
 
 ## 2. Prérequis et démarrage
 
@@ -72,7 +72,7 @@ L'onglet **Accueil** s'affiche : le système de gestion est désormais opératio
 
 > **Note sur la connectivité :** Une connexion Internet n'est pas strictement indispensable au fonctionnement du pointage. En cas de coupure réseau, l'Application maintient ses fonctions d'enregistrement locales. Toutefois, la connexion est requise pour l'exploitation avancée (ex: envoi des QR codes par e-mail).
 
----
+<BR>
 
 ## 3. Présentation générale de l'interface
 
@@ -95,7 +95,8 @@ La majorité des écrans de gestion s'articulent autour d'une disposition standa
 - Un formulaire de **saisie et de validation** dédié à l'action métier en cours.
 - Des **tableaux d'historique** dynamiques et filtrables.
 
----
+<BR>
+<BR>
 
 ## 4. Onglet Accueil
 
@@ -118,7 +119,7 @@ Il s'agit de la vue par défaut de l'Application, agissant comme un moniteur de 
 - Au sein du journal d'activité, un clic sur le nom d'un Utilisateur redirige immédiatement vers sa fiche détaillée ([Voir 6. Onglet Utilisateurs](#6-onglet-utilisateurs)).
 - Pour en savoir plus sur l'automatisation de l'accueil : [Voir 11.2 Mode automatique](#112-mode-automatique).
 
----
+<BR>
 
 ## 5. Onglet Scanner
 
@@ -162,7 +163,7 @@ Pour confirmer un accès, le Personnel doit renseigner le formulaire :
 
 > **Important :** Le processus opérationnel complet est détaillé dans la section [11. Déroulement d'une entrée au FabLab](#11-déroulement-dune-entrée-au-fablab).
 
----
+<BR>
 
 ## 6. Onglet Utilisateurs
 
@@ -184,6 +185,8 @@ La sélection d'un membre déverrouille les actions d'administration suivantes :
 - **Accréditations :** Ajout ou retrait des certifications machines.
 - Historique des transactions comptables liées au membre.
 
+<BR>
+
 **Boutons d'action :**
 - **Sauvegarder :** Valide les modifications saisies.
 - **Envoyer le QR :** Déclenche l'envoi de l'identifiant par courriel.
@@ -199,7 +202,7 @@ La sélection d'un membre déverrouille les actions d'administration suivantes :
 
 > **Sécurité des données :** La suppression d'un compte est irréversible. Pour garantir l'intégrité des statistiques annuelles, le système efface l'identité (qui devient "Membre supprimé") mais préserve la traçabilité des transactions financières et le statut d'usage des anciennes visites.
 
----
+<BR>
 
 ## 7. Onglet Comptabilité
 
@@ -212,6 +215,8 @@ L'onglet Comptabilité centralise la facturation des matériaux et la gestion de
 - **Panneau de gauche :** Identification et état financier du profil.
 - **Panneau de droite :** Formulaire de saisie d'une nouvelle opération.
 - **Registre inférieur :** Journal de bord des transactions globales.
+
+<BR>
 
 ### 7.2 Identification du payeur
 
@@ -234,7 +239,7 @@ Le registre inférieur offre une vue exhaustive des flux :
 - L'inspection détaillée d'une facture s'ouvre dans un volet latéral par simple clic sur une ligne.
 - Le bouton **Exporter l'historique** génère un fichier tableur de la requête en cours (téléchargé sous le nom `Transactions_FabLab.csv`).
 
----
+<BR>
 
 ## 8. Onglet Statistiques
 
@@ -267,7 +272,8 @@ Trois métriques réagissent dynamiquement aux filtres appliqués :
 - Le tableau répertorie les 20 derniers pointages correspondant aux critères actifs.
 - L'extraction des données brutes vers Excel/LibreOffice s'effectue via le bouton **Exporter l'historique** (fichier `Historique_Entrees_FabLab.csv`).
 
----
+<BR>
+<BR>
 
 ## 9. Onglet Inscription
 
@@ -295,13 +301,15 @@ Un clic sur le bouton « Enregistrer l'utilisateur » déclenche, après enregis
 2. Fais un **(CTRL+V)** ou un **(Clic droit + Coller)** dans le corps du texte pré-rédigé.
 3. Expédiez le message et retournez sur l'Application.
 
+<BR>
+
 ### 9.3 Outils d'administration de bases de données
 
 - **Importation de données :** Le bouton **Importer un fichier Excel historique (.xlsx)** est réservé aux opérations de migration ou d'initialisation massive des cohortes. Afin que l'importation se passe au mieux, il faut que le fichier Excel contienne trois colonnes: Nom, Prénom, et Statut. Le nombre de fenêtres n'est pas important, puisque notre Application balaye l'entièreté du fichier. Dans la majorité des cas, cet outil ne sera quasiment pas utilisé, mais reste disponible.
 - **Maintenance réglementaire :** Conformément au RGPD de la CNIL, ce bouton purge les comptes inactifs depuis 5 ans et anonymise les données datant de plus d'un an.
   - *Protection :* Cette opération critique est verrouillée par une double boîte de dialogue et requiert le mot de passe de session de l'ordinateur de supervision. Cette identification se fait à l'aide d'un clé d'accès délivrée par Windows. Aucune donnée n'est collectée par l'Application lors de la réalisation de cette opération. Il convient de réaliser cette maintenance tous les ans, la date du **1er septembre** étant proposé à titre d'exemple.
 
----
+<BR>
 
 ## 10. Mise en pratique
 
@@ -325,11 +333,13 @@ Pour une description complète des champs : [Voir 9. Onglet Inscription](#9-ongl
 4. Cliquez sur **Appliquer les filtres**.
 5. Exploitez les KPI ou cliquez sur **Exporter l'historique** pour traiter les données sur Excel.
 
----
+<BR>
 
 ## 11. Déroulement d'une entrée au FabLab
 
 L'architecture FabScan prévoit deux régimes de fonctionnement selon l'affluence.
+
+<BR>
 
 ### 11.1 Mode manuel (Accueil standard)
 
@@ -355,7 +365,7 @@ Ce régime fluidifie l'accès en période de forte affluence en supprimant la v�
 
 Pour reprendre le contrôle de l'accueil, désactivez simplement l'interrupteur pour restaurer le Mode Manuel.
 
----
+<BR>
 
 ## 12. Procédures liées
 
@@ -370,11 +380,12 @@ Les fonctions de filtrage (disponibles en Statistiques et Comptabilité) requiè
 
 ![Statistiques affichées](images/86_statsplus.png)
 
+
 ### 12.2 Localisation des exports de données
 
 L'ensemble des fichiers générés par les fonctions d'exportation de l'Application sont directement envoyés vers le dossier natif **Téléchargements** (Downloads) de votre système d'exploitation, sous le format standardisé `.csv`.
 
----
+<BR>
 
 ## 13. Foire Aux Questions (FAQ)
 
@@ -388,6 +399,8 @@ Le pointage RFID et la gestion des bases de données locales fonctionnent en ré
 
 ### 13.3 Comment enregistrer un visiteur démuni de badge ou de téléphone ?
 L'outil de recherche du **Scanner** est conçu pour pallier ce cas de figure. Saisissez manuellement son nom ou prénom pour forcer l'identification et valider son entrée. S'il n'est pas répertorié, passez par l'onglet Inscription.
+
+<BR>
 
 ### 13.4 La suppression d'un compte est-elle réversible ?
 Non. Le RGPD impose une suppression stricte. L'action est irréversible.
