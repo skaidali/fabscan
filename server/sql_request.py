@@ -322,13 +322,13 @@ def get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_fil
     conn = get_connection()
     cursor = conn.cursor()
 
-    # 1. Décompte de la communauté
-    if u_where_sql:
-        cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {u_where_sql}", user_params)
+    # 1. Décompte de la communauté 
+    if u_where_sql.startswith("FROM"):
+        cursor.execute(f"SELECT COUNT(*) {u_where_sql}", user_params)
     else:
-        cursor.execute("SELECT COUNT(*) FROM UTILISATEURS")
+        cursor.execute(f"SELECT COUNT(*) FROM UTILISATEURS u {u_where_sql}", user_params)
     total_users = cursor.fetchone()[0]
-
+   
     # 2. Total historique filtré
     cursor.execute(f"SELECT COUNT(*) {base_join} {statut_filter}", all_params)
     total_entries = cursor.fetchone()[0]

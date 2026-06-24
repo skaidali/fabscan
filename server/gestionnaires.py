@@ -125,13 +125,19 @@ def get_stats_logic(params_getter):
     type_entree = params_getter('type_entree', ['all'])[0]
 
     base_join = "FROM ENTREE e"
+    u_from_sql = "FROM UTILISATEURS u"
     user_where, user_params, entry_where, entry_params = [], [], [], []
     
-    if statut and statut != "all": entry_where.append("e.user_statut = ?"); entry_params.append(statut)
+    if statut and statut != "all": 
+        entry_where.append("e.user_statut = ?")
+        entry_params.append(statut)
+        
     if certif and certif != "all": 
-        # On utilise json_each pour faire une vérification stricte au sein du tableau JSON
+        # Pour le décompte des entrées globales :
         base_join = "FROM ENTREE e LEFT JOIN UTILISATEURS u ON e.id_utilisateur = u.id, json_each(IFNULL(u.certifications, '[]'))"
+        u_from_sql = "FROM UTILISATEURS u, json_each(IFNULL(u.certifications, '[]'))"
         user_where.append("json_each.value = ?")
+        user_params.append(certif)
         user_params.append(certif)
     if zone and zone != "all": entry_where.append("e.zone_travail = ?"); entry_params.append(zone)
     if motif and motif != "all": entry_where.append("e.type_projet = ?"); entry_params.append(motif)
@@ -139,12 +145,12 @@ def get_stats_logic(params_getter):
         if type_entree == "manuel": entry_where.append("e.type_projet != 'N/A' AND e.zone_travail != 'N/A'")
         elif type_entree == "auto": entry_where.append("e.type_projet = 'N/A' AND e.zone_travail = 'N/A'")
 
-
+    
     all_where = user_where + entry_where
     all_params = user_params + entry_params
     statut_filter = f"WHERE {' AND '.join(all_where)}" if all_where else ""
     and_statut_filter = f"AND {' AND '.join(all_where)}" if all_where else ""
-    u_where_sql = f"WHERE {' AND '.join(user_where)}" if user_where else ""
+    u_where_sql = f"{u_from_sql} WHERE {' AND '.join(user_where)}" if user_where else "FROM UTILISATEURS"
 
     # Importation native nécessaire à ajouter aux côtés de "from datetime import datetime as dt"
     import datetime

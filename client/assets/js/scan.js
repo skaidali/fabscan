@@ -155,27 +155,32 @@ function initScanPage() {
                     }
                     lastAutoEntryTime = now;
                     
-                    // Vérifier les certifications requises (si la zone l'exige)
-                    var zoneRequiereCertif = userData.data.certifications && userData.data.certifications.length > 0;
-                    if (!userData.data.certifications || userData.data.certifications.length === 0) {
-                        msgBox.style.color = "var(--danger)";
-                        msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Accès refusé : aucune certification machine !";
-                        setTimeout(resetUI, 3000);
-                        return;
-                    }
+                    // Détection d'anomalie de certification (sans bloquer l'accès)
+                    var aUnProblemeCertif = !userData.data.certifications || userData.data.certifications.length === 0;
                     
                     fetch('/api/add_entry', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id: userData.data.id, type_projet: "N/A", zone_travail: "N/A", commentaire: "Mode Auto (" + source + ")" })
+                        body: JSON.stringify({ 
+                            user_id: userData.data.id, 
+                            type_projet: "N/A", 
+                            zone_travail: "N/A", 
+                            commentaire: "Mode Auto (" + source + ")" 
+                        })
                     })
                     .then(function(res) { return res.json(); })
                     .then(function(resData) {
                         var finalVisible = document.body.contains(panelName);
                         if (finalVisible) {
                             if (resData.success) {
-                                msgBox.style.color = "var(--success)";
-                                msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée Auto validée pour " + resData.prenom + " !";
+                                // Si pas de certif, on affiche un point d'exclamation jaune de secours
+                                if (aUnProblemeCertif) {
+                                    msgBox.style.color = "var(--warning)";
+                                    msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Entrée validée pour " + resData.prenom + " (⚠️ Certifications manquantes !)";
+                                } else {
+                                    msgBox.style.color = "var(--success)";
+                                    msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée Auto validée pour " + resData.prenom + " !";
+                                }
                                 setTimeout(resetUI, 2500);
                             } else {
                                 msgBox.style.color = "var(--danger)";

@@ -132,4 +132,44 @@ function initHomePage() {
         clearInterval(intervalDonnees);
         window.removeEventListener('hashchange', destructionTimers);
     });
+    // Écoute globale du lecteur sur la page d'accueil en Mode Auto
+    MoteurScan.ecouter({
+        inputRecherche: null, // Pas besoin de barre de recherche sur l'accueil
+        datalist: null,
+        onUserFound: function(idScanne, source) {
+            // On ne déclenche l'action que si le Mode Auto est activé
+            if (window.fablabAutoMode) {
+                console.log("Scan automatique détecté depuis l'accueil:", idScanne);
+                
+                // 1. On cherche qui est la personne
+                fetch('/api/user_info?id=' + encodeURIComponent(idScanne))
+                .then(res => res.json())
+                .then(userData => {
+                    if (userData.success) {
+                        // 2. On enregistre son entrée automatiquement
+                        fetch('/api/add_entry', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                user_id: userData.data.id, 
+                                type_projet: "N/A", 
+                                zone_travail: "N/A", 
+                                commentaire: "Mode Auto Accueil (" + source + ")" 
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(resData => {
+                            if (resData.success) {
+                                console.log("Entrée auto enregistrée avec succès depuis l'accueil !");
+                                // 3. On rafraîchit le petit tableau des dernières entrées
+                                if (typeof rafraichirFluxDonnees === "function") {
+                                    rafraichirFluxDonnees();
+                                }
+                            }
+                        });
+                    }
+                }).catch(err => console.error("Erreur scan auto accueil:", err));
+            }
+        }
+    });
 }

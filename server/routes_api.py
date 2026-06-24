@@ -193,6 +193,7 @@ def handle_post_api(route, request_handler):
         zone = data.get('zone_travail', 'N/A')
         comment = data.get('commentaire', '')
         
+        
         # On intercepte la non-existence de l'utilisateur
         try:
             db.add_entry(uid, motif, zone, comment)
