@@ -40,14 +40,15 @@ Les fichiers STL nécessaires à l'impression sont disponibles en téléchargeme
 
 L'architecture du boîtier et de son support a été optimisée pour minimiser l'utilisation de supports d'impression. 
 
+<BR>
+<BR>
+
 #### Orientation des pièces
 Pour un résultat optimal et économique en matériau, disposez les pièces de la manière suivante :
 
 ![Disposition des pièces sur le plateau](./images/disposition1.png)
 
 > Note : Pour mettre en valeur les logos, il est possible d'imprimer la pièce suivante, dans une couleur différente de celle du boitier. ![Disposition des pièces sur le plateau](./images/disposition2.png)
-
-<BR>
 
 #### Gestion des supports
 Seul le support de la LED nécessite des supports d'impression. Pour les placer précisément sans surcharger la pièce, utilisez l'option **"Peindre les supports"** de votre logiciel de trancheur, et peignez les de la manière suivante :

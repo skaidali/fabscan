@@ -28,7 +28,7 @@
 
 > Internet recommandé, mais non indispensable pour les fonctions principales.
 
----
+<BR>
 
 ## 2. Enregistrer une entrée (mode manuel)
 
@@ -48,7 +48,7 @@
 
 Avant validation, vérifier les **certifications machine** si la zone concernée l'exige.
 
----
+<BR>
 
 ## 3. Mode automatique
 
@@ -61,8 +61,6 @@ Effet :
 - les champs zone/motif ne sont pas demandés.
 
 À utiliser sur des périodes de flux continu et encadré.
-
----
 
 ## 4. Inscrire un nouvel utilisateur
 
@@ -77,7 +75,7 @@ Effet :
 4. Cliquer sur **Enregistrer l'utilisateur**.
 5. Envoyer le QR code si proposé.
 
----
+<BR>
 
 ## 5. Gérer un utilisateur
 
@@ -91,7 +89,7 @@ Depuis l'onglet **Utilisateurs** :
 - renvoyer QR,
 - supprimer (irréversible).
 
----
+<BR>
 
 ## 6. Comptabilité
 
@@ -108,7 +106,11 @@ Depuis l'onglet **Comptabilité** :
 
 Export CSV : bouton **Exporter l'historique**.
 
----
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
 
 ## 7. Statistiques
 
@@ -120,7 +122,7 @@ Depuis l'onglet **Statistiques** :
 4. Utiliser **Actualiser** si nécessaire.
 5. Exporter via **Exporter l'historique**.
 
----
+<BR>
 
 ## 8. Dépannage express
 
@@ -129,7 +131,7 @@ Depuis l'onglet **Statistiques** :
 - Export absent : vérifier le dossier **Téléchargements**.
 - Erreur de saisie : corriger les champs obligatoires avant validation.
 
----
+<BR>
 
 ## 9. FAQ rapide
 
@@ -154,7 +156,7 @@ Il peut utiliser le QR code ou la recherche nom/prénom.
 
 Vérifier avec l'Utilisateur l'adresse e-mail connue par l'Application, puis renvoyer le QR code depuis l'onglet **Utilisateurs**.
 
----
+<BR>
 
 ## 10. Impression / PDF
 
@@ -165,7 +167,7 @@ Checklist avant diffusion :
 - [ ] Liens internes vérifiés.
 - [ ] Test d'impression A4 effectué.
 
----
+<BR>
 
 ## 11. Document complet
 

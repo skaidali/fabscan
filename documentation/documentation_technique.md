@@ -1,9 +1,24 @@
 # Documentation Technique - FabScan
-
+<table style="width: 100%; border: none; border-collapse: collapse;">
+  <tr>
+    <td style="width: 60%; vertical-align: top; border: none; padding-right: 20px;">
+      <strong>Version du document :</strong> 23/06/2026<br>
+      <strong>Public cible :</strong> Toute personne souhaitant modifier notre
+travail<br>
+      <strong>Objet :</strong> Notice de code
+    </td>
+    <td style="width: 40%; vertical-align: top; border: none; border-left: 1px solid #ddd; padding-left: 20px; text-align: left;">
+      <small>
+        <strong>Réalisé par l'équipe du PE-63 :</strong><br>
+        Skander Kaidali, Marceau Cottin, Hévan Rehel, Gabriel Sokolowski, Zaccary Nebout
+      </small>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 1. Architecture du Système
+## 1. Architecture du système
 
 L'application repose sur une architecture simple composée de trois briques principales :
 
@@ -16,9 +31,9 @@ Un serveur Python léger utilisant la bibliothèque standard `http.server`. Il f
 ### Acquisition (Matériel)
 Une passerelle logicielle qui fait le pont entre le monde physique (lecteurs RFID via Arduino) et le monde numérique (API Web). Elle transforme les signaux série en requêtes HTTP.
 
----
+<BR>
 
-## 2. Structure des Fichiers et Rôles des Scripts
+## 2. Structure des fichiers et rôles des scripts
 
 ### Racine du projet
 - `start.bat` : Script de lancement principal pour Windows. Il installe les dépendances, démarre le serveur, lance le script d'acquisition et ouvre le navigateur.
@@ -43,27 +58,28 @@ Une passerelle logicielle qui fait le pont entre le monde physique (lecteurs RFI
 ### Dossier `/acquisition`
 - `data_treatment.py` : Script Python qui lit les données série de l'Arduino et effectue un POST vers `/api/scan`.
 
----
+<BR>
 
-## 3. Fonctions Clés et Logique Métier
+## 3. Fonctions clés et logique métier
 
-### Identification Utilisateur (`moteurScan.js`)
+### Identification utilisateur (`moteurScan.js`)
 La fonction `ecouter` configure des écouteurs globaux. Elle distingue une saisie clavier humaine d'une scannette QR en mesurant le temps entre deux frappes (seuil de 40ms). Si les frappes sont trop rapides, elles sont traitées comme un code QR.
 
 ### Importation Excel (`gestionnaires.py` -> `import_users_excel_logic`)
 Cette fonction traite des fichiers Excel complexes. Elle utilise `difflib.SequenceMatcher` pour détecter les doublons même si l'orthographe du nom varie légèrement (ratio de similarité > 0.85). Elle nettoie également les accents pour générer des adresses e-mail standardisées.
 
-### Système de Paiement (`sql_request.py` -> `add_payment`)
+### Système de paiement (`sql_request.py` -> `add_payment`)
 La fonction gère la double écriture : elle enregistre une ligne dans la table `PAIEMENTS` et met à jour simultanément le champ `montant` dans la table `UTILISATEURS` si le mouvement est de type "CREDIT" ou un débit sur solde.
 
-### Statistiques Dynamiques (`gestionnaires.py` -> `get_stats_logic`)
+### Statistiques dynamiques (`gestionnaires.py` -> `get_stats_logic`)
 Génère des données agrégées pour les graphiques. Elle utilise des fonctions SQL `strftime` pour grouper les entrées par heure, jour ou mois selon la période demandée par l'utilisateur.
 
----
+<BR>
+<BR>
 
-## 4. Guide de Modification
+## 4. Guide de modification
 
-### Modifier l'Interface Utilisateur
+### Modifier l'interface utilisateur
 1. Pour changer le style global : éditez `client/assets/css/style.css`.
 2. Pour modifier une page spécifique : éditez le fichier correspondant dans `client/views/` et son script associé dans `client/assets/js/`.
 
@@ -75,9 +91,9 @@ Génère des données agrégées pour les graphiques. Elle utilise des fonctions
 ### Personnaliser les options du FabLab
 La plupart des changements opérationnels (nouveaux matériaux, nouveaux types de projets) ne nécessitent aucun code. Il suffit de modifier le fichier `database/config.json`.
 
----
+<BR>
 
-## 5. Maintenance et Sécurité
+## 5. Maintenance et sécurité
 
 ### RGPD
 Le système inclut une fonction de maintenance annuelle (`execute_rgpd_maintenance`) qui anonymise les entrées de plus d'un an et supprime les profils inactifs depuis plus de 5 ans, conformément aux réglementations sur la protection des données.
