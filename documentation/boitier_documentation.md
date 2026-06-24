@@ -15,6 +15,7 @@
   </tr>
 </table>
 
+---
 
 ## 1. Liste du matériel
 

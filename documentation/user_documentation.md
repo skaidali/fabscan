@@ -1,6 +1,6 @@
 # FabScan - Documentation Utilisateur (version complète)
 
-<table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 30px;">
+<table style="width: 100%; border: none; border-collapse: collapse;">
   <tr>
     <td style="width: 60%; vertical-align: top; border: none; padding-right: 20px;">
       <strong>Version du document :</strong> 23/06/2026<br>
