@@ -172,18 +172,14 @@ const MoteurScan = {
             .then(function() {
                 console.log("QR Code copié dans le presse-papiers !");
                 
+
+                alert("✅ Le QR Code a été copié dans votre presse-papiers !\n\nCliquez sur 'OK' pour ouvrir Zimbra, puis faites un clic droit > Coller (ou Ctrl+V) dans le message pour l'insérer.");
+                
                 // GESTION DE LA FENÊTRE UNIQUE ET RE-ROUTAGE
-                // Si la fenêtre existe déjà et qu'elle n'a pas été fermée par l'utilisateur
                 if (MoteurScan.fenetreZimbraUnique && !MoteurScan.fenetreZimbraUnique.closed) {
-                    
-                    // On recycle la fenêtre existante : on change son URL vers le nouveau mail
                     MoteurScan.fenetreZimbraUnique.location.href = urlComposeDirecte;
-                    MoteurScan.fenetreZimbraUnique.focus(); // On la remet au premier plan
-                    
+                    MoteurScan.fenetreZimbraUnique.focus(); 
                 } else {
-                    // Si elle n'existe pas encore (ou a été fermée), on crée LA fenêtre unique.
-                    // 'ZimbraFabLabPopup' est le nom de la fenêtre. Tant que ce nom est identique, 
-                    // le navigateur refusera d'ouvrir d'autres onglets et réutilisera celui-ci.
                     MoteurScan.fenetreZimbraUnique = window.open(
                         urlComposeDirecte, 
                         'ZimbraFabLabPopup', 
@@ -200,6 +196,11 @@ const MoteurScan = {
                 } else {
                     MoteurScan.fenetreZimbraUnique = window.open(urlComposeDirecte, 'ZimbraFabLabPopup', 'width=1100,height=750');
                 }
+                
+                // Pop-up d'erreur si la copie a échoué
+                setTimeout(function() {
+                    alert("⚠️ Le QR Code n'a pas pu être copié automatiquement (le navigateur bloque peut-être l'action). Vous devrez l'enregistrer manuellement.");
+                }, 500);
             });
     }
 };
