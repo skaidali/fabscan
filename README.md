@@ -27,13 +27,8 @@ Les contributions sont acceptées mais doivent rester dans le contexte d'étude.
 Ce projet a été créé dans le contexte du Projet d'Études de l'École Centrale de Lyon, qui s'est déroulé d'octobre 2025 à juin 2026.
 Nous remercions les conceptrices de ce projet : Chloé Laurent et [Clara Rigaud](https://github.com/Clararigaud) qui nous ont aidé et guidé tout au long du projet !
 
-# TODO: Choses à faire
+# Perspectives d'amélioration :
 - [ ] Dans un futur lointain, config file qui régiera toutes les sélections + traductabilité
-- [ ] Perspective d'amélioration : ajouter une option qui permet d'importer les données d'une base de données déjà existante (ex: si le fablab a déjà une base de données d'utilisateur·ices, pouvoir l'importer facilement dans notre système)
- 
-## Retours Chloé et Clara mars
 
-- [ ] Tres bien le fichier sql_request pour separer les requetes db du serveur et la petite doc qui va avec. Attention à bien la mettre à jour en meme temps que les modifications dans le code :)  
-
-# Remarques sur le code SKANER
-- La database enregistre les heures en UTC, mais le serveur les convertit en heure locale pour l'affichage. Il faut donc faire attention à ce que les heures soient bien converties. Normalement pas de problème lors de l'export en csv.
+# Remarques sur le code
+- La database enregistre les heures en UTC, mais le serveur les convertit en heure locale pour l'affichage. Il faut donc faire attention à ce que les heures soient bien converties. Normalement, pas de problème lors de l'export en csv.
