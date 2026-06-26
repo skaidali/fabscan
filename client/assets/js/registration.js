@@ -100,6 +100,23 @@ function initRegistrationPage() {
     champStatut.addEventListener('change', mettreAJourEmail);
 
     // ==========================================
+    // 2.1 SÉCURISATION DES CHAMPS NOM ET PRÉNOM
+    // ==========================================
+    function bloquerCaracteresSpeciaux(evenement) {
+        // Autorise uniquement : lettres (a-z, A-Z), accents (À-ÿ), espaces (\s), tirets (\-) et apostrophes (')
+        // Tout le reste (virgules, points, chiffres, symboles) est immédiatement supprimé
+        var valeurNettoyee = evenement.target.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '');
+        
+        if (evenement.target.value !== valeurNettoyee) {
+            evenement.target.value = valeurNettoyee;
+        }
+    }
+
+    // On applique ce filtre en temps réel sur les deux champs
+    champPrenom.addEventListener('input', bloquerCaracteresSpeciaux);
+    champNom.addEventListener('input', bloquerCaracteresSpeciaux);
+
+    // ==========================================
     // 3. GESTION DE LA CARTE RFID 
     // ==========================================
     if (boutonRfid) {
@@ -239,9 +256,23 @@ function initRegistrationPage() {
                 });
 
             } else {
+                boiteMessage.classList.remove('text-success');
                 boiteMessage.classList.add('text-danger', 'text-center');
                 boiteMessage.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur : " + resultat.error;
             }
+        })
+        // Le .catch() empêche l'interface de freezer en cas de crash du serveur !
+        .catch(function(erreur) {
+            console.error("Erreur serveur:", erreur);
+            boiteMessage.classList.remove('text-success');
+            boiteMessage.classList.add('text-danger', 'text-center');
+            boiteMessage.innerHTML = "<i class='fa-solid fa-server'></i> Une erreur interne du serveur s'est produite. Veuillez réessayer.";
+            
+            // On débloque le formulaire
+            formulaire.querySelectorAll('input, select, button[type="submit"]').forEach(function(el) {
+                el.disabled = false;
+            });
+            if (boutonRfid) boutonRfid.disabled = false;
         });
     });
 

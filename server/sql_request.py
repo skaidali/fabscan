@@ -349,19 +349,19 @@ def get_stats_db_raw(all_params, user_params, u_where_sql, base_join, statut_fil
     cursor.execute(f"SELECT {group_by} as d, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY d ORDER BY d", period_params)
     chart_data = {row[0]: row[1] for row in cursor.fetchall()}
     
-    # 7. Répartition par profils (✨ FIX : On utilise e.user_statut au lieu de u.statut car u n'existe plus ici)
+    # 7. Répartition par profils ( On utilise e.user_statut au lieu de u.statut car u n'existe plus ici)
     col_statut = "u.statut" if "UTILISATEURS" in base_join else "e.user_statut"
     cursor.execute(f"SELECT {col_statut}, COUNT(*) {base_join} WHERE e.date >= ? {and_statut_filter} GROUP BY {col_statut} ORDER BY COUNT(*) DESC", period_params)
     profiles = [{"name": row[0] if row[0] else "Inconnu", "count": row[1]} for row in cursor.fetchall()]
     
-    # 8. Tableau des entrées récentes (✨ FIX : On va chercher directement les infos gravées en dur)
+    # 8. Tableau des entrées récentes (On va chercher directement les infos gravées en dur)
     if "UTILISATEURS" in base_join:
-        sql_recent = f"SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20"
+        sql_recent = f"SELECT datetime(e.date, 'localtime'), u.nom, u.prenom, u.statut, e.zone_travail, e.type_projet, e.commentaire {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20"
     else:
-        sql_recent = f"SELECT datetime(e.date, 'localtime'), e.user_nom, e.user_prenom, e.user_statut, e.zone_travail, e.type_projet {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20"
+        sql_recent = f"SELECT datetime(e.date, 'localtime'), e.user_nom, e.user_prenom, e.user_statut, e.zone_travail, e.type_projet, e.commentaire {base_join} {statut_filter} ORDER BY e.date DESC LIMIT 20"
         
     cursor.execute(sql_recent, all_params)
-    recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}" if (r[1] or r[2]) else "Ancien Membre", "statut": r[3] or "Supprimé", "zone": r[4], "projet": r[5]} for r in cursor.fetchall()]
+    recent = [{"date": r[0], "nom": f"{r[2]} {r[1]}" if (r[1] or r[2]) else "Ancien Membre", "statut": r[3] or "Supprimé", "zone": r[4], "projet": r[5], "commentaire": r[6]} for r in cursor.fetchall()]
     
     conn.close()
     return total_users, total_entries, today_entries, hourly_entries, period_entries, chart_data, profiles, recent

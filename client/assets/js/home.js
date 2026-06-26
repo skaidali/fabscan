@@ -57,7 +57,7 @@ function initHomePage() {
                     }
 
                     if (!data.recent_entries || data.recent_entries.length === 0) {
-                        liveBody.innerHTML = '<tr><td colspan="5" class="text-center muted p-05">Aucun passage enregistré aujourd\'hui.</td></tr>';
+                        liveBody.innerHTML = '<tr><td colspan="6" class="text-center muted p-05">Aucun passage enregistré aujourd\'hui.</td></tr>';
                         return;
                     }
 
@@ -79,13 +79,14 @@ function initHomePage() {
                         tr.innerHTML = `
                             <td><span class="font-bold ${classeCouleurHeure}"><i class="${iconeHeure}"></i> ${heure}</span></td>
                             <td>
-                                <a class="action-redirection-user font-bold text-primary cursor-pointer" data-nom="${entree.nom}" title="Ouvrir la fiche de ce membre sur le scanner">
+                                <a class="action-redirection-user font-bold text-primary cursor-pointer" data-nom="${entree.nom}" title="Ouvrir la fiche de ce membre">
                                     ${entree.nom}
                                 </a>
                             </td>
                             <td><span class="pill">${entree.statut}</span></td>
                             <td><i class="fa-solid fa-location-dot text-danger"></i> ${affichageZone || 'Non spécifiée'}</td>
                             <td class="muted">${affichageProjet || 'Visite libre'}</td>
+                            <td class="muted text-sm">${entree.commentaire || '-'}</td>
                         `;
                         liveBody.appendChild(tr);
                     });
@@ -99,7 +100,7 @@ function initHomePage() {
                             // On mémorise l'identité dans la variable partagée
                             window.redirectionUserNom = nomComplet;
                             
-                            // 🚀 Redirection physique vers l'onglet Utilisateurs de ton routeur
+                            // Redirection physique vers l'onglet Utilisateurs de ton routeur
                             window.location.hash = "#users"; 
                         });
                     });

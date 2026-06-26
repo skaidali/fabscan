@@ -112,14 +112,15 @@ function initStatsPage() {
                     tr.innerHTML = `
                         <td><strong>${dateS}</strong> <span class="muted">${heureS}</span></td>
                         <td>
-                            <a class="action-redirection-user font-bold text-primary cursor-pointer" data-nom="${entree.nom || 'Inconnu'}" title="Ouvrir la fiche de ce membre sur le scanner">
-                                ${entree.nom || 'Inconnu'}
+                            <a class="action-redirection-user font-bold text-primary cursor-pointer" data-nom="${entree.nom}" title="Ouvrir la fiche de ce membre sur le scanner">
+                                ${entree.nom}
                             </a>
                         </td>
                         <td><span class="pill">${entree.statut || '—'}</span></td>
                         <td><i class="fa-solid fa-location-dot text-danger"></i> ${affichageZone}</td>
                         <td class="muted">${affichageProjet}</td>
                         <td>${typeEntreeBadge}</td>
+                        <td class="muted text-sm">${entree.commentaire || '-'}</td>
                     `;
                     corpsTableau.appendChild(tr);
                 });
@@ -134,13 +135,13 @@ function initStatsPage() {
                 });
 
             } else {
-                corpsTableau.innerHTML = "<tr><td colspan='6' class='text-center muted py-2'>Aucune entrée correspondante trouvée.</td></tr>";
+                corpsTableau.innerHTML = "<tr><td colspan='7' class='text-center muted py-2'>Aucune entrée correspondante trouvée.</td></tr>";
             }
         })
         .catch(err => {
             console.error("Erreur lors de la récupération des stats :", err);
             var corpsTableau = document.querySelector('#entries-table tbody');
-            if (corpsTableau) corpsTableau.innerHTML = "<tr><td colspan='6' class='text-center text-danger py-2'><i class='fa-solid fa-triangle-exclamation'></i> Échec de l'actualisation des données.</td></tr>";
+            if (corpsTableau) corpsTableau.innerHTML = "<tr><td colspan='7' class='text-center text-danger py-2'><i class='fa-solid fa-triangle-exclamation'></i> Échec de l'actualisation des données.</td></tr>";
         })
         .finally(() => {
             // Libération systématique de l'état graphique des boutons

@@ -38,14 +38,23 @@ def add_user_logic(data):
     if not nom or not prenom:
         return {"success": False, "error": "Nom et prénom requis", "code": 400}
 
+    # 1. Vérification de l'e-mail
     email = build_email(prenom, nom, statut)
     doublon = db.check_email_exists(email)
     if doublon:
         return {"success": False, "error": f"Un compte existe déjà avec l'adresse {email} (associé à {doublon[1]} {doublon[2]}).", "code": 409}
 
+    # 2. Vérification de la carte RFID
+    if id_carte:
+        doublon_carte = db.research_user_by_id_carte(id_carte)
+        if doublon_carte:
+            # doublon_carte[2] = prenom, doublon_carte[1] = nom
+            return {"success": False, "error": f"Cette carte RFID est déjà associée à {doublon_carte[2]} {doublon_carte[1]}.", "code": 409}
+
     user_id = dt.now().strftime('%Y%m%d%H%M%S')
     db.insert_user(user_id, nom, prenom, statut, email, id_carte)
     return {"success": True, "id": user_id, "message": f"Utilisateur {prenom} {nom} ajouté avec succès !"}
+
 
 def import_users_excel_logic(raw_body, content_type):
     if 'multipart/form-data' not in content_type:

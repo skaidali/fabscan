@@ -6,9 +6,12 @@
   "motifs": [
     "Projet d'Études", "PAi", "PAr", "Projet de Recherche", "Projet Personnel", "Visite", "Autre"
   ],
-  "zones": [
-    "Impression 3D", "Découpe Laser", "Électronique", 
-    "Broderie / Couture", "Espace de travail"
+"zones": [
+    { "nom": "Impression 3D", "certif_requise": "Impression 3D" },
+    { "nom": "Découpe Laser", "certif_requise": "Découpe Laser" },
+    { "nom": "Électronique", "certif_requise": null },
+    { "nom": "Broderie / Couture", "certif_requise": "Brodeuse Numérique" },
+    { "nom": "Espace de travail", "certif_requise": null }
   ],
   "departements": [
     "Génie Mécanique", "Informatique", "Génie Électrique"

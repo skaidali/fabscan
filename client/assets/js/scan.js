@@ -24,6 +24,7 @@ function initScanPage() {
     var champMotif = document.getElementById('motif'); 
     var champZone = document.getElementById('zone');   
     var listeCertificationsConfig = [];
+    var currentUserCertifs = [];
     
     // Gestion du throttling pour éviter les doubles scans
     var lastAutoEntryTime = 0;
@@ -44,7 +45,15 @@ function initScanPage() {
             champMotif.innerHTML = "";
             config.motifs.forEach(function(m) { champMotif.innerHTML += `<option value="${m}">${m}</option>`; });
             champZone.innerHTML = "";
-            config.zones.forEach(function(z) { champZone.innerHTML += `<option value="${z}">${z}</option>`; });
+            config.zones.forEach(function(z) {
+                // z est un objet { nom, certif_requise }
+                var opt = document.createElement('option');
+                opt.value = z.nom;
+                opt.textContent = z.nom;
+                // On stocke la certif requise dans un attribut data-certif
+                opt.setAttribute('data-certif', z.certif_requise || "");
+                champZone.appendChild(opt);
+            });
         } else {
             throw new Error(resultat.error || "Données invalides");
         }
@@ -98,6 +107,7 @@ function initScanPage() {
     }
 
     function afficherProfil(user) {
+        currentUserCertifs = user.certifications || [];
         userIdInput.value = user.id;
         panelName.textContent = user.prenom + " " + user.nom;
         if (panelStatutDetail) panelStatutDetail.textContent = user.statut || "-";
@@ -145,56 +155,24 @@ function initScanPage() {
             if (userData.success) {
                 if (stillVisible) afficherProfil(userData.data);
                 
-                // Si le mode automatique/robot est coché, on valide l'entrée sans intervention humaine
+                // Si le mode automatique/robot est coché
                 if (window.fablabAutoMode && stillVisible) {
-                    // Appliquer le throttling pour éviter les doubles scans rapides
                     var now = Date.now();
-                    if (now - lastAutoEntryTime < AUTO_ENTRY_THROTTLE_MS) {
-                        console.warn("Double scan évité - throttling actif");
-                        return;
-                    }
+                    if (now - lastAutoEntryTime < AUTO_ENTRY_THROTTLE_MS) return;
                     lastAutoEntryTime = now;
-                    
-                    // Détection d'anomalie de certification (sans bloquer l'accès)
-                    var aUnProblemeCertif = !userData.data.certifications || userData.data.certifications.length === 0;
                     
                     fetch('/api/add_entry', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            user_id: userData.data.id, 
-                            type_projet: "N/A", 
-                            zone_travail: "N/A", 
-                            commentaire: "Mode Auto (" + source + ")" 
-                        })
+                        body: JSON.stringify({ user_id: userData.data.id, type_projet: "N/A", zone_travail: "N/A", commentaire: "Mode Auto (" + source + ")" })
                     })
                     .then(function(res) { return res.json(); })
                     .then(function(resData) {
                         var finalVisible = document.body.contains(panelName);
-                        if (finalVisible) {
-                            if (resData.success) {
-                                // Si pas de certif, on affiche un point d'exclamation jaune de secours
-                                if (aUnProblemeCertif) {
-                                    msgBox.style.color = "var(--warning)";
-                                    msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Entrée validée pour " + resData.prenom + " (⚠️ Certifications manquantes !)";
-                                } else {
-                                    msgBox.style.color = "var(--success)";
-                                    msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée Auto validée pour " + resData.prenom + " !";
-                                }
-                                setTimeout(resetUI, 2500);
-                            } else {
-                                msgBox.style.color = "var(--danger)";
-                                msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur d'enregistrement !";
-                                setTimeout(resetUI, 3000);
-                            }
-                        }
-                    })
-                    .catch(function(err) {
-                        console.error("Erreur lors de l'enregistrement auto:", err);
-                        if (stillVisible) {
-                            msgBox.style.color = "var(--danger)";
-                            msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Problème de connexion avec le serveur !";
-                            setTimeout(resetUI, 3000);
+                        if (finalVisible && resData.success) {
+                            msgBox.style.color = "var(--success)";
+                            msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée Auto validée pour " + resData.prenom + " !";
+                            setTimeout(resetUI, 2500);
                         }
                     });
                 }
@@ -210,41 +188,47 @@ function initScanPage() {
                 msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur serveur !";
                 setTimeout(resetUI, 3000);
             }
-        });
+        });    
     }
-
-    // Validation manuelle du formulaire d'entrée
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        if (!userIdInput.value) {
-            msgBox.style.color = "var(--danger)";
-            msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Veuillez scanner ou sélectionner un utilisateur !";
-            return;
-        }
+        // 1. Récupération de la règle pour la zone choisie
+        var optionSelectionnee = champZone.options[champZone.selectedIndex];
+        var certifRequise = optionSelectionnee.getAttribute('data-certif');
         
+        // currentUserCertifs doit être rempli lors de l'affichage du profil (afficherProfil)
+        var aUnProblemeCertif = (certifRequise !== "" && !currentUserCertifs.includes(certifRequise));
+        
+        var commSaisi = champCommentaire.value;
+        var commFinal = aUnProblemeCertif 
+            ? (commSaisi ? commSaisi + " | " : "") + "⚠️ Certif manquante (" + certifRequise + ")" 
+            : commSaisi;
+
         fetch('/api/add_entry', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userIdInput.value, type_projet: champMotif.value, zone_travail: champZone.value, commentaire: champCommentaire.value })
+            body: JSON.stringify({ 
+                user_id: userIdInput.value, 
+                type_projet: champMotif.value, 
+                zone_travail: champZone.value, 
+                commentaire: commFinal 
+            })
         })
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success) {
-                msgBox.style.color = "var(--success)"; 
-                msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée validée !";
-                setTimeout(resetUI, 3000);
-            } else {
-                msgBox.style.color = "var(--danger)";
-                msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Erreur : " + (data.error || "Utilisateur invalide");
+                if (aUnProblemeCertif) {
+                    msgBox.style.color = "var(--warning)";
+                    msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Entrée validée (Attention : Certification manquante) !";
+                    // Pop-up bloquant pour l'accueil
+                    alert("⚠️ ATTENTION : CERTIFICATION MANQUANTE !\n\nL'utilisateur ne possède pas la certification requise : " + certifRequise + "\nL'entrée a été enregistrée avec cet avertissement.");
+                } else {
+                    msgBox.style.color = "var(--success)";
+                    msgBox.innerHTML = "<i class='fa-solid fa-check'></i> Entrée validée !";
+                }
                 setTimeout(resetUI, 3000);
             }
-        })
-        .catch(function(err) {
-            console.error("Erreur lors de la validation manuelle:", err);
-            msgBox.style.color = "var(--danger)";
-            msgBox.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> Problème de connexion serveur !";
-            setTimeout(resetUI, 3000);
         });
     });
 
