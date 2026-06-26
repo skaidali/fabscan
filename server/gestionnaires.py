@@ -33,13 +33,16 @@ def add_user_logic(data):
     nom = data.get('nom', '').strip().upper()
     prenom = data.get('prenom', '').strip().title()
     statut = data.get('statut', '')
+    email = data.get('email', '').strip()
     id_carte = data.get('id_carte', '').strip() if data.get('id_carte') else None
+    
+    if not email:
+        return {"success": False, "error": "Email requis", "code": 400}
     
     if not nom or not prenom:
         return {"success": False, "error": "Nom et prénom requis", "code": 400}
 
     # 1. Vérification de l'e-mail
-    email = build_email(prenom, nom, statut)
     doublon = db.check_email_exists(email)
     if doublon:
         return {"success": False, "error": f"Un compte existe déjà avec l'adresse {email} (associé à {doublon[1]} {doublon[2]}).", "code": 409}

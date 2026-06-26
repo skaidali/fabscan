@@ -13,7 +13,6 @@ function initRegistrationPage() {
     var boutonRfid = document.getElementById('rfid-associate-btn');
     var champRfidCache = document.getElementById('rfid_card_id');
     var boiteMessage = document.getElementById('registration-message');
-    var checkboxMail = document.getElementById('send_qr_email'); // La case à cocher
 
     // ==========================================
     // 1.1 CHARGEMENT DE LA CONFIGURATION (JSON)

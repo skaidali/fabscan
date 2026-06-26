@@ -151,13 +151,24 @@ const MoteurScan = {
         var lienImageQR = base_url + "/api/qr_code?id=" + user.id;
 
         var corpsMessage = encodeURIComponent(
+            "[English below]\n\n" +
             "Bonjour " + user.prenom + ",\n\n" +
             "Votre inscription au FabLab de l'Ecole Centrale de Lyon a bien été validée !\n\n" +
             "Voici votre QR Code personnel à conserver précieusement sur votre téléphone pour vous identifier lors de vos prochaines visites du FabLab.\n" +
-            "\n\n" +
+            "\n" +
+            
+            "\n" +
             "\n⚠️ IMPORTANT : Pour des raisons pratiques, nous vous conseillons tout de même de vous identifier lors de vos entrées à l'aide de votre carte multiservices.\n\n" +
             "À très vite !\n" +
-            "Pour l'équipe du FabLab,"
+            "Pour l'équipe du FabLab,\n\n" +
+            
+            "--------------------------------------------------\n\n" +
+            "Hello " + user.prenom + ",\n\n" +
+            "Your registration to the Ecole Centrale de Lyon FabLab has been confirmed!\n\n" +
+            "Here is your personal QR Code. Please keep it safe on your phone to identify yourself during your next visits to the FabLab.\n" +
+            "\n⚠️ IMPORTANT: For convenience, we recommend using your student/staff card to identify yourself when entering the FabLab.\n\n" +
+            "See you soon!\n" +
+            "The FabLab Team"
         );
         
         var urlComposeDirecte = "https://messagerie.ec-lyon.fr/?view=compose&to=" + emailDestinataire + "&subject=" + sujet + "&body=" + corpsMessage + "#1";
