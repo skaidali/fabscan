@@ -39,6 +39,7 @@
     {"id_type": "PE", "nom": "Projet d'Études (PE)"},
     {"id_type": "PAI", "nom": "PAI"},
     {"id_type": "PAR", "nom": "PAR"},
-    {"id_type": "RECHERCHE", "nom": "Projet de Recherche"}
+    {"id_type": "RECHERCHE", "nom": "Projet de Recherche"},
+    {"id_type": "PERSONNEL", "nom": "Projet personnel"}
   ]
 }
