@@ -1,5 +1,7 @@
 # Projet d'Études 63 : FabScan
 
+> L'application a été déplacée fin août 2026 vers un projet dédié [FabScan](https://gitlab.ec-lyon.fr/laurenth/fabscan). Ce dépôt est une archive du projet de PE 63 de l'année 2025-2026. Merci encore aux élèves pour leur investissement qui a posé les bases de l'outil utilisé au quotidien au FabLab depuis.
+
 ## Description
 **FabScan** est une application Web qui a pour but de centrer tous les outils et éléments nécessaires à la gestion d'un FabLab ou structure équivalente. Il propose plusieurs fonctionnalités à disposition des personnels de ces établissements :
 - La gestion des entrées des utilisateur·ices, grâce à un système rapide et efficace ;
